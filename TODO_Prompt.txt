@@ -1,0 +1,14 @@
+> **Role:** Professional Game Developer
+> **Task:** Create a "Fixed-Position Incremental Rotation System" for a first-person game.
+> **Core Mechanics:**
+> 1. **Stationary Perspective:** The player character is fixed at a single set of coordinates (no WASD movement).
+> 2. **Incremental Turning:** > * When the player presses the **'D'** key, the camera should rotate to the **right** by a specific degree increment (e.g., 90 degrees).
+>     - When the player presses the **'A'** key, the camera should rotate to the **left** by that same degree increment.
+> 3. **Relative Movement:** The rotation should always be relative to the current facing direction.
+> 4. **Smooth Interpolation:** The camera should not "snap" instantly. Use a **SmoothDamp**, **Lerp**, or **Tweening** function to ensure the turn feels like a smooth, weighted head movement.
+> 5. **Clamping (Limits):** Implement a maximum left and right rotation limit (e.g., -180 to 180 degrees) so the player cannot spin in circles indefinitely, unless I toggle a "360-degree" boolean.
+> **Technical Requirements:**
+> - Provide a variable for **`turnAngle`** (how many degrees it turns per click).
+> - Provide a variable for **`turnSpeed`** (how fast the transition happens).
+> - Ensure the system handles rapid key presses gracefully (e.g., if I press 'D' twice quickly, it should smoothly target the final 180-degree mark).
+> **Please provide the code (C# for Unity) and instructions on how to apply it to the Main Camera.**
