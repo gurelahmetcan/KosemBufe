@@ -12,9 +12,10 @@ using UnityEngine;
 ///  5. Attach CameraShake to the Main Camera and drag it into the CameraShake field.
 ///
 /// Behaviour:
-///  - Cuts 1–5 each spawn a slice and shrink the sucuk along its X axis by sliceWidth.
-///  - Cut 6 removes the sucuk object entirely (no slice spawned).
-///  - Each spawned slice appears at the sucuk's world position then flies to the plate stack.
+///  - Cuts 1–5 each spawn a slice; cut 6 removes the sucuk object entirely (no slice spawned).
+///  - Each spawned slice appears at the sucuk's world position, starts at rotation (0,0,0),
+///    and smoothly rotates to (0,0,90) while flying to the plate stack.
+///  - Stack slots are separated by stackSpacing (default 0.1) on the Y axis.
 /// </summary>
 public class SucukSlicingMinigame : MonoBehaviour
 {
@@ -44,9 +45,6 @@ public class SucukSlicingMinigame : MonoBehaviour
     [Tooltip("Speed (units/sec) at which the knife descends.")]
     public float sliceSpeed = 3f;
 
-    [Tooltip("How much the sucuk's X scale shrinks per slice (also the slice's X scale).")]
-    public float sliceWidth = 0.1f;
-
     [Tooltip("Speed (units/sec) at which the knife resets to the high position.")]
     public float resetSpeed = 8f;
 
@@ -54,8 +52,8 @@ public class SucukSlicingMinigame : MonoBehaviour
     [Tooltip("Speed (units/sec) at which each spawned slice flies to the plate.")]
     public float sliceFlySpeed = 6f;
 
-    [Tooltip("Extra vertical spacing between stacked slices on the plate.")]
-    public float stackSpacing = 0.05f;
+    [Tooltip("Y distance between each stacked slice on the plate (default 0.1).")]
+    public float stackSpacing = 0.1f;
 
     // ── State machine ────────────────────────────────────────────────────────
     private enum State { Idle, Slicing, Resetting, Finished }
@@ -111,18 +109,10 @@ public class SucukSlicingMinigame : MonoBehaviour
 
         if (_cutCount <= MaxSlices)
         {
-            // Shrink the sucuk's X scale instead of moving it
-            if (sucuk != null)
-            {
-                Vector3 scale = sucuk.localScale;
-                scale.x -= sliceWidth;
-                sucuk.localScale = scale;
-            }
-
-            // Spawn slice at the sucuk's current world position, then fly to plate
+            // Spawn slice at sucuk position, rotation starts at (0,0,0) and rotates to (0,0,90) mid-flight
             if (slicePrefab != null && sucuk != null)
             {
-                GameObject slice = Instantiate(slicePrefab, sucuk.position, sucuk.rotation);
+                GameObject slice = Instantiate(slicePrefab, sucuk.position, Quaternion.identity);
                 Vector3 stackTarget = StackPosition(_cutCount - 1);
                 StartCoroutine(FlyToStack(slice.transform, stackTarget));
             }
@@ -159,16 +149,31 @@ public class SucukSlicingMinigame : MonoBehaviour
     private Vector3 StackPosition(int index)
     {
         if (slicePlateOrigin == null) return sucuk != null ? sucuk.position : Vector3.zero;
-        return slicePlateOrigin.position + Vector3.up * index * (sliceWidth + stackSpacing);
+        return slicePlateOrigin.position + Vector3.up * index * stackSpacing;
     }
 
+    /// <summary>
+    /// Moves the slice to its stack position while simultaneously rotating it
+    /// from (0,0,0) to (0,0,90). Progress of the rotation tracks position progress.
+    /// </summary>
     private IEnumerator FlyToStack(Transform slice, Vector3 target)
     {
+        Vector3 startPos = slice.position;
+        Quaternion startRot = Quaternion.identity;
+        Quaternion endRot   = Quaternion.Euler(0f, 0f, 90f);
+        float totalDist = Vector3.Distance(startPos, target);
+
         while (Vector3.Distance(slice.position, target) > 0.005f)
         {
             slice.position = Vector3.MoveTowards(slice.position, target, sliceFlySpeed * Time.deltaTime);
+
+            float t = totalDist > 0f ? 1f - Vector3.Distance(slice.position, target) / totalDist : 1f;
+            slice.rotation = Quaternion.Slerp(startRot, endRot, t);
+
             yield return null;
         }
+
         slice.position = target;
+        slice.rotation = endRot;
     }
 }
