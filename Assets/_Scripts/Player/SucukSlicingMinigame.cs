@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -70,9 +71,19 @@ public class SucukSlicingMinigame : MonoBehaviour
     private Transform  _sucuk;               // shortcut to _boardSucukInstance.transform
     private bool       _cuttingActive;       // true while LMB is held after clicking board sucuk
     private int        _cutCount;
+    private Vector3 _initialKnifePos;
 
     private const int MaxSlices = 5;         // cuts 1-5 produce slices
                                              // cut 6 removes the board sucuk
+                                             
+    private void Start()
+    {
+        if (knife != null)
+        {
+            _initialKnifePos = knife.position;
+            Debug.Log($"Initial Knife Pos: {_initialKnifePos}");
+        }
+    }
 
     private void Update()
     {
@@ -160,10 +171,12 @@ public class SucukSlicingMinigame : MonoBehaviour
         if (_boardSucukInstance != null)
             _boardSucukInstance.SetActive(false);
 
+        Destroy(_boardSucukInstance.gameObject);
         _boardSucukInstance = null;
         _sucuk              = null;
         _cuttingActive      = false;
         _state              = State.Idle;
+        MoveKnifeToward(_initialKnifePos, resetSpeed);
     }
 
     // ── Core slice event ──────────────────────────────────────────────────────
