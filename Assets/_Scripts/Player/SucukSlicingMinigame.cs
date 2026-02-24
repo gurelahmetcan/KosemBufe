@@ -64,26 +64,16 @@ public class SucukSlicingMinigame : MonoBehaviour
     public float stackSpacing = 0.1f;
 
     // ── Runtime state ────────────────────────────────────────────────────────
-    private enum State { Idle, Slicing, Resetting }
+    private enum State { Idle, Slicing, Resetting, ReturningToStart }
     private State _state = State.Idle;
 
     private GameObject _boardSucukInstance;  // null when no sucuk is on the board
     private Transform  _sucuk;               // shortcut to _boardSucukInstance.transform
     private bool       _cuttingActive;       // true while LMB is held after clicking board sucuk
     private int        _cutCount;
-    private Vector3 _initialKnifePos;
 
     private const int MaxSlices = 5;         // cuts 1-5 produce slices
                                              // cut 6 removes the board sucuk
-                                             
-    private void Start()
-    {
-        if (knife != null)
-        {
-            _initialKnifePos = knife.position;
-            Debug.Log($"Initial Knife Pos: {_initialKnifePos}");
-        }
-    }
 
     private void Update()
     {
@@ -120,6 +110,18 @@ public class SucukSlicingMinigame : MonoBehaviour
 
     private void RunStateMachine()
     {
+        // This state must run even after the board sucuk has been removed
+        if (_state == State.ReturningToStart)
+        {
+            MoveKnifeToward(highPosition.position, resetSpeed);
+            if (HasReached(highPosition.position))
+            {
+                knife.position = highPosition.position;
+                _state = State.Idle;
+            }
+            return;
+        }
+
         if (_boardSucukInstance == null) return;
 
         switch (_state)
@@ -174,9 +176,8 @@ public class SucukSlicingMinigame : MonoBehaviour
         Destroy(_boardSucukInstance.gameObject);
         _boardSucukInstance = null;
         _sucuk              = null;
-        _cuttingActive      = false;
-        _state              = State.Idle;
-        MoveKnifeToward(_initialKnifePos, resetSpeed);
+        _cuttingActive = false;
+        _state         = State.ReturningToStart; // RunStateMachine will move it every frame
     }
 
     // ── Core slice event ──────────────────────────────────────────────────────
