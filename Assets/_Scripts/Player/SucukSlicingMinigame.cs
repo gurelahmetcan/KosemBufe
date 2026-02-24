@@ -6,25 +6,29 @@ using UnityEngine;
 ///
 /// Setup:
 ///  1. Create an empty GameObject named "SlicingController" and attach this script.
-///  2. Assign Knife, Sucuk, HighPosition, BoardPosition transforms in the Inspector.
-///  3. Assign a slice prefab (thin disc/cylinder) as SlicePrefab.
-///  4. Create an empty GameObject where slices should stack and assign it to SlicePlateOrigin.
-///  5. Attach CameraShake to the Main Camera and drag it into the CameraShake field.
+///  2. Assign all Inspector references (see fields below).
+///  3. Attach CameraShake to the Main Camera and drag it into the CameraShake field.
+///  4. Ensure the HangingSucuk and any spawned BoardSucuk have Colliders so raycasts land.
 ///
-/// Behaviour:
-///  - Cuts 1–5 each spawn a slice; cut 6 removes the sucuk object entirely (no slice spawned).
-///  - Each spawned slice appears at the sucuk's world position, starts at rotation (0,0,0),
-///    and smoothly rotates to (0,0,90) while flying to the plate stack.
-///  - Stack slots are separated by stackSpacing (default 0.1) on the Y axis.
+/// Flow:
+///  - Click the hanging sucuk     → spawns a board sucuk (if none is present).
+///  - Hold LMB on the board sucuk → knife descends and slices continuously.
+///  - After 5 slices the 6th cut removes the board sucuk; player can grab a new one.
 /// </summary>
 public class SucukSlicingMinigame : MonoBehaviour
 {
     [Header("Scene References")]
+    [Tooltip("The sucuk object hanging in the scene that the player clicks to get a new one.")]
+    public GameObject hangingSucuk;
+
+    [Tooltip("Prefab spawned onto the cutting board when the hanging sucuk is clicked.")]
+    public GameObject boardSucukPrefab;
+
+    [Tooltip("Where the board sucuk prefab is instantiated (position + rotation).")]
+    public Transform boardSucukSpawnPoint;
+
     [Tooltip("The knife 3D object.")]
     public Transform knife;
-
-    [Tooltip("The sucuk (sausage) 3D object.")]
-    public Transform sucuk;
 
     [Tooltip("Empty GameObject marking the knife's raised start position.")]
     public Transform highPosition;
@@ -48,35 +52,74 @@ public class SucukSlicingMinigame : MonoBehaviour
     [Tooltip("Speed (units/sec) at which the knife resets to the high position.")]
     public float resetSpeed = 8f;
 
+    [Tooltip("Max raycast distance for click detection.")]
+    public float clickRange = 10f;
+
     [Header("Slice Animation")]
     [Tooltip("Speed (units/sec) at which each spawned slice flies to the plate.")]
     public float sliceFlySpeed = 6f;
 
-    [Tooltip("Y distance between each stacked slice on the plate (default 0.1).")]
+    [Tooltip("Y distance between each stacked slice on the plate.")]
     public float stackSpacing = 0.1f;
 
-    // ── State machine ────────────────────────────────────────────────────────
-    private enum State { Idle, Slicing, Resetting, Finished }
+    // ── Runtime state ────────────────────────────────────────────────────────
+    private enum State { Idle, Slicing, Resetting }
     private State _state = State.Idle;
 
-    // Total cut count (slices spawned = _cutCount for cuts 1-5, cut 6 removes sucuk)
-    private int _cutCount = 0;
-    private const int MaxCuts = 6;   // 5 slices + 1 final removal
-    private const int MaxSlices = 5; // MaxCuts - 1
+    private GameObject _boardSucukInstance;  // null when no sucuk is on the board
+    private Transform  _sucuk;               // shortcut to _boardSucukInstance.transform
+    private bool       _cuttingActive;       // true while LMB is held after clicking board sucuk
+    private int        _cutCount;
+
+    private const int MaxSlices = 5;         // cuts 1-5 produce slices
+                                             // cut 6 removes the board sucuk
 
     private void Update()
     {
-        if (_state == State.Finished) return;
+        HandleClickInput();
+        RunStateMachine();
+    }
+
+    // ── Input ────────────────────────────────────────────────────────────────
+
+    private void HandleClickInput()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            GameObject hit = RaycastTarget();
+
+            // Click on hanging sucuk → spawn board sucuk if none exists
+            if (hit == hangingSucuk && _boardSucukInstance == null)
+            {
+                SpawnBoardSucuk();
+                return;
+            }
+
+            // Click on board sucuk → begin cutting
+            if (_boardSucukInstance != null && hit != null &&
+                (hit == _boardSucukInstance || hit.transform.IsChildOf(_boardSucukInstance.transform)))
+            {
+                _cuttingActive = true;
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0))
+            _cuttingActive = false;
+    }
+
+    private void RunStateMachine()
+    {
+        if (_boardSucukInstance == null) return;
 
         switch (_state)
         {
             case State.Idle:
-                if (Input.GetMouseButton(0))
+                if (_cuttingActive)
                     _state = State.Slicing;
                 break;
 
             case State.Slicing:
-                if (!Input.GetMouseButton(0))
+                if (!_cuttingActive)
                 {
                     _state = State.Resetting;
                     break;
@@ -94,13 +137,36 @@ public class SucukSlicingMinigame : MonoBehaviour
                 if (HasReached(highPosition.position))
                 {
                     knife.position = highPosition.position;
-                    _state = Input.GetMouseButton(0) ? State.Slicing : State.Idle;
+                    _state = _cuttingActive ? State.Slicing : State.Idle;
                 }
                 break;
         }
     }
 
-    // ── Core event ───────────────────────────────────────────────────────────
+    // ── Board sucuk lifecycle ─────────────────────────────────────────────────
+
+    private void SpawnBoardSucuk()
+    {
+        _boardSucukInstance = Instantiate(boardSucukPrefab,
+                                          boardSucukSpawnPoint.position,
+                                          boardSucukSpawnPoint.rotation);
+        _sucuk    = _boardSucukInstance.transform;
+        _cutCount = 0;
+        _state    = State.Idle;
+    }
+
+    private void RemoveBoardSucuk()
+    {
+        if (_boardSucukInstance != null)
+            _boardSucukInstance.SetActive(false);
+
+        _boardSucukInstance = null;
+        _sucuk              = null;
+        _cuttingActive      = false;
+        _state              = State.Idle;
+    }
+
+    // ── Core slice event ──────────────────────────────────────────────────────
 
     private void OnKnifeHitBoard()
     {
@@ -109,15 +175,14 @@ public class SucukSlicingMinigame : MonoBehaviour
 
         if (_cutCount <= MaxSlices)
         {
-            // Spawn slice at sucuk position, rotation starts at (0,0,0) and rotates to (0,0,90) mid-flight
-            if (slicePrefab != null && sucuk != null)
+            // Spawn slice at sucuk world position; rotate (0,0,0)→(0,0,90) mid-flight
+            if (slicePrefab != null && _sucuk != null)
             {
-                GameObject slice = Instantiate(slicePrefab, sucuk.position, Quaternion.identity);
+                GameObject slice = Instantiate(slicePrefab, _sucuk.position, Quaternion.identity);
                 Vector3 stackTarget = StackPosition(_cutCount - 1);
                 StartCoroutine(FlyToStack(slice.transform, stackTarget));
             }
 
-            // Screen shake for tactile feedback
             if (cameraShake != null)
                 cameraShake.Shake();
 
@@ -125,15 +190,19 @@ public class SucukSlicingMinigame : MonoBehaviour
         }
         else
         {
-            // 6th cut — remove the remaining sucuk stub and end the minigame
-            if (sucuk != null)
-                sucuk.gameObject.SetActive(false);
-
-            _state = State.Finished;
+            // 6th cut — clear the board so the player can grab a new sucuk
+            RemoveBoardSucuk();
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>Casts a ray from the centre of the screen and returns the hit GameObject.</summary>
+    private GameObject RaycastTarget()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        return Physics.Raycast(ray, out RaycastHit hit, clickRange) ? hit.collider.gameObject : null;
+    }
 
     private void MoveKnifeToward(Vector3 target, float speed)
     {
@@ -145,31 +214,24 @@ public class SucukSlicingMinigame : MonoBehaviour
         return Vector3.Distance(knife.position, target) < 0.005f;
     }
 
-    /// <summary>Returns the world position for the nth slice in the plate stack.</summary>
     private Vector3 StackPosition(int index)
     {
-        if (slicePlateOrigin == null) return sucuk != null ? sucuk.position : Vector3.zero;
+        if (slicePlateOrigin == null) return _sucuk != null ? _sucuk.position : Vector3.zero;
         return slicePlateOrigin.position + Vector3.up * index * stackSpacing;
     }
 
-    /// <summary>
-    /// Moves the slice to its stack position while simultaneously rotating it
-    /// from (0,0,0) to (0,0,90). Progress of the rotation tracks position progress.
-    /// </summary>
     private IEnumerator FlyToStack(Transform slice, Vector3 target)
     {
-        Vector3 startPos = slice.position;
-        Quaternion startRot = Quaternion.identity;
-        Quaternion endRot   = Quaternion.Euler(0f, 0f, 90f);
-        float totalDist = Vector3.Distance(startPos, target);
+        Vector3    startPos  = slice.position;
+        Quaternion startRot  = Quaternion.identity;
+        Quaternion endRot    = Quaternion.Euler(0f, 0f, 90f);
+        float      totalDist = Vector3.Distance(startPos, target);
 
         while (Vector3.Distance(slice.position, target) > 0.005f)
         {
             slice.position = Vector3.MoveTowards(slice.position, target, sliceFlySpeed * Time.deltaTime);
-
             float t = totalDist > 0f ? 1f - Vector3.Distance(slice.position, target) / totalDist : 1f;
             slice.rotation = Quaternion.Slerp(startRot, endRot, t);
-
             yield return null;
         }
 
