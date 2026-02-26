@@ -1,192 +1,156 @@
-using System.Collections;
 using UnityEngine;
+using TMPro;
 
 /// <summary>
-/// Generic slicing-station controller. Knows nothing about specific item types —
-/// all per-item settings (prefabs, speeds, max slices) come from SliceableItemData.
+/// Item-in-hand controller.
 ///
-/// Setup:
-///  1. Attach to an empty "SlicingController" GameObject.
-///  2. Fill in the Scene References in the Inspector.
-///  3. Add a SliceableSource component (+ Collider) to every grabbable object in the scene.
-///     Assign each one its SliceableItemData asset.
+/// Mechanic:
+///  - Left-click a SliceableSource  → item copied into hand (source stays in scene).
+///  - Right-click anywhere          → drop item; it disappears.
+///  - Only 1 item can be held at a time.
+///  - Left-click the CuttingBoard with an unsliced item in hand → item instantly becomes sliced.
+///  - A text label at the bottom of the screen shows what is currently held.
 ///
-/// Flow:
-///  - Click any SliceableSource in the scene  → spawns its board item (if board is empty).
-///  - Hold LMB on the board item              → knife slices continuously.
-///  - After maxSlices cuts the board item is removed; knife returns to start position.
+/// Scene Setup:
+///  1. Attach this component to any persistent GameObject (e.g. "GameController").
+///  2. handDisplayPoint  – Create an empty child of Main Camera, position it at
+///                         the bottom-right of the viewport (e.g. local pos 0.35, -0.30, 0.65).
+///                         The held item's prefab will be parented here.
+///  3. handStatusText    – A TextMeshProUGUI on a Screen Space – Overlay Canvas,
+///                         anchored to the bottom-centre of the screen.
+///  4. Cutting board     – Add a CuttingBoard component (and a Collider) to the board object.
+///  5. Source objects    – Add a SliceableSource component (and a Collider) to every
+///                         grabbable item; assign its SliceableItemData asset.
 /// </summary>
 public class SlicingController : MonoBehaviour
 {
-    [Header("Scene References")]
-    [Tooltip("Where the board item prefab is instantiated.")]
-    public Transform boardItemSpawnPoint;
-
-    [Tooltip("The knife 3D object.")]
-    public Transform knife;
-
-    [Tooltip("Empty GameObject marking the knife's raised start position.")]
-    public Transform highPosition;
-
-    [Tooltip("Empty GameObject marking the cutting-board contact position.")]
-    public Transform boardPosition;
-
-    [Tooltip("Empty GameObject at the base of the slice stack (e.g. on a plate).")]
-    public Transform slicePlateOrigin;
-
-    [Tooltip("CameraShake component on the Main Camera.")]
-    public CameraShake cameraShake;
+    [Header("Hand Display")]
+    [Tooltip("Empty child of Main Camera placed at the bottom-right of the view. " +
+             "The held item prefab is parented here.")]
+    public Transform handDisplayPoint;
 
     [Header("Input")]
     [Tooltip("Maximum raycast distance for click detection.")]
     public float clickRange = 10f;
 
-    // ── Runtime state ─────────────────────────────────────────────────────────
-    private enum State { Idle, Slicing, Resetting, ReturningToStart }
-    private State _state = State.Idle;
+    [Header("UI")]
+    [Tooltip("TextMeshProUGUI element anchored at the bottom of the screen.")]
+    public TextMeshProUGUI handStatusText;
 
-    private SliceableItemData _currentItem;   // data for the item currently on the board
-    private GameObject        _boardInstance; // the spawned board item
-    private Transform         _boardTransform;
-    private bool              _cuttingActive;
-    private int               _cutCount;
-    private float             _activeResetSpeed = 8f; // cached so ReturningToStart works after board is cleared
+    // ── Runtime state ─────────────────────────────────────────────────────────
+
+    private SliceableItemData _heldData;      // data of the item currently in hand (null = empty)
+    private bool              _heldIsSliced;  // true after the item has been cut on the board
+    private GameObject        _heldVisual;    // the instantiated 3D prefab parented to handDisplayPoint
 
     // ── Unity loop ────────────────────────────────────────────────────────────
 
     private void Update()
     {
-        HandleClickInput();
-        RunStateMachine();
+        HandleInput();
     }
 
     // ── Input ─────────────────────────────────────────────────────────────────
 
-    private void HandleClickInput()
+    private void HandleInput()
     {
-        if (Input.GetMouseButtonDown(0))
+        // Right-click → drop whatever is in hand
+        if (Input.GetMouseButtonDown(1))
         {
-            GameObject hit = RaycastTarget();
-            if (hit == null) return;
-
-            // Did we click a source object?
-            SliceableSource source = hit.GetComponent<SliceableSource>()
-                                  ?? hit.GetComponentInParent<SliceableSource>();
-
-            if (source != null && source.itemData != null && _boardInstance == null)
-            {
-                SpawnBoardItem(source.itemData);
-                return;
-            }
-
-            // Did we click the board item? → enable cutting while LMB is held
-            if (_boardInstance != null &&
-                (hit == _boardInstance || hit.transform.IsChildOf(_boardInstance.transform)))
-            {
-                _cuttingActive = true;
-            }
-        }
-
-        if (Input.GetMouseButtonUp(0))
-            _cuttingActive = false;
-    }
-
-    // ── State machine ─────────────────────────────────────────────────────────
-
-    private void RunStateMachine()
-    {
-        // ReturningToStart must tick even after the board item has been cleared
-        if (_state == State.ReturningToStart)
-        {
-            MoveKnifeToward(highPosition.position, _activeResetSpeed);
-            if (HasReached(highPosition.position))
-            {
-                knife.position = highPosition.position;
-                _state = State.Idle;
-            }
+            if (_heldData != null)
+                DropItem();
             return;
         }
 
-        if (_boardInstance == null) return;
+        if (!Input.GetMouseButtonDown(0)) return;
 
-        switch (_state)
+        GameObject hit = RaycastTarget();
+        if (hit == null) return;
+
+        // Holding an unsliced item + clicked the cutting board → cut it
+        if (_heldData != null && !_heldIsSliced)
         {
-            case State.Idle:
-                if (_cuttingActive)
-                    _state = State.Slicing;
-                break;
-
-            case State.Slicing:
-                if (!_cuttingActive) { _state = State.Resetting; break; }
-
-                MoveKnifeToward(boardPosition.position, _currentItem.sliceSpeed);
-
-                if (HasReached(boardPosition.position))
-                    OnKnifeHitBoard();
-                break;
-
-            case State.Resetting:
-                MoveKnifeToward(highPosition.position, _currentItem.resetSpeed);
-
-                if (HasReached(highPosition.position))
-                {
-                    knife.position = highPosition.position;
-                    _state = _cuttingActive ? State.Slicing : State.Idle;
-                }
-                break;
-        }
-    }
-
-    // ── Board item lifecycle ──────────────────────────────────────────────────
-
-    private void SpawnBoardItem(SliceableItemData data)
-    {
-        _currentItem      = data;
-        _activeResetSpeed = data.resetSpeed;
-        _boardInstance    = Instantiate(data.boardPrefab,
-                                        boardItemSpawnPoint.position,
-                                        boardItemSpawnPoint.rotation);
-        _boardTransform   = _boardInstance.transform;
-        _cutCount         = 0;
-        _state            = State.Idle;
-    }
-
-    private void RemoveBoardItem()
-    {
-        Destroy(_boardInstance);
-        _boardInstance  = null;
-        _boardTransform = null;
-        _cuttingActive  = false;
-        _state          = State.ReturningToStart;
-    }
-
-    // ── Core slice event ──────────────────────────────────────────────────────
-
-    private void OnKnifeHitBoard()
-    {
-        knife.position = boardPosition.position;
-        _cutCount++;
-
-        if (_cutCount <= _currentItem.maxSlices)
-        {
-            if (_currentItem.slicePrefab != null && _boardTransform != null)
+            CuttingBoard board = hit.GetComponent<CuttingBoard>()
+                              ?? hit.GetComponentInParent<CuttingBoard>();
+            if (board != null)
             {
-                GameObject slice = Instantiate(_currentItem.slicePrefab,
-                                               _boardTransform.position,
-                                               Quaternion.identity);
-                StartCoroutine(FlyToStack(slice.transform, StackPosition(_cutCount - 1)));
+                CutHeldItem();
+                return;
             }
-
-            if (cameraShake != null)
-                cameraShake.Shake();
-
-            _state = State.Resetting;
         }
-        else
+
+        // Empty hand + clicked a sliceable source → pick it up
+        if (_heldData == null)
         {
-            // All slices done — remove the board item and return knife
-            RemoveBoardItem();
+            SliceableSource source = hit.GetComponent<SliceableSource>()
+                                  ?? hit.GetComponentInParent<SliceableSource>();
+            if (source != null && source.itemData != null)
+                PickUp(source.itemData);
         }
+    }
+
+    // ── Hand operations ───────────────────────────────────────────────────────
+
+    private void PickUp(SliceableItemData data)
+    {
+        _heldData     = data;
+        _heldIsSliced = false;
+        RefreshVisual();
+        RefreshUI();
+    }
+
+    private void CutHeldItem()
+    {
+        _heldIsSliced = true;
+        RefreshVisual();
+        RefreshUI();
+    }
+
+    private void DropItem()
+    {
+        _heldData     = null;
+        _heldIsSliced = false;
+        ClearVisual();
+        RefreshUI();
+    }
+
+    // ── Visual ────────────────────────────────────────────────────────────────
+
+    private void RefreshVisual()
+    {
+        ClearVisual();
+
+        if (_heldData == null || handDisplayPoint == null) return;
+
+        GameObject prefab = _heldIsSliced ? _heldData.slicePrefab : _heldData.boardPrefab;
+        if (prefab == null) return;
+
+        _heldVisual = Instantiate(prefab, handDisplayPoint);
+        _heldVisual.transform.localPosition = Vector3.zero;
+        _heldVisual.transform.localRotation = Quaternion.identity;
+    }
+
+    private void ClearVisual()
+    {
+        if (_heldVisual != null)
+        {
+            Destroy(_heldVisual);
+            _heldVisual = null;
+        }
+    }
+
+    // ── UI ────────────────────────────────────────────────────────────────────
+
+    private void RefreshUI()
+    {
+        if (handStatusText == null) return;
+
+        if (_heldData == null)
+            handStatusText.text = string.Empty;
+        else if (_heldIsSliced)
+            handStatusText.text = $"Sliced {_heldData.itemName}";
+        else
+            handStatusText.text = $"Full {_heldData.itemName}";
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -197,49 +161,5 @@ public class SlicingController : MonoBehaviour
         return Physics.Raycast(ray, out RaycastHit hit, clickRange)
             ? hit.collider.gameObject
             : null;
-    }
-
-    private void MoveKnifeToward(Vector3 target, float speed)
-    {
-        knife.position = Vector3.MoveTowards(knife.position, target, speed * Time.deltaTime);
-    }
-
-    private bool HasReached(Vector3 target)
-    {
-        return Vector3.Distance(knife.position, target) < 0.005f;
-    }
-
-    private Vector3 StackPosition(int index)
-    {
-        if (slicePlateOrigin == null)
-            return _boardTransform != null ? _boardTransform.position : Vector3.zero;
-
-        return slicePlateOrigin.position + Vector3.up * index * _currentItem.stackSpacing;
-    }
-
-    /// <summary>
-    /// Moves the slice to its stack slot while rotating it from (0,0,0) to (0,0,90).
-    /// Rotation progress is tied to position progress so both arrive together.
-    /// </summary>
-    private IEnumerator FlyToStack(Transform slice, Vector3 target)
-    {
-        Vector3    startPos  = slice.position;
-        Quaternion startRot  = Quaternion.identity;
-        Quaternion endRot    = Quaternion.Euler(0f, 0f, 90f);
-        float      totalDist = Vector3.Distance(startPos, target);
-
-        while (Vector3.Distance(slice.position, target) > 0.005f)
-        {
-            slice.position = Vector3.MoveTowards(slice.position, target,
-                                                 _currentItem.sliceFlySpeed * Time.deltaTime);
-            float t = totalDist > 0f
-                ? 1f - Vector3.Distance(slice.position, target) / totalDist
-                : 1f;
-            slice.rotation = Quaternion.Slerp(startRot, endRot, t);
-            yield return null;
-        }
-
-        slice.position = target;
-        slice.rotation = endRot;
     }
 }
