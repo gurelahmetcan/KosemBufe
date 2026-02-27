@@ -16,14 +16,15 @@ using TMPro;
 ///   • Holding anything else → drop (disappears).
 ///
 ///  HOVER
-///   • Mouse over HolderItem → hoverStatusText shows "{name}: X/Y".
+///   • Mouse over HolderItem → world-space label floats above that object: "{name}: X/Y".
 ///
 /// Scene Setup:
 ///  1. Attach to any persistent GameObject (e.g. "GameController").
 ///  2. handDisplayPoint – Empty child of Main Camera, bottom-right of viewport
 ///                        (e.g. local pos 0.35, -0.30, 0.65).
 ///  3. handStatusText   – TextMeshProUGUI anchored bottom-centre of screen.
-///  4. hoverStatusText  – TextMeshProUGUI anchored bottom-centre (above handStatusText).
+///  4. worldHoverLabel  – A world-space TextMeshPro GameObject (3D text, not UI).
+///                        Start it disabled; the controller shows/hides it at runtime.
 ///  5. Source objects   – HoldableItem + Collider (+ SliceableItem if cuttable,
 ///                        + HolderItem if it stores other items).
 ///  6. Cutting board    – CuttingBoard + Collider.
@@ -42,8 +43,12 @@ public class SlicingController : MonoBehaviour
     [Tooltip("TextMeshProUGUI showing what is currently in hand.")]
     public TextMeshProUGUI handStatusText;
 
-    [Tooltip("TextMeshProUGUI showing slot info when hovering over a HolderItem.")]
-    public TextMeshProUGUI hoverStatusText;
+    [Tooltip("World-space TextMeshPro (3D text) that floats above hovered HolderItems. " +
+             "Start it disabled in the scene.")]
+    public TextMeshPro worldHoverLabel;
+
+    [Tooltip("How far above the holder's pivot the label appears (world units).")]
+    public float hoverLabelHeight = 1.5f;
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
@@ -121,7 +126,7 @@ public class SlicingController : MonoBehaviour
 
     private void UpdateHoverUI()
     {
-        if (hoverStatusText == null) return;
+        if (worldHoverLabel == null) return;
 
         GameObject hit = RaycastTarget();
         if (hit != null)
@@ -131,12 +136,16 @@ public class SlicingController : MonoBehaviour
             if (holder != null)
             {
                 string name = holder.GetComponent<HoldableItem>().itemName;
-                hoverStatusText.text = $"{name}: {holder.StoredCount}/{holder.maxSlots}";
+                worldHoverLabel.text = $"{name}: {holder.StoredCount}/{holder.maxSlots}";
+                worldHoverLabel.transform.position =
+                    holder.transform.position + Vector3.up * hoverLabelHeight;
+                worldHoverLabel.transform.forward = Camera.main.transform.forward;
+                worldHoverLabel.gameObject.SetActive(true);
                 return;
             }
         }
 
-        hoverStatusText.text = string.Empty;
+        worldHoverLabel.gameObject.SetActive(false);
     }
 
     // ── Hand operations ───────────────────────────────────────────────────────
