@@ -10,6 +10,7 @@ using TMPro;
 ///   • Unsliced    + CuttingBoard (item has SliceableItem) → instant cut.
 ///   • Sliced item + HolderItem (not full)            → store in holder, clear hand.
 ///   • Empty hand  + HolderItem                       → pick up holder.
+///   • Loaded HolderItem in hand + ToasterStation     → start toaster minigame.
 ///
 ///  RIGHT-CLICK
 ///   • Holding a HolderItem  → clear its stored items, then drop.
@@ -17,6 +18,7 @@ using TMPro;
 ///
 ///  HOVER
 ///   • Mouse over HolderItem → that holder's own child label is shown: "{name}: X/Y".
+///   (Input and hover are fully blocked while the toaster minigame is active.)
 ///
 /// Scene Setup:
 ///  1. Attach to any persistent GameObject (e.g. "GameController").
@@ -38,6 +40,10 @@ public class SlicingController : MonoBehaviour
     [Header("Input")]
     [Tooltip("Maximum raycast distance for click detection.")]
     public float clickRange = 10f;
+
+    [Header("Minigame")]
+    [Tooltip("The ToasterMinigame controller in the scene.")]
+    public ToasterMinigame toasterMinigame;
 
     [Header("UI")]
     [Tooltip("TextMeshProUGUI showing what is currently in hand.")]
@@ -62,6 +68,7 @@ public class SlicingController : MonoBehaviour
 
     private void HandleInput()
     {
+        if (toasterMinigame != null && toasterMinigame.IsActive) return;
         // Right-click → drop (clear holder contents first if applicable)
         if (Input.GetMouseButtonDown(1))
         {
@@ -80,6 +87,22 @@ public class SlicingController : MonoBehaviour
 
         GameObject hit = RaycastTarget();
         if (hit == null) return;
+
+        // ── Loaded HolderItem in hand + toaster → start minigame ─────────────
+        if (_heldItem != null && toasterMinigame != null)
+        {
+            HolderItem heldHolder = _heldItem.GetComponent<HolderItem>();
+            if (heldHolder != null && heldHolder.StoredCount > 0)
+            {
+                ToasterStation toaster = hit.GetComponent<ToasterStation>()
+                                      ?? hit.GetComponentInParent<ToasterStation>();
+                if (toaster != null)
+                {
+                    StartToasterMinigame(toaster);
+                    return;
+                }
+            }
+        }
 
         // ── Unsliced item in hand + cutting board → cut ───────────────────────
         if (_heldItem != null && !_heldIsSliced)
@@ -120,6 +143,7 @@ public class SlicingController : MonoBehaviour
 
     private void UpdateHoverUI()
     {
+        if (toasterMinigame != null && toasterMinigame.IsActive) return;
         GameObject hit = RaycastTarget();
 
         HolderItem newHolder = null;
@@ -138,6 +162,26 @@ public class SlicingController : MonoBehaviour
 
         if (_hoveredHolder != null)
             _hoveredHolder.ShowLabel();
+    }
+
+    // ── Toaster minigame ──────────────────────────────────────────────────────
+
+    private void StartToasterMinigame(ToasterStation toaster)
+    {
+        // Hide any open hover label and clear hand — bread goes into the toaster
+        if (_hoveredHolder != null)
+        {
+            _hoveredHolder.HideLabel();
+            _hoveredHolder = null;
+        }
+        DropItem();
+
+        toasterMinigame.StartMinigame(success =>
+        {
+            HoldableItem result = success ? toaster.successItem : toaster.failureItem;
+            if (result != null)
+                PickUp(result);
+        });
     }
 
     // ── Hand operations ───────────────────────────────────────────────────────
