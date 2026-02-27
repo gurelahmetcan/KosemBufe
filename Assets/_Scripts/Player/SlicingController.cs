@@ -2,30 +2,36 @@ using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// Item-in-hand controller.
+/// Item-in-hand controller. Handles pick-up, drop, slicing, and holder interactions.
 ///
-/// Mechanic:
-///  - Left-click a HoldableItem source  → copy into hand (source stays in scene).
-///  - Right-click anywhere              → drop held item; it disappears.
-///  - Only 1 item can be held at a time.
-///  - Left-click the CuttingBoard with a SliceableItem in hand → instant cut.
-///  - Bottom-screen text shows "Full <name>" or "Sliced <name>".
+/// Full interaction matrix:
+///  LEFT-CLICK
+///   • Empty hand  + SliceableSource / HoldableItem  → pick it up.
+///   • Unsliced    + CuttingBoard (item has SliceableItem) → instant cut.
+///   • Sliced item + HolderItem (not full)            → store in holder, clear hand.
+///   • Empty hand  + HolderItem                       → pick up holder.
+///
+///  RIGHT-CLICK
+///   • Holding a HolderItem  → clear its stored items, then drop.
+///   • Holding anything else → drop (disappears).
+///
+///  HOVER
+///   • Mouse over HolderItem → hoverStatusText shows "{name}: X/Y".
 ///
 /// Scene Setup:
-///  1. Attach this component to any persistent GameObject (e.g. "GameController").
-///  2. handDisplayPoint – Empty child of Main Camera at the bottom-right of the viewport
-///                        (e.g. local pos 0.35, -0.30, 0.65). Held prefab parents here.
-///  3. handStatusText   – TextMeshProUGUI on a Screen Space Overlay Canvas,
-///                        anchored to the bottom of the screen.
-///  4. Source objects   – Add HoldableItem (+ Collider) to every pickupable item.
-///                        Also add SliceableItem if the item can be cut on the board.
-///  5. Cutting board    – Add CuttingBoard (+ Collider) to the board object.
+///  1. Attach to any persistent GameObject (e.g. "GameController").
+///  2. handDisplayPoint – Empty child of Main Camera, bottom-right of viewport
+///                        (e.g. local pos 0.35, -0.30, 0.65).
+///  3. handStatusText   – TextMeshProUGUI anchored bottom-centre of screen.
+///  4. hoverStatusText  – TextMeshProUGUI anchored bottom-centre (above handStatusText).
+///  5. Source objects   – HoldableItem + Collider (+ SliceableItem if cuttable,
+///                        + HolderItem if it stores other items).
+///  6. Cutting board    – CuttingBoard + Collider.
 /// </summary>
 public class SlicingController : MonoBehaviour
 {
     [Header("Hand Display")]
-    [Tooltip("Empty child of Main Camera placed at the bottom-right of the view. " +
-             "The held item prefab is parented here.")]
+    [Tooltip("Empty child of Main Camera placed at the bottom-right of the view.")]
     public Transform handDisplayPoint;
 
     [Header("Input")]
@@ -33,31 +39,41 @@ public class SlicingController : MonoBehaviour
     public float clickRange = 10f;
 
     [Header("UI")]
-    [Tooltip("TextMeshProUGUI element anchored at the bottom of the screen.")]
+    [Tooltip("TextMeshProUGUI showing what is currently in hand.")]
     public TextMeshProUGUI handStatusText;
+
+    [Tooltip("TextMeshProUGUI showing slot info when hovering over a HolderItem.")]
+    public TextMeshProUGUI hoverStatusText;
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
-    private HoldableItem _heldItem;       // source component of the item currently in hand
-    private bool         _heldIsSliced;   // true after cutting on the board
-    private GameObject   _heldVisual;     // instantiated prefab parented to handDisplayPoint
+    private HoldableItem _heldItem;      // source component of the item in hand
+    private bool         _heldIsSliced;  // true after cutting on the board
+    private GameObject   _heldVisual;    // prefab instance parented to handDisplayPoint
 
     // ── Unity loop ────────────────────────────────────────────────────────────
 
     private void Update()
     {
         HandleInput();
+        UpdateHoverUI();
     }
 
     // ── Input ─────────────────────────────────────────────────────────────────
 
     private void HandleInput()
     {
-        // Right-click → drop whatever is in hand
+        // Right-click → drop (clear holder contents first if applicable)
         if (Input.GetMouseButtonDown(1))
         {
             if (_heldItem != null)
+            {
+                HolderItem heldHolder = _heldItem.GetComponent<HolderItem>();
+                if (heldHolder != null)
+                    heldHolder.ClearItems();
+
                 DropItem();
+            }
             return;
         }
 
@@ -66,7 +82,7 @@ public class SlicingController : MonoBehaviour
         GameObject hit = RaycastTarget();
         if (hit == null) return;
 
-        // Holding an unsliced SliceableItem + clicked the cutting board → cut it
+        // ── Unsliced item in hand + cutting board → cut ───────────────────────
         if (_heldItem != null && !_heldIsSliced)
         {
             CuttingBoard board = hit.GetComponent<CuttingBoard>()
@@ -78,7 +94,20 @@ public class SlicingController : MonoBehaviour
             }
         }
 
-        // Empty hand + clicked a HoldableItem source → pick it up
+        // ── Sliced item in hand + holder → store in holder ────────────────────
+        if (_heldItem != null && _heldIsSliced)
+        {
+            HolderItem holder = hit.GetComponent<HolderItem>()
+                             ?? hit.GetComponentInParent<HolderItem>();
+            if (holder != null && !holder.IsFull)
+            {
+                holder.AddItem(_heldItem);
+                DropItem();
+                return;
+            }
+        }
+
+        // ── Empty hand + any HoldableItem (including holders) → pick it up ────
         if (_heldItem == null)
         {
             HoldableItem holdable = hit.GetComponent<HoldableItem>()
@@ -86,6 +115,28 @@ public class SlicingController : MonoBehaviour
             if (holdable != null)
                 PickUp(holdable);
         }
+    }
+
+    // ── Hover UI ──────────────────────────────────────────────────────────────
+
+    private void UpdateHoverUI()
+    {
+        if (hoverStatusText == null) return;
+
+        GameObject hit = RaycastTarget();
+        if (hit != null)
+        {
+            HolderItem holder = hit.GetComponent<HolderItem>()
+                             ?? hit.GetComponentInParent<HolderItem>();
+            if (holder != null)
+            {
+                string name = holder.GetComponent<HoldableItem>().itemName;
+                hoverStatusText.text = $"{name}: {holder.StoredCount}/{holder.maxSlots}";
+                return;
+            }
+        }
+
+        hoverStatusText.text = string.Empty;
     }
 
     // ── Hand operations ───────────────────────────────────────────────────────
@@ -155,11 +206,21 @@ public class SlicingController : MonoBehaviour
         if (handStatusText == null) return;
 
         if (_heldItem == null)
+        {
             handStatusText.text = string.Empty;
-        else if (_heldIsSliced)
-            handStatusText.text = $"Sliced {_heldItem.itemName}";
-        else
-            handStatusText.text = $"Full {_heldItem.itemName}";
+            return;
+        }
+
+        HolderItem holder = _heldItem.GetComponent<HolderItem>();
+        if (holder != null)
+        {
+            handStatusText.text = $"{_heldItem.itemName} ({holder.StoredCount}/{holder.maxSlots})";
+            return;
+        }
+
+        handStatusText.text = _heldIsSliced
+            ? $"Sliced {_heldItem.itemName}"
+            : $"Full {_heldItem.itemName}";
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
