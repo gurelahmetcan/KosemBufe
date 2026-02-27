@@ -63,7 +63,7 @@ public class HolderItem : MonoBehaviour
 
     private void RefreshLabelText()
     {
-        if (hoverLabel == null || !hoverLabel.gameObject.activeSelf) return;
+        if (hoverLabel == null) return;
         string itemName = GetComponent<HoldableItem>().itemName;
         hoverLabel.text = $"{itemName}: {StoredCount}/{maxSlots}";
     }
