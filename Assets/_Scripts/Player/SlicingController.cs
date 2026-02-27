@@ -16,15 +16,15 @@ using TMPro;
 ///   • Holding anything else → drop (disappears).
 ///
 ///  HOVER
-///   • Mouse over HolderItem → world-space label floats above that object: "{name}: X/Y".
+///   • Mouse over HolderItem → that holder's own child label is shown: "{name}: X/Y".
 ///
 /// Scene Setup:
 ///  1. Attach to any persistent GameObject (e.g. "GameController").
 ///  2. handDisplayPoint – Empty child of Main Camera, bottom-right of viewport
 ///                        (e.g. local pos 0.35, -0.30, 0.65).
 ///  3. handStatusText   – TextMeshProUGUI anchored bottom-centre of screen.
-///  4. worldHoverLabel  – A world-space TextMeshPro GameObject (3D text, not UI).
-///                        Start it disabled; the controller shows/hides it at runtime.
+///  4. Each holder prefab – add a child TextMeshPro label, position it freely,
+///                          start it disabled, assign it to HolderItem.hoverLabel.
 ///  5. Source objects   – HoldableItem + Collider (+ SliceableItem if cuttable,
 ///                        + HolderItem if it stores other items).
 ///  6. Cutting board    – CuttingBoard + Collider.
@@ -43,18 +43,12 @@ public class SlicingController : MonoBehaviour
     [Tooltip("TextMeshProUGUI showing what is currently in hand.")]
     public TextMeshProUGUI handStatusText;
 
-    [Tooltip("World-space TextMeshPro (3D text) that floats above hovered HolderItems. " +
-             "Start it disabled in the scene.")]
-    public TextMeshPro worldHoverLabel;
-
-    [Tooltip("How far above the holder's pivot the label appears (world units).")]
-    public float hoverLabelHeight = 1.5f;
-
     // ── Runtime state ─────────────────────────────────────────────────────────
 
-    private HoldableItem _heldItem;      // source component of the item in hand
-    private bool         _heldIsSliced;  // true after cutting on the board
-    private GameObject   _heldVisual;    // prefab instance parented to handDisplayPoint
+    private HoldableItem _heldItem;        // source component of the item in hand
+    private bool         _heldIsSliced;    // true after cutting on the board
+    private GameObject   _heldVisual;      // prefab instance parented to handDisplayPoint
+    private HolderItem   _hoveredHolder;   // holder whose label is currently shown
 
     // ── Unity loop ────────────────────────────────────────────────────────────
 
@@ -126,26 +120,24 @@ public class SlicingController : MonoBehaviour
 
     private void UpdateHoverUI()
     {
-        if (worldHoverLabel == null) return;
-
         GameObject hit = RaycastTarget();
+
+        HolderItem newHolder = null;
         if (hit != null)
         {
-            HolderItem holder = hit.GetComponent<HolderItem>()
-                             ?? hit.GetComponentInParent<HolderItem>();
-            if (holder != null)
-            {
-                string name = holder.GetComponent<HoldableItem>().itemName;
-                worldHoverLabel.text = $"{name}: {holder.StoredCount}/{holder.maxSlots}";
-                worldHoverLabel.transform.position =
-                    holder.transform.position + Vector3.up * hoverLabelHeight;
-                worldHoverLabel.transform.forward = Camera.main.transform.forward;
-                worldHoverLabel.gameObject.SetActive(true);
-                return;
-            }
+            newHolder = hit.GetComponent<HolderItem>()
+                     ?? hit.GetComponentInParent<HolderItem>();
         }
 
-        worldHoverLabel.gameObject.SetActive(false);
+        if (newHolder == _hoveredHolder) return; // nothing changed
+
+        if (_hoveredHolder != null)
+            _hoveredHolder.HideLabel();
+
+        _hoveredHolder = newHolder;
+
+        if (_hoveredHolder != null)
+            _hoveredHolder.ShowLabel();
     }
 
     // ── Hand operations ───────────────────────────────────────────────────────
