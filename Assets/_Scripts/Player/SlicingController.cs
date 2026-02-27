@@ -5,22 +5,21 @@ using TMPro;
 /// Item-in-hand controller.
 ///
 /// Mechanic:
-///  - Left-click a SliceableSource  → item copied into hand (source stays in scene).
-///  - Right-click anywhere          → drop item; it disappears.
+///  - Left-click a HoldableItem source  → copy into hand (source stays in scene).
+///  - Right-click anywhere              → drop held item; it disappears.
 ///  - Only 1 item can be held at a time.
-///  - Left-click the CuttingBoard with an unsliced item in hand → item instantly becomes sliced.
-///  - A text label at the bottom of the screen shows what is currently held.
+///  - Left-click the CuttingBoard with a SliceableItem in hand → instant cut.
+///  - Bottom-screen text shows "Full <name>" or "Sliced <name>".
 ///
 /// Scene Setup:
 ///  1. Attach this component to any persistent GameObject (e.g. "GameController").
-///  2. handDisplayPoint  – Create an empty child of Main Camera, position it at
-///                         the bottom-right of the viewport (e.g. local pos 0.35, -0.30, 0.65).
-///                         The held item's prefab will be parented here.
-///  3. handStatusText    – A TextMeshProUGUI on a Screen Space – Overlay Canvas,
-///                         anchored to the bottom-centre of the screen.
-///  4. Cutting board     – Add a CuttingBoard component (and a Collider) to the board object.
-///  5. Source objects    – Add a SliceableSource component (and a Collider) to every
-///                         grabbable item; assign its SliceableItemData asset.
+///  2. handDisplayPoint – Empty child of Main Camera at the bottom-right of the viewport
+///                        (e.g. local pos 0.35, -0.30, 0.65). Held prefab parents here.
+///  3. handStatusText   – TextMeshProUGUI on a Screen Space Overlay Canvas,
+///                        anchored to the bottom of the screen.
+///  4. Source objects   – Add HoldableItem (+ Collider) to every pickupable item.
+///                        Also add SliceableItem if the item can be cut on the board.
+///  5. Cutting board    – Add CuttingBoard (+ Collider) to the board object.
 /// </summary>
 public class SlicingController : MonoBehaviour
 {
@@ -39,9 +38,9 @@ public class SlicingController : MonoBehaviour
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
-    private SliceableItemData _heldData;      // data of the item currently in hand (null = empty)
-    private bool              _heldIsSliced;  // true after the item has been cut on the board
-    private GameObject        _heldVisual;    // the instantiated 3D prefab parented to handDisplayPoint
+    private HoldableItem _heldItem;       // source component of the item currently in hand
+    private bool         _heldIsSliced;   // true after cutting on the board
+    private GameObject   _heldVisual;     // instantiated prefab parented to handDisplayPoint
 
     // ── Unity loop ────────────────────────────────────────────────────────────
 
@@ -57,7 +56,7 @@ public class SlicingController : MonoBehaviour
         // Right-click → drop whatever is in hand
         if (Input.GetMouseButtonDown(1))
         {
-            if (_heldData != null)
+            if (_heldItem != null)
                 DropItem();
             return;
         }
@@ -67,33 +66,33 @@ public class SlicingController : MonoBehaviour
         GameObject hit = RaycastTarget();
         if (hit == null) return;
 
-        // Holding an unsliced item + clicked the cutting board → cut it
-        if (_heldData != null && !_heldIsSliced)
+        // Holding an unsliced SliceableItem + clicked the cutting board → cut it
+        if (_heldItem != null && !_heldIsSliced)
         {
             CuttingBoard board = hit.GetComponent<CuttingBoard>()
                               ?? hit.GetComponentInParent<CuttingBoard>();
-            if (board != null)
+            if (board != null && _heldItem.GetComponent<SliceableItem>() != null)
             {
                 CutHeldItem();
                 return;
             }
         }
 
-        // Empty hand + clicked a sliceable source → pick it up
-        if (_heldData == null)
+        // Empty hand + clicked a HoldableItem source → pick it up
+        if (_heldItem == null)
         {
-            SliceableSource source = hit.GetComponent<SliceableSource>()
-                                  ?? hit.GetComponentInParent<SliceableSource>();
-            if (source != null && source.itemData != null)
-                PickUp(source.itemData);
+            HoldableItem holdable = hit.GetComponent<HoldableItem>()
+                                 ?? hit.GetComponentInParent<HoldableItem>();
+            if (holdable != null)
+                PickUp(holdable);
         }
     }
 
     // ── Hand operations ───────────────────────────────────────────────────────
 
-    private void PickUp(SliceableItemData data)
+    private void PickUp(HoldableItem item)
     {
-        _heldData     = data;
+        _heldItem     = item;
         _heldIsSliced = false;
         RefreshVisual();
         RefreshUI();
@@ -108,7 +107,7 @@ public class SlicingController : MonoBehaviour
 
     private void DropItem()
     {
-        _heldData     = null;
+        _heldItem     = null;
         _heldIsSliced = false;
         ClearVisual();
         RefreshUI();
@@ -120,9 +119,19 @@ public class SlicingController : MonoBehaviour
     {
         ClearVisual();
 
-        if (_heldData == null || handDisplayPoint == null) return;
+        if (_heldItem == null || handDisplayPoint == null) return;
 
-        GameObject prefab = _heldIsSliced ? _heldData.slicePrefab : _heldData.boardPrefab;
+        GameObject prefab;
+        if (_heldIsSliced)
+        {
+            SliceableItem sliceable = _heldItem.GetComponent<SliceableItem>();
+            prefab = sliceable != null ? sliceable.slicedHandPrefab : null;
+        }
+        else
+        {
+            prefab = _heldItem.handPrefab;
+        }
+
         if (prefab == null) return;
 
         _heldVisual = Instantiate(prefab, handDisplayPoint);
@@ -145,12 +154,12 @@ public class SlicingController : MonoBehaviour
     {
         if (handStatusText == null) return;
 
-        if (_heldData == null)
+        if (_heldItem == null)
             handStatusText.text = string.Empty;
         else if (_heldIsSliced)
-            handStatusText.text = $"Sliced {_heldData.itemName}";
+            handStatusText.text = $"Sliced {_heldItem.itemName}";
         else
-            handStatusText.text = $"Full {_heldData.itemName}";
+            handStatusText.text = $"Full {_heldItem.itemName}";
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
