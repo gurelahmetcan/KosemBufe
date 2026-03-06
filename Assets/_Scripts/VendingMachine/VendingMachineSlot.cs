@@ -22,6 +22,9 @@ public class VendingMachineSlot : MonoBehaviour
     [Tooltip("Prefab to instantiate when dispensing. Must have Rigidbody + Collider.")]
     public GameObject itemPrefab;
 
+    [Tooltip("HoldableItem used for the player's hand display when auto-picked up. Does not need Rigidbody.")]
+    public HoldableItem holdableItem;
+
     [Tooltip("The auger spiral Transform that rotates during dispensing.")]
     public Transform spiralTransform;
 

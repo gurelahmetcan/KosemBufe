@@ -273,15 +273,18 @@ public class VendingMachine : MonoBehaviour
 
         PlaySound(itemLandSound);
 
-        // Auto-deliver to the player's hand
-        HoldableItem holdable = _dispensedItem.GetComponent<HoldableItem>();
-        if (holdable != null && slicingController != null)
-            slicingController.PickUp(holdable);
-
-        // Destroy the physics object from the tray
+        // Destroy the physics object — it's just the falling visual
         Destroy(_dispensedItem);
         _dispensedItem = null;
         dispenseTray.ResetCount();
+
+        // Auto-deliver to the player's hand using the slot's HoldableItem
+        if (slicingController != null && _activeSlotIndex >= 0)
+        {
+            HoldableItem holdable = slots[_activeSlotIndex].holdableItem;
+            if (holdable != null)
+                slicingController.PickUp(holdable);
+        }
 
         StartCoroutine(CooldownThenIdle());
     }
