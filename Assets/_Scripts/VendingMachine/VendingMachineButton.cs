@@ -25,7 +25,7 @@ public class VendingMachineButton : MonoBehaviour
     public Renderer buttonRenderer;
 
     [Tooltip("SpriteRenderer showing the ingredient icon (assigned from the slot's sprite).")]
-    public SpriteRenderer iconRenderer;
+    public Image iconRenderer;
 
     [Header("Colors")]
     public Color normalColor  = Color.white;

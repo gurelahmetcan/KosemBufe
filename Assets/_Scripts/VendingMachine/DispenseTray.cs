@@ -20,7 +20,10 @@ public class DispenseTray : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.attachedRigidbody != null)
+        {
+            Debug.Log(other.attachedRigidbody.name + " has been collided with " + _itemCount);
             _itemCount++;
+        }
     }
 
     private void OnTriggerExit(Collider other)
