@@ -29,4 +29,18 @@ public class VendingMachineConfig : ScriptableObject
 
     [Tooltip("Maximum number of items each slot can hold.")]
     public int maxStockPerSlot = 10;
+
+    [Header("Mash Meter (Jam Recovery)")]
+    [Tooltip("Number of key presses required to clear a jam.")]
+    public int mashPressesRequired = 7;
+
+    [Tooltip("Progress gained per key press (0–1). Auto-calculated from mashPressesRequired if left at 0.")]
+    public float mashProgressPerPress = 0f;
+
+    [Tooltip("Progress lost per second when the player stops mashing.")]
+    public float mashDecayRate = 0.15f;
+
+    /// <summary>Effective progress per press — uses mashPressesRequired as fallback.</summary>
+    public float EffectiveMashPerPress =>
+        mashProgressPerPress > 0f ? mashProgressPerPress : 1f / Mathf.Max(1, mashPressesRequired);
 }

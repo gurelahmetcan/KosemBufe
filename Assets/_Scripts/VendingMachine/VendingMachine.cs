@@ -50,15 +50,19 @@ public class VendingMachine : MonoBehaviour
     [Tooltip("SlicingController on the player — used to auto-deliver dispensed items to the player's hand.")]
     public SlicingController slicingController;
 
-    [Header("Kick Settings")]
-    [Tooltip("Key the player presses to kick the machine when jammed.")]
+    [Header("Kick / Mash Settings")]
+    [Tooltip("Key the player presses repeatedly to unjam the machine.")]
     public KeyCode kickKey = KeyCode.F;
 
-    [Tooltip("Max distance from which the player can kick the machine.")]
+    [Tooltip("Max distance from which the player can interact with the machine.")]
     public float kickRange = 3f;
 
     [Tooltip("Tag on the player GameObject for distance check. Leave empty to skip range check.")]
     public string playerTag = "Player";
+
+    [Header("Mash Meter UI")]
+    [Tooltip("UI controller for the floating 'F' prompt and progress bar.")]
+    public MashMeterUI mashMeterUI;
 
     // ── Public state ────────────────────────────────────────────────────────────
 
@@ -69,6 +73,7 @@ public class VendingMachine : MonoBehaviour
     private int        _activeSlotIndex = -1;
     private GameObject _dispensedItem;
     private Coroutine  _dispenseRoutine;
+    private float      _mashProgress;
 
     // ── Initialization ──────────────────────────────────────────────────────────
 
@@ -121,19 +126,17 @@ public class VendingMachine : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when the player kicks the machine to clear a jam.
+    /// Called when the mash meter reaches 100% — delivers the final kick.
     /// </summary>
-    public void Kick()
+    private void CompleteMashKick()
     {
-        if (CurrentState != State.Jammed) return;
-
         PlaySound(kickSound);
 
-        // Camera shake feedback
+        // Camera shake on the final kick
         if (cameraShake != null)
             cameraShake.Shake();
 
-        // Apply physical impulse to the dispensed item if it exists
+        // Spawn and release the jammed item
         if (_dispensedItem != null)
         {
             Rigidbody rb = _dispensedItem.GetComponent<Rigidbody>();
@@ -145,7 +148,6 @@ public class VendingMachine : MonoBehaviour
         }
         else
         {
-            // Item hasn't been spawned yet (jam at 80%), spawn it now
             VendingMachineSlot slot = slots[_activeSlotIndex];
             _dispensedItem = slot.SpawnItem();
 
@@ -157,10 +159,13 @@ public class VendingMachine : MonoBehaviour
             }
         }
 
-        // Clear jam visual on the active button
+        // Clear jam visuals
         VendingMachineButton activeBtn = FindButtonForSlot(_activeSlotIndex);
         if (activeBtn != null)
             activeBtn.ClearJamVisual();
+
+        if (mashMeterUI != null)
+            mashMeterUI.Hide();
 
         SetState(State.ReadyToPick);
     }
@@ -184,6 +189,9 @@ public class VendingMachine : MonoBehaviour
 
             case State.Jammed:
                 SetAllButtonsLocked(true);
+                _mashProgress = 0f;
+                if (mashMeterUI != null)
+                    mashMeterUI.Show();
                 break;
 
             case State.ReadyToPick:
@@ -243,12 +251,10 @@ public class VendingMachine : MonoBehaviour
         SetState(State.ReadyToPick);
     }
 
-    // ── Jammed state ────────────────────────────────────────────────────────────
+    // ── Jammed state — mash meter ────────────────────────────────────────────────
 
     private void HandleJammedInput()
     {
-        if (!Input.GetKeyDown(kickKey)) return;
-
         // Range check — if a player tag is set, verify proximity
         if (!string.IsNullOrEmpty(playerTag))
         {
@@ -260,7 +266,29 @@ public class VendingMachine : MonoBehaviour
             }
         }
 
-        Kick();
+        // Decay when not pressing
+        _mashProgress -= config.mashDecayRate * Time.deltaTime;
+        _mashProgress  = Mathf.Max(0f, _mashProgress);
+
+        // Each key press adds progress
+        if (Input.GetKeyDown(kickKey))
+        {
+            _mashProgress += config.EffectiveMashPerPress;
+            PlaySound(kickSound);
+
+            // Small shake per press for feedback
+            if (cameraShake != null)
+                cameraShake.Shake();
+        }
+
+        _mashProgress = Mathf.Clamp01(_mashProgress);
+
+        if (mashMeterUI != null)
+            mashMeterUI.SetProgress(_mashProgress);
+
+        // Mash complete — deliver the final kick
+        if (_mashProgress >= 1f)
+            CompleteMashKick();
     }
 
     // ── Auto pickup ─────────────────────────────────────────────────────────────
