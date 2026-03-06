@@ -54,12 +54,6 @@ public class VendingMachine : MonoBehaviour
     [Tooltip("Key the player presses repeatedly to unjam the machine.")]
     public KeyCode kickKey = KeyCode.F;
 
-    [Tooltip("Max distance from which the player can interact with the machine.")]
-    public float kickRange = 3f;
-
-    [Tooltip("Tag on the player GameObject for distance check. Leave empty to skip range check.")]
-    public string playerTag = "Player";
-
     [Header("Mash Meter UI")]
     [Tooltip("UI controller for the floating 'F' prompt and progress bar.")]
     public MashMeterUI mashMeterUI;
@@ -74,6 +68,7 @@ public class VendingMachine : MonoBehaviour
     private GameObject _dispensedItem;
     private Coroutine  _dispenseRoutine;
     private float      _mashProgress;
+    private bool       _mashStarted;
 
     // ── Initialization ──────────────────────────────────────────────────────────
 
@@ -190,8 +185,7 @@ public class VendingMachine : MonoBehaviour
             case State.Jammed:
                 SetAllButtonsLocked(true);
                 _mashProgress = 0f;
-                if (mashMeterUI != null)
-                    mashMeterUI.Show();
+                _mashStarted  = false;
                 break;
 
             case State.ReadyToPick:
@@ -255,15 +249,24 @@ public class VendingMachine : MonoBehaviour
 
     private void HandleJammedInput()
     {
-        // Range check — if a player tag is set, verify proximity
-        if (!string.IsNullOrEmpty(playerTag))
+        // Wait for the first press before showing UI and starting decay
+        if (!_mashStarted)
         {
-            GameObject player = GameObject.FindGameObjectWithTag(playerTag);
-            if (player != null)
+            if (!Input.GetKeyDown(kickKey)) return;
+
+            _mashStarted = true;
+            _mashProgress = config.EffectiveMashPerPress;
+            PlaySound(kickSound);
+
+            if (cameraShake != null)
+                cameraShake.Shake();
+
+            if (mashMeterUI != null)
             {
-                float dist = Vector3.Distance(player.transform.position, transform.position);
-                if (dist > kickRange) return;
+                mashMeterUI.Show();
+                mashMeterUI.SetProgress(_mashProgress);
             }
+            return;
         }
 
         // Decay when not pressing
@@ -276,7 +279,6 @@ public class VendingMachine : MonoBehaviour
             _mashProgress += config.EffectiveMashPerPress;
             PlaySound(kickSound);
 
-            // Small shake per press for feedback
             if (cameraShake != null)
                 cameraShake.Shake();
         }
