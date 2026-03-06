@@ -188,6 +188,7 @@ public class ToasterMinigame : MonoBehaviour
     {
         IsActive = false;
         minigamePanel.SetActive(false);
+        Debug.Log($"Minigame ended: {success}");
 
         if (cameraRotation) cameraRotation.enabled = true;
 
