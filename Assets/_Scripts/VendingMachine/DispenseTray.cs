@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -12,6 +13,9 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class DispenseTray : MonoBehaviour
 {
+    /// <summary>Fired when a Rigidbody item enters the tray trigger.</summary>
+    public event Action<GameObject> OnItemLanded;
+
     /// <summary>True when at least one item is sitting in the tray.</summary>
     public bool HasItem => _itemCount > 0;
 
@@ -21,8 +25,8 @@ public class DispenseTray : MonoBehaviour
     {
         if (other.attachedRigidbody != null)
         {
-            Debug.Log(other.attachedRigidbody.name + " has been collided with " + _itemCount);
             _itemCount++;
+            OnItemLanded?.Invoke(other.attachedRigidbody.gameObject);
         }
     }
 

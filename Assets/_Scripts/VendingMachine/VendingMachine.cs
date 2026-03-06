@@ -46,6 +46,10 @@ public class VendingMachine : MonoBehaviour
     public AudioClip kickSound;
     public AudioClip itemLandSound;
 
+    [Header("Auto Pickup")]
+    [Tooltip("SlicingController on the player — used to auto-deliver dispensed items to the player's hand.")]
+    public SlicingController slicingController;
+
     [Header("Kick Settings")]
     [Tooltip("Key the player presses to kick the machine when jammed.")]
     public KeyCode kickKey = KeyCode.F;
@@ -79,23 +83,24 @@ public class VendingMachine : MonoBehaviour
         foreach (VendingMachineSlot slot in slots)
             slot.InitStock(config.maxStockPerSlot);
 
+        if (dispenseTray != null)
+            dispenseTray.OnItemLanded += OnItemLandedInTray;
+
         SetState(State.Idle);
+    }
+
+    private void OnDestroy()
+    {
+        if (dispenseTray != null)
+            dispenseTray.OnItemLanded -= OnItemLandedInTray;
     }
 
     // ── Update ──────────────────────────────────────────────────────────────────
 
     private void Update()
     {
-        switch (CurrentState)
-        {
-            case State.Jammed:
-                HandleJammedInput();
-                break;
-
-            case State.ReadyToPick:
-                CheckItemPickedUp();
-                break;
-        }
+        if (CurrentState == State.Jammed)
+            HandleJammedInput();
     }
 
     // ── Public API (called by VendingMachineButton) ─────────────────────────────
@@ -233,11 +238,8 @@ public class VendingMachine : MonoBehaviour
             yield return null;
         }
 
-        // No jam — spawn the item
+        // No jam — spawn the item and let it fall into the tray
         _dispensedItem = slot.SpawnItem();
-        PlaySound(itemLandSound);
-
-        // Wait for the item to land in the tray
         SetState(State.ReadyToPick);
     }
 
@@ -261,17 +263,27 @@ public class VendingMachine : MonoBehaviour
         Kick();
     }
 
-    // ── Ready to pick ───────────────────────────────────────────────────────────
+    // ── Auto pickup ─────────────────────────────────────────────────────────────
 
-    private void CheckItemPickedUp()
+    private void OnItemLandedInTray(GameObject item)
     {
-        // Item was picked up (destroyed or removed from tray)
-        bool itemGone = _dispensedItem == null || !dispenseTray.HasItem;
+        // Only react to our own dispensed item
+        if (CurrentState != State.ReadyToPick && CurrentState != State.Dispensing) return;
+        if (item != _dispensedItem) return;
 
-        if (itemGone && _dispensedItem == null)
-        {
-            StartCoroutine(CooldownThenIdle());
-        }
+        PlaySound(itemLandSound);
+
+        // Auto-deliver to the player's hand
+        HoldableItem holdable = _dispensedItem.GetComponent<HoldableItem>();
+        if (holdable != null && slicingController != null)
+            slicingController.PickUp(holdable);
+
+        // Destroy the physics object from the tray
+        Destroy(_dispensedItem);
+        _dispensedItem = null;
+        dispenseTray.ResetCount();
+
+        StartCoroutine(CooldownThenIdle());
     }
 
     private IEnumerator CooldownThenIdle()

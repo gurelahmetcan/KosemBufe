@@ -186,7 +186,7 @@ public class SlicingController : MonoBehaviour
 
     // ── Hand operations ───────────────────────────────────────────────────────
 
-    private void PickUp(HoldableItem item)
+    public void PickUp(HoldableItem item)
     {
         _heldItem     = item;
         _heldIsSliced = false;
