@@ -68,7 +68,6 @@ public class VendingMachine : MonoBehaviour
     private GameObject _dispensedItem;
     private Coroutine  _dispenseRoutine;
     private float      _mashProgress;
-    private bool       _mashStarted;
 
     // ── Initialization ──────────────────────────────────────────────────────────
 
@@ -185,7 +184,8 @@ public class VendingMachine : MonoBehaviour
             case State.Jammed:
                 SetAllButtonsLocked(true);
                 _mashProgress = 0f;
-                _mashStarted  = false;
+                if (mashMeterUI != null)
+                    mashMeterUI.Show();
                 break;
 
             case State.ReadyToPick:
@@ -249,26 +249,6 @@ public class VendingMachine : MonoBehaviour
 
     private void HandleJammedInput()
     {
-        // Wait for the first press before showing UI and starting decay
-        if (!_mashStarted)
-        {
-            if (!Input.GetKeyDown(kickKey)) return;
-
-            _mashStarted = true;
-            _mashProgress = config.EffectiveMashPerPress;
-            PlaySound(kickSound);
-
-            if (cameraShake != null)
-                cameraShake.Shake();
-
-            if (mashMeterUI != null)
-            {
-                mashMeterUI.Show();
-                mashMeterUI.SetProgress(_mashProgress);
-            }
-            return;
-        }
-
         // Decay when not pressing
         _mashProgress -= config.mashDecayRate * Time.deltaTime;
         _mashProgress  = Mathf.Max(0f, _mashProgress);
