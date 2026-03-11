@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 270bf118adecd0146bacb8a41e5ab9b3, type: 3}
   m_Name: VendingMachineConfig
   m_EditorClassIdentifier: 
-  jamProbability: 0.15
+  jamProbability: 1
   dispenseDuration: 2
   kickForce: 7.5
   itemCooldown: 0.5
