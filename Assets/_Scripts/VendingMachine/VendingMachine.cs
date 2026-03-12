@@ -9,13 +9,6 @@ using UnityEngine;
 ///   DISPENSING    → Spiral rotates, all buttons locked. Jam check at 80%.
 ///   JAMMED        → Spiral stuck, button flashes red, machine shakes. Player must kick.
 ///   READY_TO_PICK → Item in tray, buttons locked until player picks it up.
-///
-/// Setup:
-///   1. Attach to the root vending machine GameObject.
-///   2. Assign config, dispenseTray, all slots, and all buttons.
-///   3. Each VendingMachineButton.slotIndex must correspond to the slots array index.
-///   4. Assign cameraShake if screen shake on jam/kick is desired.
-///   5. Assign optional AudioSource + clips for sound effects.
 /// </summary>
 public class VendingMachine : MonoBehaviour
 {

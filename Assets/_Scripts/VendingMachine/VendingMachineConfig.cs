@@ -2,14 +2,6 @@ using UnityEngine;
 
 /// <summary>
 /// Configurable parameters for the Ingredient Vending Machine.
-/// Create via Assets → Create → KosemBufe → Vending Machine Config.
-///
-/// Default values match the spec JSON:
-///   JamProbability  = 0.15
-///   DispenseDuration = 2.0
-///   KickForce       = 7.5
-///   ItemCooldown    = 0.5
-///   MaxStockPerSlot = 10
 /// </summary>
 [CreateAssetMenu(fileName = "VendingMachineConfig", menuName = "KosemBufe/Vending Machine Config")]
 public class VendingMachineConfig : ScriptableObject

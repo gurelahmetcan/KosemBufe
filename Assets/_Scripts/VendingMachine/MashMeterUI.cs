@@ -4,13 +4,6 @@ using UnityEngine.UI;
 /// <summary>
 /// World-space or screen-space UI that shows a pulsing "F" icon and a progress bar
 /// while the vending machine is in the JAMMED state.
-///
-/// Setup:
-///   1. Create a Canvas (World Space recommended, parented to the machine).
-///   2. Add a pulsing icon (e.g. the letter "F") as promptIcon.
-///   3. Add a Slider for the progress bar (progressBar).
-///   4. Assign this component on the same GameObject or the machine.
-///   5. The VendingMachine drives Show/Hide/SetProgress.
 /// </summary>
 public class MashMeterUI : MonoBehaviour
 {
