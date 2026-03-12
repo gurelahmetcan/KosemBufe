@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -55,6 +56,9 @@ public class SlicingController : MonoBehaviour
     private bool         _heldIsSliced;    // true after cutting on the board
     private GameObject   _heldVisual;      // prefab instance parented to handDisplayPoint
     private HolderItem   _hoveredHolder;   // holder whose label is currently shown
+
+    /// <summary>The item currently in the player's hand (null if empty).</summary>
+    public HoldableItem HeldItem => _heldItem;
 
     // ── Unity loop ────────────────────────────────────────────────────────────
 
@@ -168,6 +172,10 @@ public class SlicingController : MonoBehaviour
 
     private void StartToasterMinigame(ToasterStation toaster)
     {
+        // Save ingredient data from the holder before it's dropped
+        HolderItem heldHolder = _heldItem != null ? _heldItem.GetComponent<HolderItem>() : null;
+        List<Ingredient> savedIngredients = heldHolder != null ? heldHolder.GetIngredients() : null;
+
         // Hide any open hover label and clear hand — bread goes into the toaster
         if (_hoveredHolder != null)
         {
@@ -180,7 +188,15 @@ public class SlicingController : MonoBehaviour
         {
             HoldableItem result = success ? toaster.successItem : toaster.failureItem;
             if (result != null)
+            {
+                // Transfer preparation data to the result item
+                if (savedIngredients != null)
+                    result.preparedIngredients = new List<Ingredient>(savedIngredients);
+
+                result.cookState = success ? CookState.Cooked : CookState.Burnt;
+
                 PickUp(result);
+            }
         });
     }
 

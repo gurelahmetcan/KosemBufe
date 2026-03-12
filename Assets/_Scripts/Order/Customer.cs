@@ -26,23 +26,23 @@ public class Customer : MonoBehaviour
 
     public State CurrentState { get; private set; } = State.WaitingForOrder;
 
-    /// <summary>The order assigned to this customer (set by OrderManager).</summary>
-    public string OrderName { get; private set; }
+    /// <summary>The recipe assigned to this customer (set by OrderManager).</summary>
+    public RecipeData Recipe { get; private set; }
 
     // ── Public API ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Assigns an order to the customer and transitions to WaitingForFood.
+    /// Assigns a recipe to the customer and transitions to WaitingForFood.
     /// Called by OrderManager when the player clicks this customer.
     /// </summary>
-    public void AssignOrder(string orderName)
+    public void AssignOrder(RecipeData recipe)
     {
-        OrderName = orderName;
+        Recipe = recipe;
         CurrentState = State.WaitingForFood;
 
         if (orderLabel != null)
         {
-            orderLabel.text = orderName;
+            orderLabel.text = recipe.recipeName;
             orderLabel.gameObject.SetActive(true);
         }
     }
@@ -53,7 +53,7 @@ public class Customer : MonoBehaviour
     public void ResetCustomer()
     {
         CurrentState = State.WaitingForOrder;
-        OrderName = null;
+        Recipe = null;
 
         if (orderLabel != null)
             orderLabel.gameObject.SetActive(false);

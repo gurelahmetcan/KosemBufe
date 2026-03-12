@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -14,4 +15,14 @@ public class HoldableItem : MonoBehaviour
 
     [Tooltip("Prefab instantiated at the hand display point when the player picks this up.")]
     public GameObject handPrefab;
+
+    [Tooltip("Which ingredient this item represents (used for recipe validation).")]
+    public Ingredient ingredient = Ingredient.None;
+
+    // ── Prepared-order state (set by toaster flow) ───────────────────────────
+    // These fields carry the full preparation data on toaster result items
+    // so OrderManager can validate against a recipe.
+
+    [HideInInspector] public List<Ingredient> preparedIngredients = new List<Ingredient>();
+    [HideInInspector] public CookState cookState = CookState.Raw;
 }

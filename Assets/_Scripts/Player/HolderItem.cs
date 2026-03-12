@@ -33,6 +33,21 @@ public class HolderItem : MonoBehaviour
     public int  StoredCount => _storedItems.Count;
     public bool IsFull      => _storedItems.Count >= maxSlots;
 
+    /// <summary>
+    /// Returns a list of Ingredient enums from all stored items.
+    /// Used by the toaster flow to transfer ingredients to the result item.
+    /// </summary>
+    public List<Ingredient> GetIngredients()
+    {
+        var list = new List<Ingredient>();
+        foreach (HoldableItem item in _storedItems)
+        {
+            if (item.ingredient != Ingredient.None)
+                list.Add(item.ingredient);
+        }
+        return list;
+    }
+
     public void AddItem(HoldableItem item)
     {
         if (!IsFull)
