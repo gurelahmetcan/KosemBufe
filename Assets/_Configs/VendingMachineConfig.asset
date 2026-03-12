@@ -17,3 +17,6 @@ MonoBehaviour:
   kickForce: 7.5
   itemCooldown: 0.5
   maxStockPerSlot: 10
+  mashPressesRequired: 10
+  mashProgressPerPress: 0
+  mashDecayRate: 0.15

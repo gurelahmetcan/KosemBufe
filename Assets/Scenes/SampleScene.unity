@@ -2607,9 +2607,9 @@ MonoBehaviour:
   barSpeed: 400
   toastMinSpeed: 100
   toastMaxSpeed: 250
-  fillRate: 0.3
+  fillRate: 0.15
   depleteRate: 0.2
-  startProgress: 0.5
+  startProgress: 0.3
 --- !u!1 &1400293321
 GameObject:
   m_ObjectHideFlags: 0
