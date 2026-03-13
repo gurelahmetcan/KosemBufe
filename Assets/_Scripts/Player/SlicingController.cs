@@ -172,9 +172,9 @@ public class SlicingController : MonoBehaviour
 
     private void StartToasterMinigame(ToasterStation toaster)
     {
-        // Save ingredient data from the holder before it's dropped
-        HolderItem heldHolder = _heldItem != null ? _heldItem.GetComponent<HolderItem>() : null;
-        List<Ingredient> savedIngredients = heldHolder != null ? heldHolder.GetIngredients() : null;
+        // Save references to the holder so we can return it after the minigame
+        HoldableItem savedItem = _heldItem;
+        HolderItem savedHolder = _heldItem != null ? _heldItem.GetComponent<HolderItem>() : null;
 
         // Hide any open hover label and clear hand — bread goes into the toaster
         if (_hoveredHolder != null)
@@ -186,16 +186,15 @@ public class SlicingController : MonoBehaviour
 
         toasterMinigame.StartMinigame(success =>
         {
-            HoldableItem result = success ? toaster.successItem : toaster.failureItem;
-            if (result != null)
+            if (savedItem != null)
             {
-                // Transfer preparation data to the result item
-                if (savedIngredients != null)
-                    result.preparedIngredients = new List<Ingredient>(savedIngredients);
+                // Populate preparedIngredients from the holder's stored items
+                if (savedHolder != null)
+                    savedItem.preparedIngredients = new List<Ingredient>(savedHolder.GetIngredients());
 
-                result.cookState = success ? CookState.Cooked : CookState.Burnt;
+                savedItem.cookState = success ? CookState.Cooked : CookState.Burnt;
 
-                PickUp(result);
+                PickUp(savedItem);
             }
         });
     }
