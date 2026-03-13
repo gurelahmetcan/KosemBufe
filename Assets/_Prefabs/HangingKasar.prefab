@@ -72,6 +72,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Kasar
   handPrefab: {fileID: 5958786481586475404, guid: 9f3bd1bb131f2fb4bbbd9544f9614b04, type: 3}
+  ingredient: 3
+  preparedIngredients: 
+  cookState: 0
 --- !u!114 &5067096666650061946
 MonoBehaviour:
   m_ObjectHideFlags: 0

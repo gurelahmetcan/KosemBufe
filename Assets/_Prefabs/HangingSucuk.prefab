@@ -332,6 +332,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Sucuk
   handPrefab: {fileID: 6997515067872796856, guid: b6f277e79a4a3b944ae90600ca4ed9c3, type: 3}
+  ingredient: 2
+  preparedIngredients: 
+  cookState: 0
 --- !u!114 &828843072462762538
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -204,6 +204,7 @@ public class SlicingController : MonoBehaviour
 
     public void PickUp(HoldableItem item)
     {
+        Debug.Log($"Picking up {item.itemName}, {item.cookState}, {item.preparedIngredients}");
         _heldItem     = item;
         _heldIsSliced = false;
         RefreshVisual();
