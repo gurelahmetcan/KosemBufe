@@ -228,7 +228,20 @@ public class SlicingController : MonoBehaviour
     public void DestroyHeldItem()
     {
         if (_heldItem != null)
-            Destroy(_heldItem.gameObject);
+        {
+            HolderItem holder = _heldItem.GetComponent<HolderItem>();
+            if (holder != null)
+            {
+                // Scene holder (e.g. Bread): reset to empty state instead of destroying
+                holder.ClearItems();
+                _heldItem.preparedIngredients.Clear();
+                _heldItem.cookState = CookState.Raw;
+            }
+            else
+            {
+                Destroy(_heldItem.gameObject);
+            }
+        }
 
         DropItem();
     }
