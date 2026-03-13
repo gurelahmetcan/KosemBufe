@@ -221,6 +221,18 @@ public class SlicingController : MonoBehaviour
         RefreshUI();
     }
 
+    /// <summary>
+    /// Destroys the held item GameObject and clears the hand.
+    /// Called by OrderManager when an order is delivered.
+    /// </summary>
+    public void DestroyHeldItem()
+    {
+        if (_heldItem != null)
+            Destroy(_heldItem.gameObject);
+
+        DropItem();
+    }
+
     private void DropItem()
     {
         _heldItem     = null;

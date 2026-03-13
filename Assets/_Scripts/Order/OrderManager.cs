@@ -166,9 +166,7 @@ public class OrderManager : MonoBehaviour
         {
             case OrderResult.Perfect:
                 Debug.Log($"Order Delivered: PERFECT! ({recipe.recipeName})");
-                // Clear the player's hand on success
-                heldItem.preparedIngredients.Clear();
-                heldItem.cookState = CookState.Raw;
+                slicingController.DestroyHeldItem();
                 break;
 
             case OrderResult.WrongIngredients:
