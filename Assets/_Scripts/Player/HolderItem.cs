@@ -40,11 +40,19 @@ public class HolderItem : MonoBehaviour
     public List<Ingredient> GetIngredients()
     {
         var list = new List<Ingredient>();
+
+        // Include the holder's own ingredient (e.g. bread = Ekmek)
+        Ingredient own = GetComponent<HoldableItem>().ingredient;
+        if (own != Ingredient.None)
+            list.Add(own);
+
         foreach (HoldableItem item in _storedItems)
         {
             if (item.ingredient != Ingredient.None)
                 list.Add(item.ingredient);
         }
+
+        Debug.Log($"[HolderItem] GetIngredients → own={own}, stored={_storedItems.Count}, total=[{string.Join(", ", list)}]");
         return list;
     }
 
@@ -53,7 +61,12 @@ public class HolderItem : MonoBehaviour
         if (!IsFull)
         {
             _storedItems.Add(item);
+            Debug.Log($"[HolderItem] Added '{item.itemName}' ({item.ingredient}) → {StoredCount}/{maxSlots}");
             RefreshLabelText();
+        }
+        else
+        {
+            Debug.Log($"[HolderItem] FULL — cannot add '{item.itemName}' ({StoredCount}/{maxSlots})");
         }
     }
 

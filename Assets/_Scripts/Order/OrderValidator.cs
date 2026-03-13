@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Static helper that compares a prepared order against a recipe.
@@ -18,6 +19,8 @@ public static class OrderValidator
     /// </summary>
     public static OrderResult Validate(RecipeData recipe, List<Ingredient> preparedIngredients, CookState cookState)
     {
+        Debug.Log($"[OrderValidator] Recipe='{recipe.recipeName}', required=[{string.Join(", ", recipe.ingredients)}], prepared=[{string.Join(", ", preparedIngredients)}], cookState={cookState}");
+
         // ── 1. Ingredient check ──────────────────────────────────────────────
         if (!IngredientsMatch(recipe.ingredients, preparedIngredients))
             return OrderResult.WrongIngredients;

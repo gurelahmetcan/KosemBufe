@@ -184,6 +184,8 @@ public class SlicingController : MonoBehaviour
         }
         DropItem();
 
+        Debug.Log($"[Toaster] Starting minigame with holder='{savedItem?.itemName}', storedCount={savedHolder?.StoredCount}");
+
         toasterMinigame.StartMinigame(success =>
         {
             if (savedItem != null)
@@ -193,6 +195,8 @@ public class SlicingController : MonoBehaviour
                     savedItem.preparedIngredients = new List<Ingredient>(savedHolder.GetIngredients());
 
                 savedItem.cookState = success ? CookState.Cooked : CookState.Burnt;
+
+                Debug.Log($"[Toaster] Minigame done: success={success}, cookState={savedItem.cookState}, ingredients=[{string.Join(", ", savedItem.preparedIngredients)}]");
 
                 PickUp(savedItem);
             }
