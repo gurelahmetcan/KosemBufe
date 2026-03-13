@@ -166,7 +166,6 @@ public class OrderManager : MonoBehaviour
         {
             case OrderResult.Perfect:
                 Debug.Log($"Order Delivered: PERFECT! ({recipe.recipeName})");
-                slicingController.DestroyHeldItem();
                 break;
 
             case OrderResult.WrongIngredients:
@@ -182,6 +181,8 @@ public class OrderManager : MonoBehaviour
                 break;
         }
 
+        // Always destroy the delivered item and clear the hand
+        slicingController.DestroyHeldItem();
         _isHoldingOrder = false;
         EndOrder();
     }
