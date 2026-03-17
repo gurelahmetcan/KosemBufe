@@ -186,6 +186,7 @@ public class OrderManager : MonoBehaviour
     {
         SetCameraLocked(false);
 
+        if (reputationManager != null) reputationManager.ChangeReputation(-5);
         Debug.Log("Order rejected — customer leaves.");
 
         if (_activeCustomer != null)
