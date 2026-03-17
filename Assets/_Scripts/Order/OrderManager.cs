@@ -32,6 +32,9 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Player camera — rotation is disabled while the prompt is visible.")]
     public PlayerCameraRotation playerCamera;
 
+    [Tooltip("Reputation tracker — receives score changes from order outcomes.")]
+    public ReputationManager reputationManager;
+
     [Header("Settings")]
     [Tooltip("How many seconds the customer waits before leaving if ignored.")]
     public float patienceDuration = 15f;
@@ -130,7 +133,8 @@ public class OrderManager : MonoBehaviour
         if (!_orderActive) return;
         if (timerUI == null || timerUI.Remaining > 0f) return;
 
-        Debug.Log("Order Failed: CUSTOMER LEFT");
+        Debug.Log("Order Failed: CUSTOMER LEFT (timer expired)");
+        if (reputationManager != null) reputationManager.ChangeReputation(-10);
         EndOrder();
     }
 
@@ -212,7 +216,8 @@ public class OrderManager : MonoBehaviour
 
     private void OnPatienceExpired()
     {
-        Debug.Log("Customer lost patience and left! (TODO: -7 Reputation)");
+        Debug.Log("Customer lost patience and left! -7 Reputation");
+        if (reputationManager != null) reputationManager.ChangeReputation(-7);
 
         // If the prompt is open, close it
         if (promptUI != null && promptUI.IsVisible)
@@ -289,18 +294,22 @@ public class OrderManager : MonoBehaviour
         {
             case OrderResult.Perfect:
                 Debug.Log($"Order Delivered: PERFECT! ({recipe.recipeName})");
+                if (reputationManager != null) reputationManager.ChangeReputation(+5);
                 break;
 
             case OrderResult.WrongIngredients:
                 Debug.Log($"Order Failed: WRONG INGREDIENTS for {recipe.recipeName}");
+                if (reputationManager != null) reputationManager.ChangeReputation(-10);
                 break;
 
             case OrderResult.Raw:
                 Debug.Log($"Order Failed: RAW — {recipe.recipeName} needs toasting!");
+                if (reputationManager != null) reputationManager.ChangeReputation(-10);
                 break;
 
             case OrderResult.Burnt:
                 Debug.Log($"Order Failed: BURNT — {recipe.recipeName} was overcooked!");
+                if (reputationManager != null) reputationManager.ChangeReputation(-10);
                 break;
         }
 
@@ -331,6 +340,9 @@ public class OrderManager : MonoBehaviour
 
     private void SpawnCustomer()
     {
+        // Don't spawn new customers after game over
+        if (reputationManager != null && reputationManager.IsGameOver) return;
+
         if (customerPrefab == null || spawnPoint == null)
         {
             Debug.LogError("[OrderManager] customerPrefab or spawnPoint is not assigned!", this);
