@@ -4762,6 +4762,7 @@ MonoBehaviour:
   "\u0131nHandController": {fileID: 1020548375}
   promptUI: {fileID: 643552453}
   playerCamera: {fileID: 330585548}
+  patienceDuration: 15
   orderDuration: 30
   recipes:
   - {fileID: 11400000, guid: 5f56d302007c6458fbd2277c14b29e1c, type: 2}
