@@ -16,7 +16,7 @@ using TMPro;
 /// </summary>
 public class Customer : MonoBehaviour
 {
-    public enum State { WaitingForOrder, WaitingForFood }
+    public enum State { WaitingForOrder, ShowingOrder, WaitingForFood }
 
     [Header("UI")]
     [Tooltip("World-space TextMeshPro label shown above the customer after ordering.")]
@@ -30,6 +30,31 @@ public class Customer : MonoBehaviour
     public RecipeData Recipe { get; private set; }
 
     // ── Public API ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Shows the order prompt — the recipe is stored but the timer has not started yet.
+    /// Called by OrderManager when the player first clicks this customer.
+    /// </summary>
+    public void ShowOrder(RecipeData recipe)
+    {
+        Recipe = recipe;
+        CurrentState = State.ShowingOrder;
+    }
+
+    /// <summary>
+    /// Accepts the order and transitions to WaitingForFood (timer starts).
+    /// Called by OrderManager when the player clicks Accept on the prompt.
+    /// </summary>
+    public void AcceptOrder()
+    {
+        CurrentState = State.WaitingForFood;
+
+        if (orderLabel != null && Recipe != null)
+        {
+            orderLabel.text = Recipe.recipeName;
+            orderLabel.gameObject.SetActive(true);
+        }
+    }
 
     /// <summary>
     /// Assigns a recipe to the customer and transitions to WaitingForFood.

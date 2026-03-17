@@ -26,6 +26,12 @@ public class OrderManager : MonoBehaviour
     [FormerlySerializedAs("slicingController")] [Tooltip("Player's SlicingController — used to read the item in hand for validation.")]
     public InHandController ınHandController;
 
+    [Tooltip("Screen-space prompt UI with Accept / Reject / Close buttons.")]
+    public OrderPromptUI promptUI;
+
+    [Tooltip("Player camera — rotation is disabled while the prompt is visible.")]
+    public PlayerCameraRotation playerCamera;
+
     [Header("Settings")]
     [Tooltip("How many seconds the player has to deliver the order.")]
     public float orderDuration = 30f;
@@ -47,7 +53,24 @@ public class OrderManager : MonoBehaviour
 
     private void Start()
     {
+        if (promptUI != null)
+        {
+            promptUI.OnAccept += OnPromptAccept;
+            promptUI.OnReject += OnPromptReject;
+            promptUI.OnClose  += OnPromptClose;
+        }
+
         SpawnCustomer();
+    }
+
+    private void OnDestroy()
+    {
+        if (promptUI != null)
+        {
+            promptUI.OnAccept -= OnPromptAccept;
+            promptUI.OnReject -= OnPromptReject;
+            promptUI.OnClose  -= OnPromptClose;
+        }
     }
 
     private void Update()
@@ -73,6 +96,9 @@ public class OrderManager : MonoBehaviour
         if (!Input.GetMouseButtonDown(0)) return;
         if (_activeCustomer == null) return;
 
+        // Ignore clicks while the prompt is already showing
+        if (promptUI != null && promptUI.IsVisible) return;
+
         // Raycast to see if the player clicked the customer
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (!Physics.Raycast(ray, out RaycastHit hit, 100f)) return;
@@ -85,7 +111,7 @@ public class OrderManager : MonoBehaviour
         switch (_activeCustomer.CurrentState)
         {
             case Customer.State.WaitingForOrder:
-                StartOrder();
+                ShowOrderPrompt();
                 break;
 
             case Customer.State.WaitingForFood:
@@ -103,6 +129,74 @@ public class OrderManager : MonoBehaviour
 
         Debug.Log("Order Failed: CUSTOMER LEFT");
         EndOrder();
+    }
+
+    // ── Order prompt ────────────────────────────────────────────────────────
+
+    private void ShowOrderPrompt()
+    {
+        if (recipes == null || recipes.Length == 0)
+        {
+            Debug.LogError("[OrderManager] No recipes assigned!", this);
+            return;
+        }
+
+        RecipeData recipe = recipes[Random.Range(0, recipes.Length)];
+        _activeCustomer.ShowOrder(recipe);
+
+        if (promptUI != null)
+            promptUI.Show(recipe.recipeName);
+
+        SetCameraLocked(true);
+
+        Debug.Log($"Showing order prompt: {recipe.recipeName}");
+    }
+
+    private void OnPromptAccept()
+    {
+        SetCameraLocked(false);
+
+        if (_activeCustomer == null) return;
+
+        _activeCustomer.AcceptOrder();
+        _orderActive = true;
+
+        if (timerUI != null)
+            timerUI.StartTimer(orderDuration);
+
+        Debug.Log($"Order accepted: {_activeCustomer.Recipe.recipeName} — {orderDuration}s on the clock");
+    }
+
+    private void OnPromptReject()
+    {
+        SetCameraLocked(false);
+
+        Debug.Log("Order rejected — customer leaves.");
+
+        if (_activeCustomer != null)
+        {
+            Destroy(_activeCustomer.gameObject);
+            _activeCustomer = null;
+        }
+
+        Invoke(nameof(SpawnCustomer), 1.5f);
+    }
+
+    private void OnPromptClose()
+    {
+        SetCameraLocked(false);
+
+        // Return customer to WaitingForOrder so the player can click again later
+        if (_activeCustomer != null)
+            _activeCustomer.ResetCustomer();
+
+        Debug.Log("Order prompt closed — customer still waiting.");
+    }
+
+    private void SetCameraLocked(bool locked)
+    {
+        if (playerCamera != null)
+            playerCamera.InputEnabled = !locked;
     }
 
     // ── Order flow ───────────────────────────────────────────────────────────

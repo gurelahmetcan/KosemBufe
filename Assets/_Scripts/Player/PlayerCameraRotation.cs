@@ -22,6 +22,9 @@ public class PlayerCameraRotation : MonoBehaviour
     [Tooltip("Maximum angle (absolute) the camera can turn when clamping is active.")]
     public float clampAngle = 180f;
 
+    /// <summary>When false, input is ignored (camera stays in place).</summary>
+    public bool InputEnabled { get; set; } = true;
+
     // Internal state
     private float _targetYaw;       // The yaw we are trying to reach
     private float _currentYaw;      // The actual rendered yaw (smoothed)
@@ -42,6 +45,8 @@ public class PlayerCameraRotation : MonoBehaviour
 
     private void HandleInput()
     {
+        if (!InputEnabled) return;
+
         if (Input.GetKeyDown(KeyCode.D))
         {
             _targetYaw += turnAngle;
