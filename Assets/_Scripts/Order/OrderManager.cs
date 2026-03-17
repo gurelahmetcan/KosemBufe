@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Orchestrates the full order-delivery loop with recipe validation:
@@ -9,14 +10,6 @@ using UnityEngine;
 ///   5. Feedback: Perfect / WrongIngredients / Raw / Burnt.
 ///   6. If the timer expires → order failed, customer leaves.
 ///   7. Reset and spawn the next customer.
-///
-/// Scene Setup:
-///  1. Attach to a persistent GameObject (e.g. "OrderSystem").
-///  2. Assign customerPrefab — a prefab with SpriteRenderer, Collider, and Customer component.
-///  3. Assign spawnPoint — transform where customers appear.
-///  4. Assign timerUI — the OrderTimerUI panel (starts inactive in the hierarchy).
-///  5. Assign slicingController — the player's SlicingController (to read the held item).
-///  6. Assign recipes — RecipeData assets that can be ordered.
 /// </summary>
 public class OrderManager : MonoBehaviour
 {
@@ -30,8 +23,8 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Circular countdown UI (top-left of screen).")]
     public OrderTimerUI timerUI;
 
-    [Tooltip("Player's SlicingController — used to read the item in hand for validation.")]
-    public SlicingController slicingController;
+    [FormerlySerializedAs("slicingController")] [Tooltip("Player's SlicingController — used to read the item in hand for validation.")]
+    public InHandController ınHandController;
 
     [Header("Settings")]
     [Tooltip("How many seconds the player has to deliver the order.")]
@@ -135,7 +128,7 @@ public class OrderManager : MonoBehaviour
     private void TryDeliver()
     {
         // Check if the player is holding anything (real item or B-key shortcut)
-        HoldableItem heldItem = slicingController != null ? slicingController.HeldItem : null;
+        HoldableItem heldItem = ınHandController != null ? ınHandController.HeldItem : null;
         bool hasItem = heldItem != null || _isHoldingOrder;
 
         if (!hasItem)
@@ -182,7 +175,7 @@ public class OrderManager : MonoBehaviour
         }
 
         // Always destroy the delivered item and clear the hand
-        slicingController.DestroyHeldItem();
+        ınHandController.DestroyHeldItem();
         _isHoldingOrder = false;
         EndOrder();
     }

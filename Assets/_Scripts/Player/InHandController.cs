@@ -4,35 +4,8 @@ using TMPro;
 
 /// <summary>
 /// Item-in-hand controller. Handles pick-up, drop, slicing, and holder interactions.
-///
-/// Full interaction matrix:
-///  LEFT-CLICK
-///   • Empty hand  + SliceableSource / HoldableItem  → pick it up.
-///   • Unsliced    + CuttingBoard (item has SliceableItem) → instant cut.
-///   • Sliced item + HolderItem (not full)            → store in holder, clear hand.
-///   • Empty hand  + HolderItem                       → pick up holder.
-///   • Loaded HolderItem in hand + ToasterStation     → start toaster minigame.
-///
-///  RIGHT-CLICK
-///   • Holding a HolderItem  → clear its stored items, then drop.
-///   • Holding anything else → drop (disappears).
-///
-///  HOVER
-///   • Mouse over HolderItem → that holder's own child label is shown: "{name}: X/Y".
-///   (Input and hover are fully blocked while the toaster minigame is active.)
-///
-/// Scene Setup:
-///  1. Attach to any persistent GameObject (e.g. "GameController").
-///  2. handDisplayPoint – Empty child of Main Camera, bottom-right of viewport
-///                        (e.g. local pos 0.35, -0.30, 0.65).
-///  3. handStatusText   – TextMeshProUGUI anchored bottom-centre of screen.
-///  4. Each holder prefab – add a child TextMeshPro label, position it freely,
-///                          start it disabled, assign it to HolderItem.hoverLabel.
-///  5. Source objects   – HoldableItem + Collider (+ SliceableItem if cuttable,
-///                        + HolderItem if it stores other items).
-///  6. Cutting board    – CuttingBoard + Collider.
 /// </summary>
-public class SlicingController : MonoBehaviour
+public class InHandController : MonoBehaviour
 {
     [Header("Hand Display")]
     [Tooltip("Empty child of Main Camera placed at the bottom-right of the view.")]

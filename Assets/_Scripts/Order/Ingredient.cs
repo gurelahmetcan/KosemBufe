@@ -5,7 +5,7 @@
 public enum Ingredient
 {
     None,
-    Ekmek,
+    Bread,
     Sucuk,
-    Kasar
+    Cheese
 }

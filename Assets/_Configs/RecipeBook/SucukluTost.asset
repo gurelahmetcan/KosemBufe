@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: SucukluTost
   m_EditorClassIdentifier: 
   recipeName: SucukluTost
-  ingredients: 010000000200000003000000
+  ingredients: 0100000002000000
   requiresCooking: 1

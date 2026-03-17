@@ -41,7 +41,7 @@ public class VendingMachine : MonoBehaviour
 
     [Header("Auto Pickup")]
     [Tooltip("SlicingController on the player — used to auto-deliver dispensed items to the player's hand.")]
-    public SlicingController slicingController;
+    public InHandController ınHandController;
 
     [Header("Kick / Mash Settings")]
     [Tooltip("Key the player presses repeatedly to unjam the machine.")]
@@ -282,11 +282,11 @@ public class VendingMachine : MonoBehaviour
         dispenseTray.ResetCount();
 
         // Auto-deliver to the player's hand using the slot's HoldableItem
-        if (slicingController != null && _activeSlotIndex >= 0)
+        if (ınHandController != null && _activeSlotIndex >= 0)
         {
             HoldableItem holdable = slots[_activeSlotIndex].holdableItem;
             if (holdable != null)
-                slicingController.PickUp(holdable);
+                ınHandController.PickUp(holdable);
         }
 
         StartCoroutine(CooldownThenIdle());
