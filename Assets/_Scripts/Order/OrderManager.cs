@@ -33,6 +33,9 @@ public class OrderManager : MonoBehaviour
     public PlayerCameraRotation playerCamera;
 
     [Header("Settings")]
+    [Tooltip("How many seconds the customer waits before leaving if ignored.")]
+    public float patienceDuration = 15f;
+
     [Tooltip("How many seconds the player has to deliver the order.")]
     public float orderDuration = 30f;
 
@@ -144,6 +147,10 @@ public class OrderManager : MonoBehaviour
         RecipeData recipe = recipes[Random.Range(0, recipes.Length)];
         _activeCustomer.ShowOrder(recipe);
 
+        // Pause patience timer while player is deciding
+        if (_activeCustomer.patienceTimer != null)
+            _activeCustomer.patienceTimer.Pause();
+
         if (promptUI != null)
             promptUI.Show(recipe.recipeName);
 
@@ -157,6 +164,10 @@ public class OrderManager : MonoBehaviour
         SetCameraLocked(false);
 
         if (_activeCustomer == null) return;
+
+        // Patience timer is no longer needed — order was taken
+        if (_activeCustomer.patienceTimer != null)
+            _activeCustomer.patienceTimer.Stop();
 
         _activeCustomer.AcceptOrder();
         _orderActive = true;
@@ -188,9 +199,34 @@ public class OrderManager : MonoBehaviour
 
         // Return customer to WaitingForOrder so the player can click again later
         if (_activeCustomer != null)
+        {
             _activeCustomer.ResetCustomer();
 
+            // Resume patience timer — it continues from where it was paused
+            if (_activeCustomer.patienceTimer != null)
+                _activeCustomer.patienceTimer.Resume();
+        }
+
         Debug.Log("Order prompt closed — customer still waiting.");
+    }
+
+    private void OnPatienceExpired()
+    {
+        Debug.Log("Customer lost patience and left! (TODO: -7 Reputation)");
+
+        // If the prompt is open, close it
+        if (promptUI != null && promptUI.IsVisible)
+            promptUI.Hide();
+
+        SetCameraLocked(false);
+
+        if (_activeCustomer != null)
+        {
+            Destroy(_activeCustomer.gameObject);
+            _activeCustomer = null;
+        }
+
+        Invoke(nameof(SpawnCustomer), 1.5f);
     }
 
     private void SetCameraLocked(bool locked)
@@ -303,6 +339,14 @@ public class OrderManager : MonoBehaviour
 
         _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
         _isHoldingOrder = false;
+
+        // Start the patience timer
+        if (_activeCustomer.patienceTimer != null)
+        {
+            _activeCustomer.patienceTimer.OnExpired += OnPatienceExpired;
+            _activeCustomer.patienceTimer.StartTimer(patienceDuration);
+        }
+
         Debug.Log("New customer spawned.");
     }
 }
