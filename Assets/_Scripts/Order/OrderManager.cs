@@ -243,24 +243,6 @@ public class OrderManager : MonoBehaviour
 
     // ── Order flow ───────────────────────────────────────────────────────────
 
-    private void StartOrder()
-    {
-        if (recipes == null || recipes.Length == 0)
-        {
-            Debug.LogError("[OrderManager] No recipes assigned!", this);
-            return;
-        }
-
-        RecipeData recipe = recipes[Random.Range(0, recipes.Length)];
-        _activeCustomer.AssignOrder(recipe);
-        _orderActive = true;
-
-        if (timerUI != null)
-            timerUI.StartTimer(orderDuration);
-
-        Debug.Log($"Order started: {recipe.recipeName} — {orderDuration}s on the clock");
-    }
-
     private void TryDeliver()
     {
         // Check if the player is holding anything (real item or B-key shortcut)
