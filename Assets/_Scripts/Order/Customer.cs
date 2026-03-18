@@ -25,6 +25,9 @@ public class Customer : MonoBehaviour
     [Tooltip("World-space patience countdown timer (child of this prefab).")]
     public PatienceTimer patienceTimer;
 
+    [Tooltip("SpriteRenderer used to display the customer's appearance.")]
+    public SpriteRenderer spriteRenderer;
+
     // ── Public state ─────────────────────────────────────────────────────────
 
     public State CurrentState { get; private set; } = State.WaitingForOrder;
@@ -32,7 +35,24 @@ public class Customer : MonoBehaviour
     /// <summary>The recipe assigned to this customer (set by OrderManager).</summary>
     public RecipeData Recipe { get; private set; }
 
+    /// <summary>The resolved customer data for this visit (set by OrderManager).</summary>
+    public CustomerInstance Instance { get; private set; }
+
     // ── Public API ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Initialises this customer with a resolved instance.
+    /// Sets the sprite and stores the instance data.
+    /// Called by OrderManager right after instantiation.
+    /// </summary>
+    public void Initialise(CustomerInstance instance)
+    {
+        Instance = instance;
+        Recipe   = instance.Order;
+
+        if (spriteRenderer != null && instance.Sprite != null)
+            spriteRenderer.sprite = instance.Sprite;
+    }
 
     /// <summary>
     /// Shows the order prompt — the recipe is stored but the timer has not started yet.

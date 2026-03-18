@@ -3,13 +3,14 @@ using UnityEngine.Serialization;
 
 /// <summary>
 /// Orchestrates the full order-delivery loop with recipe validation:
-///   1. Spawn a customer placeholder.
-///   2. On click → assign a random recipe, start the timer.
-///   3. Player prepares the order (slice ingredients, fill holder, toast).
-///   4. On second click → validate prepared item against the recipe.
-///   5. Feedback: Perfect / WrongIngredients / Raw / Burnt.
-///   6. If the timer expires → order failed, customer leaves.
-///   7. Reset and spawn the next customer.
+///   1. CustomerFactory creates a CustomerInstance (archetype + mood + order).
+///   2. Spawn the customer prefab and initialise it with the instance data.
+///   3. DialogueBuilder generates mood-appropriate dialogue.
+///   4. On click → show order prompt with dialogue.
+///   5. Player prepares the order (slice ingredients, fill holder, toast).
+///   6. On second click → validate prepared item against the recipe.
+///   7. Feedback: show mood-appropriate reaction dialogue.
+///   8. Reset and spawn the next customer.
 /// </summary>
 public class OrderManager : MonoBehaviour
 {
@@ -23,7 +24,8 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Circular countdown UI (top-left of screen).")]
     public OrderTimerUI timerUI;
 
-    [FormerlySerializedAs("slicingController")] [Tooltip("Player's SlicingController — used to read the item in hand for validation.")]
+    [FormerlySerializedAs("slicingController")]
+    [Tooltip("Player's InHandController — used to read the item in hand for validation.")]
     public InHandController ınHandController;
 
     [Tooltip("Screen-space prompt UI with Accept / Reject / Close buttons.")]
@@ -35,6 +37,12 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Reputation tracker — receives score changes from order outcomes.")]
     public ReputationManager reputationManager;
 
+    [Tooltip("Factory that creates customer instances from archetype pool.")]
+    public CustomerFactory customerFactory;
+
+    [Tooltip("UI component for displaying customer dialogue bubbles.")]
+    public CustomerDialogueUI dialogueUI;
+
     [Header("Settings")]
     [Tooltip("How many seconds the customer waits before leaving if ignored.")]
     public float patienceDuration = 15f;
@@ -42,7 +50,7 @@ public class OrderManager : MonoBehaviour
     [Tooltip("How many seconds the player has to deliver the order.")]
     public float orderDuration = 30f;
 
-    [Tooltip("Available recipes — one is picked at random per customer.")]
+    [Tooltip("Fallback recipes — used only if CustomerFactory is not assigned.")]
     public RecipeData[] recipes;
 
     [Header("Input")]
@@ -54,6 +62,9 @@ public class OrderManager : MonoBehaviour
     private Customer _activeCustomer;
     private bool     _isHoldingOrder;
     private bool     _orderActive;
+
+    // Cached dialogue for the current customer
+    private DialogueBuilder.NormalDialogue _currentDialogue;
 
     // ── Unity loop ───────────────────────────────────────────────────────────
 
@@ -105,6 +116,9 @@ public class OrderManager : MonoBehaviour
         // Ignore clicks while the prompt is already showing
         if (promptUI != null && promptUI.IsVisible) return;
 
+        // Ignore clicks while dialogue is playing
+        if (dialogueUI != null && dialogueUI.IsPlaying) return;
+
         // Raycast to see if the player clicked the customer
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (!Physics.Raycast(ray, out RaycastHit hit, 100f)) return;
@@ -142,14 +156,33 @@ public class OrderManager : MonoBehaviour
 
     private void ShowOrderPrompt()
     {
-        if (recipes == null || recipes.Length == 0)
+        RecipeData recipe;
+
+        // Use the factory-assigned recipe if available, else fallback to random
+        if (_activeCustomer.Instance != null)
         {
-            Debug.LogError("[OrderManager] No recipes assigned!", this);
+            recipe = _activeCustomer.Instance.Order;
+        }
+        else if (recipes != null && recipes.Length > 0)
+        {
+            recipe = recipes[Random.Range(0, recipes.Length)];
+        }
+        else
+        {
+            Debug.LogError("[OrderManager] No recipes available!", this);
             return;
         }
 
-        RecipeData recipe = recipes[Random.Range(0, recipes.Length)];
         _activeCustomer.ShowOrder(recipe);
+
+        // Build and show dialogue
+        if (_activeCustomer.Instance != null)
+        {
+            _currentDialogue = DialogueBuilder.BuildNormal(_activeCustomer.Instance);
+
+            if (dialogueUI != null)
+                dialogueUI.PlayOpeningSequence(_currentDialogue);
+        }
 
         // Pause patience timer while player is deciding
         if (_activeCustomer.patienceTimer != null)
@@ -189,6 +222,8 @@ public class OrderManager : MonoBehaviour
         if (reputationManager != null) reputationManager.ChangeReputation(-5);
         Debug.Log("Order rejected — customer leaves.");
 
+        HideDialogue();
+
         if (_activeCustomer != null)
         {
             Destroy(_activeCustomer.gameObject);
@@ -212,6 +247,7 @@ public class OrderManager : MonoBehaviour
                 _activeCustomer.patienceTimer.Resume();
         }
 
+        HideDialogue();
         Debug.Log("Order prompt closed — customer still waiting.");
     }
 
@@ -225,6 +261,7 @@ public class OrderManager : MonoBehaviour
             promptUI.Hide();
 
         SetCameraLocked(false);
+        HideDialogue();
 
         if (_activeCustomer != null)
         {
@@ -239,6 +276,12 @@ public class OrderManager : MonoBehaviour
     {
         if (playerCamera != null)
             playerCamera.InputEnabled = !locked;
+    }
+
+    private void HideDialogue()
+    {
+        if (dialogueUI != null)
+            dialogueUI.Hide();
     }
 
     // ── Order flow ───────────────────────────────────────────────────────────
@@ -261,6 +304,7 @@ public class OrderManager : MonoBehaviour
         if (heldItem == null && _isHoldingOrder)
         {
             Debug.Log("Order Delivered: SUCCESS (B-key shortcut)");
+            ShowReactionDialogue(OrderResult.Perfect);
             _isHoldingOrder = false;
             EndOrder();
             return;
@@ -296,10 +340,22 @@ public class OrderManager : MonoBehaviour
                 break;
         }
 
+        ShowReactionDialogue(result);
+
         // Always destroy the delivered item and clear the hand
         ınHandController.DestroyHeldItem();
         _isHoldingOrder = false;
         EndOrder();
+    }
+
+    private void ShowReactionDialogue(OrderResult result)
+    {
+        if (dialogueUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
+            return;
+
+        string reaction = DialogueBuilder.GetReaction(_activeCustomer.Instance, result);
+        string exit = DialogueBuilder.GetExitLine(_activeCustomer.Instance);
+        dialogueUI.PlayReactionSequence(reaction, exit);
     }
 
     private void EndOrder()
@@ -335,13 +391,32 @@ public class OrderManager : MonoBehaviour
         _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
         _isHoldingOrder = false;
 
-        // Start the patience timer
-        if (_activeCustomer.patienceTimer != null)
+        // Initialise with factory-created instance data
+        if (customerFactory != null)
         {
-            _activeCustomer.patienceTimer.OnExpired += OnPatienceExpired;
-            _activeCustomer.patienceTimer.StartTimer(patienceDuration);
+            CustomerInstance instance = customerFactory.CreateNormalCustomer();
+            if (instance != null)
+                _activeCustomer.Initialise(instance);
         }
 
-        Debug.Log("New customer spawned.");
+        // Start the patience timer (adjusted by archetype multiplier)
+        if (_activeCustomer.patienceTimer != null)
+        {
+            float patience = _activeCustomer.Instance != null
+                ? _activeCustomer.Instance.GetPatienceDuration(patienceDuration)
+                : patienceDuration;
+
+            _activeCustomer.patienceTimer.OnExpired += OnPatienceExpired;
+            _activeCustomer.patienceTimer.StartTimer(patience);
+        }
+
+        string archetypeName = _activeCustomer.Instance != null
+            ? _activeCustomer.Instance.Archetype.archetypeName
+            : "Generic";
+        string moodName = _activeCustomer.Instance?.Mood != null
+            ? _activeCustomer.Instance.Mood.moodName
+            : "default";
+
+        Debug.Log($"New customer spawned: {archetypeName} ({moodName})");
     }
 }
