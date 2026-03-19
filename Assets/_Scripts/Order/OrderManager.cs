@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 /// Orchestrates the full order-delivery loop for normal customers:
 ///
 ///   1. CustomerFactory creates a CustomerInstance (archetype + mood + order + modifier).
-///   2. Customer spawns → opening line shown via dialogue UI.
+///   2. Customer spawns → opening line shown via customer UI.
 ///   3. Player clicks customer → order line (+ optional modifier) shown, prompt appears.
 ///   4. Player accepts → prepares the order (slice, fill, toast).
 ///   5. Player clicks customer with prepared item → validate (recipe + modifier).
@@ -28,8 +28,8 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Player's InHandController — used to read the item in hand for validation.")]
     public InHandController ınHandController;
 
-    [Tooltip("Screen-space prompt UI with Accept / Reject / Close buttons.")]
-    public OrderPromptUI promptUI;
+    [Tooltip("Unified customer UI — dialogue bubbles + accept/reject/close prompt.")]
+    public CustomerOrderUI customerUI;
 
     [Tooltip("Player camera — rotation is disabled while the prompt is visible.")]
     public PlayerCameraRotation playerCamera;
@@ -39,9 +39,6 @@ public class OrderManager : MonoBehaviour
 
     [Tooltip("Factory that creates customer instances from archetype pool.")]
     public CustomerFactory customerFactory;
-
-    [Tooltip("UI component for displaying customer dialogue bubbles.")]
-    public CustomerDialogueUI dialogueUI;
 
     [Header("Settings")]
     [Tooltip("How many seconds the customer waits before leaving if ignored.")]
@@ -67,11 +64,11 @@ public class OrderManager : MonoBehaviour
 
     private void Start()
     {
-        if (promptUI != null)
+        if (customerUI != null)
         {
-            promptUI.OnAccept += OnPromptAccept;
-            promptUI.OnReject += OnPromptReject;
-            promptUI.OnClose  += OnPromptClose;
+            customerUI.OnAccept += OnPromptAccept;
+            customerUI.OnReject += OnPromptReject;
+            customerUI.OnClose  += OnPromptClose;
         }
 
         SpawnCustomer();
@@ -79,11 +76,11 @@ public class OrderManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (promptUI != null)
+        if (customerUI != null)
         {
-            promptUI.OnAccept -= OnPromptAccept;
-            promptUI.OnReject -= OnPromptReject;
-            promptUI.OnClose  -= OnPromptClose;
+            customerUI.OnAccept -= OnPromptAccept;
+            customerUI.OnReject -= OnPromptReject;
+            customerUI.OnClose  -= OnPromptClose;
         }
     }
 
@@ -111,10 +108,10 @@ public class OrderManager : MonoBehaviour
         if (_activeCustomer == null) return;
 
         // Ignore clicks while the prompt is already showing
-        if (promptUI != null && promptUI.IsVisible) return;
+        if (customerUI != null && customerUI.IsPromptVisible) return;
 
         // Ignore clicks while dialogue is playing
-        if (dialogueUI != null && dialogueUI.IsPlaying) return;
+        if (customerUI != null && customerUI.IsPlaying) return;
 
         // Raycast to see if the player clicked the customer
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -174,10 +171,10 @@ public class OrderManager : MonoBehaviour
         _activeCustomer.ShowOrder(recipe);
 
         // Show order dialogue (order line + optional modifier)
-        if (_activeCustomer.Instance != null && dialogueUI != null)
+        if (_activeCustomer.Instance != null && customerUI != null)
         {
             var orderDialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
-            dialogueUI.PlayOrderSequence(orderDialogue);
+            customerUI.PlayOrderSequence(orderDialogue);
         }
 
         // Pause patience timer while player is deciding
@@ -189,8 +186,8 @@ public class OrderManager : MonoBehaviour
         if (_activeCustomer.Instance != null && _activeCustomer.Instance.HasModifier)
             promptText += $" (+{_activeCustomer.Instance.Modifier.displayText})";
 
-        if (promptUI != null)
-            promptUI.Show(promptText);
+        if (customerUI != null)
+            customerUI.ShowPrompt(promptText);
 
         SetCameraLocked(true);
 
@@ -224,14 +221,14 @@ public class OrderManager : MonoBehaviour
         Debug.Log("Order rejected — customer leaves.");
 
         // Show negative exit on reject
-        if (_activeCustomer != null && _activeCustomer.Instance != null && dialogueUI != null)
+        if (_activeCustomer != null && _activeCustomer.Instance != null && customerUI != null)
         {
             string exit = _activeCustomer.Instance.Mood.GetNegativeExit();
-            dialogueUI.ShowExitLine(exit);
+            customerUI.ShowExitLine(exit);
         }
         else
         {
-            HideDialogue();
+            HideUI();
         }
 
         if (_activeCustomer != null)
@@ -257,7 +254,7 @@ public class OrderManager : MonoBehaviour
                 _activeCustomer.patienceTimer.Resume();
         }
 
-        HideDialogue();
+        HideUI();
         Debug.Log("Order prompt closed — customer still waiting.");
     }
 
@@ -267,8 +264,8 @@ public class OrderManager : MonoBehaviour
         if (reputationManager != null) reputationManager.ChangeReputation(-7);
 
         // If the prompt is open, close it
-        if (promptUI != null && promptUI.IsVisible)
-            promptUI.Hide();
+        if (customerUI != null && customerUI.IsPromptVisible)
+            customerUI.HidePrompt();
 
         SetCameraLocked(false);
 
@@ -290,30 +287,30 @@ public class OrderManager : MonoBehaviour
             playerCamera.InputEnabled = !locked;
     }
 
-    private void HideDialogue()
+    private void HideUI()
     {
-        if (dialogueUI != null)
-            dialogueUI.Hide();
+        if (customerUI != null)
+            customerUI.Hide();
     }
 
     // ── Dialogue helpers ─────────────────────────────────────────────────────
 
     private void ShowTimeoutExit()
     {
-        if (dialogueUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
+        if (customerUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
             return;
 
         string exit = DialogueBuilder.GetTimeoutExitLine(_activeCustomer.Instance);
-        dialogueUI.ShowExitLine(exit);
+        customerUI.ShowExitLine(exit);
     }
 
     private void ShowResultExit(OrderResult result)
     {
-        if (dialogueUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
+        if (customerUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
             return;
 
         string exit = DialogueBuilder.GetExitLine(_activeCustomer.Instance, result);
-        dialogueUI.ShowExitLine(exit);
+        customerUI.ShowExitLine(exit);
     }
 
     // ── Order flow ───────────────────────────────────────────────────────────
@@ -426,10 +423,10 @@ public class OrderManager : MonoBehaviour
         }
 
         // Show opening line on spawn
-        if (_activeCustomer.Instance != null && dialogueUI != null)
+        if (_activeCustomer.Instance != null && customerUI != null)
         {
             string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
-            dialogueUI.ShowOpeningLine(opening);
+            customerUI.ShowOpeningLine(opening);
         }
 
         // Start the patience timer (adjusted by archetype multiplier)
