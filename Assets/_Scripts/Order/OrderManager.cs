@@ -181,17 +181,12 @@ public class OrderManager : MonoBehaviour
         if (_activeCustomer.patienceTimer != null)
             _activeCustomer.patienceTimer.Pause();
 
-        // Build prompt text: recipe name + modifier if present
-        string promptText = recipe.recipeName;
-        if (_activeCustomer.Instance != null && _activeCustomer.Instance.HasModifier)
-            promptText += $" (+{_activeCustomer.Instance.Modifier.displayText})";
-
         if (customerUI != null)
-            customerUI.ShowPrompt(promptText);
+            customerUI.ShowPrompt(recipe.recipeName);
 
         SetCameraLocked(true);
 
-        Debug.Log($"Showing order prompt: {promptText}");
+        Debug.Log($"Showing order prompt: {recipe.recipeName}");
     }
 
     private void OnPromptAccept()

@@ -216,6 +216,7 @@ public class CustomerOrderUI : MonoBehaviour
             StopCoroutine(_activeSequence);
             _activeSequence = null;
         }
+        IsPlaying = false;
     }
 
     private void SetText(string text)
