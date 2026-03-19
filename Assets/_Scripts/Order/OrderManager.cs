@@ -170,23 +170,26 @@ public class OrderManager : MonoBehaviour
 
         _activeCustomer.ShowOrder(recipe);
 
-        // Show order dialogue (order line + optional modifier)
-        if (_activeCustomer.Instance != null && customerUI != null)
-        {
-            var orderDialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
-            customerUI.PlayOrderSequence(orderDialogue);
-        }
-
         // Pause patience timer while player is deciding
         if (_activeCustomer.patienceTimer != null)
             _activeCustomer.patienceTimer.Pause();
 
+        // Build the prompt text from dialogue phrases
+        string promptText = recipe.recipeName;
+        if (_activeCustomer.Instance != null)
+        {
+            var dialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
+            promptText = dialogue.order;
+            if (!string.IsNullOrEmpty(dialogue.modifier))
+                promptText += "\n" + dialogue.modifier;
+        }
+
         if (customerUI != null)
-            customerUI.ShowPrompt(recipe.recipeName);
+            customerUI.ShowPrompt(promptText);
 
         SetCameraLocked(true);
 
-        Debug.Log($"Showing order prompt: {recipe.recipeName}");
+        Debug.Log($"Showing order prompt: {promptText}");
     }
 
     private void OnPromptAccept()
