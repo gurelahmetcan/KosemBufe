@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Defines how a customer talks based on their current mood.
 /// Each mood provides its own pool of opening lines, order phrases,
-/// modifier phrases, exit lines, and reactions.
+/// modifier phrases, and three categories of exit lines (positive, negative, timeout).
 ///
 /// Create via: Assets → Create → KosemBufe → Customer Mood
 /// </summary>
@@ -13,11 +13,12 @@ public class CustomerMood : ScriptableObject
     [Tooltip("Mood identifier (e.g. 'tired', 'friendly', 'grumpy').")]
     public string moodName;
 
-    [Header("Dialogue Lines")]
-    [Tooltip("Greetings when the customer arrives.")]
+    [Header("Opening")]
+    [Tooltip("Greetings when the customer arrives (shown on spawn).")]
     [TextArea(1, 3)]
     public string[] openingLines;
 
+    [Header("Ordering")]
     [Tooltip("How they phrase their order. Use {0} for the food name.")]
     [TextArea(1, 3)]
     public string[] orderPhrases;
@@ -26,13 +27,20 @@ public class CustomerMood : ScriptableObject
     [TextArea(1, 3)]
     public string[] modifierPhrases;
 
-    [Tooltip("What they say when leaving.")]
+    [Header("Exit Lines")]
+    [Tooltip("Positive exit — order was perfect.")]
     [TextArea(1, 3)]
-    public string[] exitLines;
+    public string[] positiveExitLines;
 
-    [Header("Reactions")]
-    [Tooltip("Reaction lines per order result (Perfect, WrongIngredients, Raw, Burnt).")]
-    public ReactionLine[] reactions;
+    [Tooltip("Negative exit — order was wrong, raw, or burnt.")]
+    [TextArea(1, 3)]
+    public string[] negativeExitLines;
+
+    [Tooltip("Timeout exit — customer ran out of patience or delivery timer expired.")]
+    [TextArea(1, 3)]
+    public string[] timeoutExitLines;
+
+    // ── Helpers ────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Returns a random line from the given array, or a fallback if empty.
@@ -43,24 +51,10 @@ public class CustomerMood : ScriptableObject
         return pool[Random.Range(0, pool.Length)];
     }
 
-    public string GetOpeningLine()  => Pick(openingLines, "Hey.");
-    public string GetOrderPhrase()  => Pick(orderPhrases, "I'll have a {0}.");
-    public string GetModifierPhrase() => Pick(modifierPhrases, "Oh, and {0}.");
-    public string GetExitLine()     => Pick(exitLines, "Thanks.");
-
-    /// <summary>
-    /// Returns a random reaction line for the given order result.
-    /// </summary>
-    public string GetReaction(OrderResult result)
-    {
-        if (reactions == null) return "...";
-
-        for (int i = 0; i < reactions.Length; i++)
-        {
-            if (reactions[i].result == result)
-                return Pick(reactions[i].lines, "...");
-        }
-
-        return "...";
-    }
+    public string GetOpeningLine()      => Pick(openingLines, "Hey.");
+    public string GetOrderPhrase()      => Pick(orderPhrases, "I'll have a {0}.");
+    public string GetModifierPhrase()   => Pick(modifierPhrases, "Oh, and {0}.");
+    public string GetPositiveExit()     => Pick(positiveExitLines, "Thanks!");
+    public string GetNegativeExit()     => Pick(negativeExitLines, "This isn't right...");
+    public string GetTimeoutExit()      => Pick(timeoutExitLines, "I can't wait any longer.");
 }

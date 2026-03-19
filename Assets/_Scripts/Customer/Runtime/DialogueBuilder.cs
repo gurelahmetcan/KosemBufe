@@ -1,29 +1,40 @@
 /// <summary>
 /// Pure static utility that assembles dialogue strings from a CustomerInstance.
 /// No MonoBehaviour, no side effects — just data in, strings out.
+///
+/// Normal customer flow:
+///   1. Opening line   → shown when customer spawns
+///   2. Order line     → shown when player clicks customer (+ optional modifier)
+///   3. Exit line      → shown after delivery or timeout (positive / negative / timeout)
 /// </summary>
 public static class DialogueBuilder
 {
     /// <summary>
-    /// Holds the full set of dialogue lines for a normal customer visit.
+    /// The order dialogue shown when the player clicks the customer.
+    /// Contains the order phrase and an optional modifier phrase.
     /// </summary>
-    public struct NormalDialogue
+    public struct OrderDialogue
     {
-        public string opening;
         public string order;
         public string modifier; // Empty string if no modifier
-        public string exit;
     }
 
     /// <summary>
-    /// Builds a complete dialogue set for a normal customer visit.
+    /// Returns the opening line for when the customer spawns.
     /// </summary>
-    public static NormalDialogue BuildNormal(CustomerInstance instance)
+    public static string GetOpeningLine(CustomerInstance instance)
+    {
+        return instance.Mood.GetOpeningLine();
+    }
+
+    /// <summary>
+    /// Builds the order dialogue shown when the player clicks the customer.
+    /// </summary>
+    public static OrderDialogue BuildOrderDialogue(CustomerInstance instance)
     {
         var mood = instance.Mood;
 
         string orderPhrase = mood.GetOrderPhrase();
-        // Replace {0} with the actual food name
         orderPhrase = orderPhrase.Replace("{0}", instance.Order.recipeName);
 
         string modifierPhrase = "";
@@ -33,42 +44,32 @@ public static class DialogueBuilder
             modifierPhrase = modifierPhrase.Replace("{0}", instance.Modifier.displayText);
         }
 
-        return new NormalDialogue
+        return new OrderDialogue
         {
-            opening  = mood.GetOpeningLine(),
             order    = orderPhrase,
-            modifier = modifierPhrase,
-            exit     = mood.GetExitLine()
+            modifier = modifierPhrase
         };
     }
 
     /// <summary>
-    /// Returns the full dialogue as a single combined string.
-    /// Useful for simple display in a single text bubble.
+    /// Returns the appropriate exit line based on the order result.
+    /// Perfect → positive exit, WrongIngredients/Raw/Burnt → negative exit.
     /// </summary>
-    public static string BuildNormalCombined(CustomerInstance instance)
+    public static string GetExitLine(CustomerInstance instance, OrderResult result)
     {
-        NormalDialogue d = BuildNormal(instance);
+        var mood = instance.Mood;
 
-        if (string.IsNullOrEmpty(d.modifier))
-            return $"{d.opening}\n{d.order}";
+        if (result == OrderResult.Perfect)
+            return mood.GetPositiveExit();
 
-        return $"{d.opening}\n{d.order}\n{d.modifier}";
+        return mood.GetNegativeExit();
     }
 
     /// <summary>
-    /// Returns a mood-appropriate reaction to the order result.
+    /// Returns the timeout exit line (patience expired or delivery timer expired).
     /// </summary>
-    public static string GetReaction(CustomerInstance instance, OrderResult result)
+    public static string GetTimeoutExitLine(CustomerInstance instance)
     {
-        return instance.Mood.GetReaction(result);
-    }
-
-    /// <summary>
-    /// Returns the exit line for the customer.
-    /// </summary>
-    public static string GetExitLine(CustomerInstance instance)
-    {
-        return instance.Mood.GetExitLine();
+        return instance.Mood.GetTimeoutExit();
     }
 }

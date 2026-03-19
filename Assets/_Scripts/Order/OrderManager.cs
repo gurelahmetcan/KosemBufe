@@ -2,15 +2,15 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 /// <summary>
-/// Orchestrates the full order-delivery loop with recipe validation:
-///   1. CustomerFactory creates a CustomerInstance (archetype + mood + order).
-///   2. Spawn the customer prefab and initialise it with the instance data.
-///   3. DialogueBuilder generates mood-appropriate dialogue.
-///   4. On click → show order prompt with dialogue.
-///   5. Player prepares the order (slice ingredients, fill holder, toast).
-///   6. On second click → validate prepared item against the recipe.
-///   7. Feedback: show mood-appropriate reaction dialogue.
-///   8. Reset and spawn the next customer.
+/// Orchestrates the full order-delivery loop for normal customers:
+///
+///   1. CustomerFactory creates a CustomerInstance (archetype + mood + order + modifier).
+///   2. Customer spawns → opening line shown via dialogue UI.
+///   3. Player clicks customer → order line (+ optional modifier) shown, prompt appears.
+///   4. Player accepts → prepares the order (slice, fill, toast).
+///   5. Player clicks customer with prepared item → validate (recipe + modifier).
+///   6. Result → positive/negative exit line shown, customer leaves.
+///   7. Timer expires → timeout exit line shown, customer leaves.
 /// </summary>
 public class OrderManager : MonoBehaviour
 {
@@ -62,9 +62,6 @@ public class OrderManager : MonoBehaviour
     private Customer _activeCustomer;
     private bool     _isHoldingOrder;
     private bool     _orderActive;
-
-    // Cached dialogue for the current customer
-    private DialogueBuilder.NormalDialogue _currentDialogue;
 
     // ── Unity loop ───────────────────────────────────────────────────────────
 
@@ -147,8 +144,9 @@ public class OrderManager : MonoBehaviour
         if (!_orderActive) return;
         if (timerUI == null || timerUI.Remaining > 0f) return;
 
-        Debug.Log("Order Failed: CUSTOMER LEFT (timer expired)");
+        Debug.Log("Order Failed: DELIVERY TIMER EXPIRED");
         if (reputationManager != null) reputationManager.ChangeReputation(-10);
+        ShowTimeoutExit();
         EndOrder();
     }
 
@@ -175,25 +173,28 @@ public class OrderManager : MonoBehaviour
 
         _activeCustomer.ShowOrder(recipe);
 
-        // Build and show dialogue
-        if (_activeCustomer.Instance != null)
+        // Show order dialogue (order line + optional modifier)
+        if (_activeCustomer.Instance != null && dialogueUI != null)
         {
-            _currentDialogue = DialogueBuilder.BuildNormal(_activeCustomer.Instance);
-
-            if (dialogueUI != null)
-                dialogueUI.PlayOpeningSequence(_currentDialogue);
+            var orderDialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
+            dialogueUI.PlayOrderSequence(orderDialogue);
         }
 
         // Pause patience timer while player is deciding
         if (_activeCustomer.patienceTimer != null)
             _activeCustomer.patienceTimer.Pause();
 
+        // Build prompt text: recipe name + modifier if present
+        string promptText = recipe.recipeName;
+        if (_activeCustomer.Instance != null && _activeCustomer.Instance.HasModifier)
+            promptText += $" (+{_activeCustomer.Instance.Modifier.displayText})";
+
         if (promptUI != null)
-            promptUI.Show(recipe.recipeName);
+            promptUI.Show(promptText);
 
         SetCameraLocked(true);
 
-        Debug.Log($"Showing order prompt: {recipe.recipeName}");
+        Debug.Log($"Showing order prompt: {promptText}");
     }
 
     private void OnPromptAccept()
@@ -222,7 +223,16 @@ public class OrderManager : MonoBehaviour
         if (reputationManager != null) reputationManager.ChangeReputation(-5);
         Debug.Log("Order rejected — customer leaves.");
 
-        HideDialogue();
+        // Show negative exit on reject
+        if (_activeCustomer != null && _activeCustomer.Instance != null && dialogueUI != null)
+        {
+            string exit = _activeCustomer.Instance.Mood.GetNegativeExit();
+            dialogueUI.ShowExitLine(exit);
+        }
+        else
+        {
+            HideDialogue();
+        }
 
         if (_activeCustomer != null)
         {
@@ -261,7 +271,9 @@ public class OrderManager : MonoBehaviour
             promptUI.Hide();
 
         SetCameraLocked(false);
-        HideDialogue();
+
+        // Show timeout exit line
+        ShowTimeoutExit();
 
         if (_activeCustomer != null)
         {
@@ -284,6 +296,26 @@ public class OrderManager : MonoBehaviour
             dialogueUI.Hide();
     }
 
+    // ── Dialogue helpers ─────────────────────────────────────────────────────
+
+    private void ShowTimeoutExit()
+    {
+        if (dialogueUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
+            return;
+
+        string exit = DialogueBuilder.GetTimeoutExitLine(_activeCustomer.Instance);
+        dialogueUI.ShowExitLine(exit);
+    }
+
+    private void ShowResultExit(OrderResult result)
+    {
+        if (dialogueUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
+            return;
+
+        string exit = DialogueBuilder.GetExitLine(_activeCustomer.Instance, result);
+        dialogueUI.ShowExitLine(exit);
+    }
+
     // ── Order flow ───────────────────────────────────────────────────────────
 
     private void TryDeliver()
@@ -304,15 +336,19 @@ public class OrderManager : MonoBehaviour
         if (heldItem == null && _isHoldingOrder)
         {
             Debug.Log("Order Delivered: SUCCESS (B-key shortcut)");
-            ShowReactionDialogue(OrderResult.Perfect);
+            ShowResultExit(OrderResult.Perfect);
             _isHoldingOrder = false;
             EndOrder();
             return;
         }
 
-        // Validate the held item against the recipe
+        // Get the modifier (if any) for validation
+        OrderModifier modifier = _activeCustomer.Instance?.Modifier;
+
+        // Validate the held item against the recipe + modifier
         OrderResult result = OrderValidator.Validate(
             recipe,
+            modifier,
             heldItem.preparedIngredients,
             heldItem.cookState
         );
@@ -340,22 +376,12 @@ public class OrderManager : MonoBehaviour
                 break;
         }
 
-        ShowReactionDialogue(result);
+        ShowResultExit(result);
 
         // Always destroy the delivered item and clear the hand
         ınHandController.DestroyHeldItem();
         _isHoldingOrder = false;
         EndOrder();
-    }
-
-    private void ShowReactionDialogue(OrderResult result)
-    {
-        if (dialogueUI == null || _activeCustomer == null || _activeCustomer.Instance == null)
-            return;
-
-        string reaction = DialogueBuilder.GetReaction(_activeCustomer.Instance, result);
-        string exit = DialogueBuilder.GetExitLine(_activeCustomer.Instance);
-        dialogueUI.PlayReactionSequence(reaction, exit);
     }
 
     private void EndOrder()
@@ -397,6 +423,13 @@ public class OrderManager : MonoBehaviour
             CustomerInstance instance = customerFactory.CreateNormalCustomer();
             if (instance != null)
                 _activeCustomer.Initialise(instance);
+        }
+
+        // Show opening line on spawn
+        if (_activeCustomer.Instance != null && dialogueUI != null)
+        {
+            string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
+            dialogueUI.ShowOpeningLine(opening);
         }
 
         // Start the patience timer (adjusted by archetype multiplier)

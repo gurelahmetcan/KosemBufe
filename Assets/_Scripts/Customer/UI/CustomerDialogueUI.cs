@@ -4,7 +4,11 @@ using System.Collections;
 
 /// <summary>
 /// Displays customer dialogue in a world-space or screen-space text bubble.
-/// Handles the sequential flow: opening → order (+ modifier) → reaction → exit.
+///
+/// Normal customer flow:
+///   1. ShowOpeningLine()     → customer spawns, says hello
+///   2. PlayOrderSequence()   → player clicks, customer states order (+ modifier)
+///   3. ShowExitLine()        → after delivery or timeout, customer reacts and leaves
 ///
 /// Scene Setup:
 ///   1. Attach to a UI GameObject (e.g. a panel with a TextMeshProUGUI child).
@@ -32,38 +36,45 @@ public class CustomerDialogueUI : MonoBehaviour
 
     private Coroutine _activeSequence;
 
+    // ── Public API ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Shows the opening line when the customer spawns.
+    /// Stays visible until hidden or replaced by another call.
+    /// </summary>
+    public void ShowOpeningLine(string line)
+    {
+        StopActive();
+        _activeSequence = StartCoroutine(ShowLineRoutine(line, lineDisplayDuration));
+    }
+
+    /// <summary>
+    /// Plays the order sequence: order line → optional modifier line.
+    /// Called when the player clicks the customer to take the order.
+    /// </summary>
+    public void PlayOrderSequence(DialogueBuilder.OrderDialogue dialogue)
+    {
+        StopActive();
+        _activeSequence = StartCoroutine(OrderSequenceRoutine(dialogue));
+    }
+
+    /// <summary>
+    /// Shows the exit line (positive, negative, or timeout).
+    /// Called after delivery result or when the customer leaves.
+    /// </summary>
+    public void ShowExitLine(string line)
+    {
+        StopActive();
+        _activeSequence = StartCoroutine(ShowLineRoutine(line, lineDisplayDuration));
+    }
+
     /// <summary>
     /// Shows a single line of dialogue for the configured duration.
     /// </summary>
     public void ShowLine(string line, float duration = -1f)
     {
-        if (_activeSequence != null)
-            StopCoroutine(_activeSequence);
-
+        StopActive();
         _activeSequence = StartCoroutine(ShowLineRoutine(line, duration < 0 ? lineDisplayDuration : duration));
-    }
-
-    /// <summary>
-    /// Plays the normal customer opening sequence: opening line → order (+ modifier).
-    /// Called when the customer first appears.
-    /// </summary>
-    public void PlayOpeningSequence(DialogueBuilder.NormalDialogue dialogue)
-    {
-        if (_activeSequence != null)
-            StopCoroutine(_activeSequence);
-
-        _activeSequence = StartCoroutine(OpeningSequenceRoutine(dialogue));
-    }
-
-    /// <summary>
-    /// Shows a reaction line (after order delivery) then the exit line.
-    /// </summary>
-    public void PlayReactionSequence(string reactionLine, string exitLine)
-    {
-        if (_activeSequence != null)
-            StopCoroutine(_activeSequence);
-
-        _activeSequence = StartCoroutine(ReactionSequenceRoutine(reactionLine, exitLine));
     }
 
     /// <summary>
@@ -71,16 +82,9 @@ public class CustomerDialogueUI : MonoBehaviour
     /// </summary>
     public void Hide()
     {
-        if (_activeSequence != null)
-        {
-            StopCoroutine(_activeSequence);
-            _activeSequence = null;
-        }
-
+        StopActive();
         IsPlaying = false;
-
-        if (panel != null)
-            panel.SetActive(false);
+        HidePanel();
     }
 
     // ── Coroutines ────────────────────────────────────────────────────────
@@ -98,18 +102,13 @@ public class CustomerDialogueUI : MonoBehaviour
         _activeSequence = null;
     }
 
-    private IEnumerator OpeningSequenceRoutine(DialogueBuilder.NormalDialogue dialogue)
+    private IEnumerator OrderSequenceRoutine(DialogueBuilder.OrderDialogue dialogue)
     {
         IsPlaying = true;
 
-        // Opening line
-        SetText(dialogue.opening);
-        ShowPanel();
-        yield return new WaitForSeconds(lineDisplayDuration);
-
         // Order line
-        yield return new WaitForSeconds(linePauseDuration);
         SetText(dialogue.order);
+        ShowPanel();
         yield return new WaitForSeconds(lineDisplayDuration);
 
         // Modifier (if any)
@@ -125,26 +124,16 @@ public class CustomerDialogueUI : MonoBehaviour
         _activeSequence = null;
     }
 
-    private IEnumerator ReactionSequenceRoutine(string reactionLine, string exitLine)
-    {
-        IsPlaying = true;
-
-        // Reaction
-        SetText(reactionLine);
-        ShowPanel();
-        yield return new WaitForSeconds(lineDisplayDuration);
-
-        // Exit line
-        yield return new WaitForSeconds(linePauseDuration);
-        SetText(exitLine);
-        yield return new WaitForSeconds(lineDisplayDuration);
-
-        HidePanel();
-        IsPlaying = false;
-        _activeSequence = null;
-    }
-
     // ── Helpers ────────────────────────────────────────────────────────────
+
+    private void StopActive()
+    {
+        if (_activeSequence != null)
+        {
+            StopCoroutine(_activeSequence);
+            _activeSequence = null;
+        }
+    }
 
     private void SetText(string text)
     {
