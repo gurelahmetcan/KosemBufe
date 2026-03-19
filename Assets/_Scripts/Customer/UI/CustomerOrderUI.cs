@@ -79,6 +79,7 @@ public class CustomerOrderUI : MonoBehaviour
     public void ShowOpeningLine(string line)
     {
         StopActive();
+        ShowPanel();
         _activeSequence = StartCoroutine(ShowLineRoutine(line, lineDisplayDuration));
     }
 
@@ -89,6 +90,7 @@ public class CustomerOrderUI : MonoBehaviour
     public void PlayOrderSequence(DialogueBuilder.OrderDialogue dialogue)
     {
         StopActive();
+        ShowPanel();
         _activeSequence = StartCoroutine(OrderSequenceRoutine(dialogue));
     }
 
@@ -98,6 +100,7 @@ public class CustomerOrderUI : MonoBehaviour
     public void ShowExitLine(string line)
     {
         StopActive();
+        ShowPanel();
         _activeSequence = StartCoroutine(ShowLineRoutine(line, lineDisplayDuration));
     }
 
@@ -107,6 +110,7 @@ public class CustomerOrderUI : MonoBehaviour
     public void ShowLine(string line, float duration = -1f)
     {
         StopActive();
+        ShowPanel();
         _activeSequence = StartCoroutine(ShowLineRoutine(line, duration < 0 ? lineDisplayDuration : duration));
     }
 
