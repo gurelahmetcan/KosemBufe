@@ -1405,14 +1405,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 643552451}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f74811dc0a4e47669358412f90dfbc1, type: 3}
+  m_Script: {fileID: 11500000, guid: 583e7b5bddf7c41d7a33a833aec3ad8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 643552451}
-  recipeName: {fileID: 958629410}
+  dialogueText: {fileID: 958629410}
   acceptButton: {fileID: 1348824360}
   rejectButton: {fileID: 1001687655}
   closeButton: {fileID: 1701684985}
+  lineDisplayDuration: 2
+  linePauseDuration: 0.3
 --- !u!1 &651997241
 GameObject:
   m_ObjectHideFlags: 0
@@ -5511,6 +5513,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1885800789}
   - component: {fileID: 1885800788}
+  - component: {fileID: 1885800790}
   m_Layer: 0
   m_Name: OrderManager
   m_TagString: Untagged
@@ -5534,9 +5537,10 @@ MonoBehaviour:
   spawnPoint: {fileID: 1606652200}
   timerUI: {fileID: 1056739900}
   "\u0131nHandController": {fileID: 1020548375}
-  promptUI: {fileID: 643552453}
+  customerUI: {fileID: 643552453}
   playerCamera: {fileID: 330585548}
   reputationManager: {fileID: 239375749}
+  customerFactory: {fileID: 1885800790}
   patienceDuration: 15
   orderDuration: 30
   recipes:
@@ -5559,6 +5563,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1885800790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1885800787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0bc4afa0c8b141768db5a68bf891007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  archetypePool:
+  - {fileID: 11400000, guid: bc2f2be8ead2345ebad3be83a196a546, type: 2}
 --- !u!1 &1938098229
 GameObject:
   m_ObjectHideFlags: 0
@@ -6292,10 +6310,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: HangingKasar
       objectReference: {fileID: 0}
-    - target: {fileID: 6763696378682655830, guid: 8a543947e8ce1904d91810d92a700b75, type: 3}
-      propertyPath: ingredient
-      value: 3
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6526,10 +6540,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 820516796777673135, guid: 48d102c5e1aa1a14887b40029fd51fa5, type: 3}
-      propertyPath: ingredient
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 7513634554787112371, guid: 48d102c5e1aa1a14887b40029fd51fa5, type: 3}
       propertyPath: m_Name
       value: Bread
@@ -6606,10 +6616,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: HangingSucuk
       objectReference: {fileID: 0}
-    - target: {fileID: 9072210135970035967, guid: 5d35870c7e29b2749b9ac51ae4ea68a8, type: 3}
-      propertyPath: ingredient
-      value: 2
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6662,6 +6668,63 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &8691567603489605524
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3935072142919619534, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_Name
+      value: Onion
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.705
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.369
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5900908722468517560, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1248a796ddc1b444a98779f339dbdebf, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -6677,6 +6740,7 @@ SceneRoots:
   - {fileID: 8237335295226591881}
   - {fileID: 537433588055091523}
   - {fileID: 7993491474177735348}
+  - {fileID: 8691567603489605524}
   - {fileID: 1885800789}
   - {fileID: 239375750}
   - {fileID: 1020548374}

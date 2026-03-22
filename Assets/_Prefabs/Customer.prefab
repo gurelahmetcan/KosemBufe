@@ -669,3 +669,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orderLabel: {fileID: 2490789246401952388}
   patienceTimer: {fileID: 5532837368862980344}
+  spriteRenderer: {fileID: 4890797605086942277}

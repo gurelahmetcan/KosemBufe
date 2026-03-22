@@ -7,5 +7,6 @@ public enum Ingredient
     None,
     Bread,
     Sucuk,
-    Cheese
+    Cheese,
+    Onion
 }
