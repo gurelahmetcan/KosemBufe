@@ -110,9 +110,6 @@ public class OrderManager : MonoBehaviour
         // Ignore clicks while the prompt is already showing
         if (customerUI != null && customerUI.IsPromptVisible) return;
 
-        // Ignore clicks while dialogue is playing
-        if (customerUI != null && customerUI.IsPlaying) return;
-
         // Raycast to see if the player clicked the customer
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (!Physics.Raycast(ray, out RaycastHit hit, 100f)) return;
