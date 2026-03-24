@@ -8,5 +8,9 @@ public enum Ingredient
     Bread,
     Sucuk,
     Cheese,
-    Onion
+    Onion,
+    Potato,
+    FrenchFries,
+    Ketchup,
+    Mayonnaise
 }
