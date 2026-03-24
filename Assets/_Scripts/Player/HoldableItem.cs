@@ -19,6 +19,9 @@ public class HoldableItem : MonoBehaviour
     [Tooltip("Which ingredient this item represents (used for recipe validation).")]
     public Ingredient ingredient = Ingredient.None;
 
+    [Tooltip("Which station processes this item supports (set per prefab).")]
+    public ProcessType supportedProcesses = ProcessType.None;
+
     // ── Prepared-order state (set by toaster flow) ───────────────────────────
     // These fields carry the full preparation data on toaster result items
     // so OrderManager can validate against a recipe.

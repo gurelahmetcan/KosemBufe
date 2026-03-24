@@ -19,8 +19,21 @@ using UnityEngine;
 ///  - Right-click while holding           → stored items deleted, hand cleared.
 /// </summary>
 [RequireComponent(typeof(HoldableItem))]
-public class HolderItem : MonoBehaviour
+public class HolderItem : MonoBehaviour, IInteractable
 {
+    // ── IInteractable ────────────────────────────────────────────────────────
+
+    public bool CanInteract(InHandController hand)
+    {
+        return hand.HeldItem != null && hand.IsSliced && !IsFull;
+    }
+
+    public void Interact(InHandController hand)
+    {
+        AddItem(hand.HeldItem);
+        hand.DropItem();
+    }
+
     [Tooltip("Maximum number of items this holder can store.")]
     public int maxSlots = 3;
 

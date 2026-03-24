@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// Item-in-hand controller. Handles pick-up, drop, slicing, and holder interactions.
+/// Item-in-hand controller. Handles pick-up, drop, and visual display.
+/// Interaction logic lives on the interactable objects themselves (IInteractable).
 /// </summary>
 public class InHandController : MonoBehaviour
 {
@@ -14,10 +14,6 @@ public class InHandController : MonoBehaviour
     [Header("Input")]
     [Tooltip("Maximum raycast distance for click detection.")]
     public float clickRange = 10f;
-
-    [Header("Minigame")]
-    [Tooltip("The ToasterMinigame controller in the scene.")]
-    public ToasterMinigame toasterMinigame;
 
     [Header("UI")]
     [Tooltip("TextMeshProUGUI showing what is currently in hand.")]
@@ -30,8 +26,16 @@ public class InHandController : MonoBehaviour
     private GameObject   _heldVisual;      // prefab instance parented to handDisplayPoint
     private HolderItem   _hoveredHolder;   // holder whose label is currently shown
 
+    // ── Public API (used by stations and external systems) ────────────────────
+
     /// <summary>The item currently in the player's hand (null if empty).</summary>
     public HoldableItem HeldItem => _heldItem;
+
+    /// <summary>Whether the held item has been sliced.</summary>
+    public bool IsSliced => _heldIsSliced;
+
+    /// <summary>Set by stations (e.g. during minigames) to block all player input.</summary>
+    public bool InputBlocked { get; set; }
 
     // ── Unity loop ────────────────────────────────────────────────────────────
 
@@ -45,7 +49,8 @@ public class InHandController : MonoBehaviour
 
     private void HandleInput()
     {
-        if (toasterMinigame != null && toasterMinigame.IsActive) return;
+        if (InputBlocked) return;
+
         // Right-click → drop (clear holder contents first if applicable)
         if (Input.GetMouseButtonDown(1))
         {
@@ -65,48 +70,16 @@ public class InHandController : MonoBehaviour
         GameObject hit = RaycastTarget();
         if (hit == null) return;
 
-        // ── Loaded HolderItem in hand + toaster → start minigame ─────────────
-        if (_heldItem != null && toasterMinigame != null)
+        // ── Try IInteractable (stations, holders, etc.) ─────────────────────
+        IInteractable interactable = hit.GetComponent<IInteractable>()
+                                  ?? hit.GetComponentInParent<IInteractable>();
+        if (interactable != null && interactable.CanInteract(this))
         {
-            HolderItem heldHolder = _heldItem.GetComponent<HolderItem>();
-            if (heldHolder != null && heldHolder.StoredCount > 0)
-            {
-                ToasterStation toaster = hit.GetComponent<ToasterStation>()
-                                      ?? hit.GetComponentInParent<ToasterStation>();
-                if (toaster != null)
-                {
-                    StartToasterMinigame(toaster);
-                    return;
-                }
-            }
+            interactable.Interact(this);
+            return;
         }
 
-        // ── Unsliced item in hand + cutting board → cut ───────────────────────
-        if (_heldItem != null && !_heldIsSliced)
-        {
-            CuttingBoard board = hit.GetComponent<CuttingBoard>()
-                              ?? hit.GetComponentInParent<CuttingBoard>();
-            if (board != null && _heldItem.GetComponent<SliceableItem>() != null)
-            {
-                CutHeldItem();
-                return;
-            }
-        }
-
-        // ── Sliced item in hand + holder → store in holder ────────────────────
-        if (_heldItem != null && _heldIsSliced)
-        {
-            HolderItem holder = hit.GetComponent<HolderItem>()
-                             ?? hit.GetComponentInParent<HolderItem>();
-            if (holder != null && !holder.IsFull)
-            {
-                holder.AddItem(_heldItem);
-                DropItem();
-                return;
-            }
-        }
-
-        // ── Empty hand + any HoldableItem (including holders) → pick it up ────
+        // ── Empty hand + any HoldableItem → pick it up ─────────────────────
         if (_heldItem == null)
         {
             HoldableItem holdable = hit.GetComponent<HoldableItem>()
@@ -120,7 +93,8 @@ public class InHandController : MonoBehaviour
 
     private void UpdateHoverUI()
     {
-        if (toasterMinigame != null && toasterMinigame.IsActive) return;
+        if (InputBlocked) return;
+
         GameObject hit = RaycastTarget();
 
         HolderItem newHolder = null;
@@ -141,41 +115,6 @@ public class InHandController : MonoBehaviour
             _hoveredHolder.ShowLabel();
     }
 
-    // ── Toaster minigame ──────────────────────────────────────────────────────
-
-    private void StartToasterMinigame(ToasterStation toaster)
-    {
-        // Save references to the holder so we can return it after the minigame
-        HoldableItem savedItem = _heldItem;
-        HolderItem savedHolder = _heldItem != null ? _heldItem.GetComponent<HolderItem>() : null;
-
-        // Hide any open hover label and clear hand — bread goes into the toaster
-        if (_hoveredHolder != null)
-        {
-            _hoveredHolder.HideLabel();
-            _hoveredHolder = null;
-        }
-        DropItem();
-
-        Debug.Log($"[Toaster] Starting minigame with holder='{savedItem?.itemName}', storedCount={savedHolder?.StoredCount}");
-
-        toasterMinigame.StartMinigame(success =>
-        {
-            if (savedItem != null)
-            {
-                // Populate preparedIngredients from the holder's stored items
-                if (savedHolder != null)
-                    savedItem.preparedIngredients = new List<Ingredient>(savedHolder.GetIngredients());
-
-                savedItem.cookState = success ? CookState.Cooked : CookState.Burnt;
-
-                Debug.Log($"[Toaster] Minigame done: success={success}, cookState={savedItem.cookState}, ingredients=[{string.Join(", ", savedItem.preparedIngredients)}]");
-
-                PickUp(savedItem);
-            }
-        });
-    }
-
     // ── Hand operations ───────────────────────────────────────────────────────
 
     public void PickUp(HoldableItem item)
@@ -187,10 +126,20 @@ public class InHandController : MonoBehaviour
         RefreshUI();
     }
 
-    private void CutHeldItem()
+    /// <summary>Marks the held item as sliced and swaps the visual.</summary>
+    public void SliceHeldItem()
     {
         _heldIsSliced = true;
         RefreshVisual();
+        RefreshUI();
+    }
+
+    /// <summary>Drops the held item (clears hand state and visual).</summary>
+    public void DropItem()
+    {
+        _heldItem     = null;
+        _heldIsSliced = false;
+        ClearVisual();
         RefreshUI();
     }
 
@@ -219,12 +168,14 @@ public class InHandController : MonoBehaviour
         DropItem();
     }
 
-    private void DropItem()
+    /// <summary>Clears the currently hovered holder label (used by stations before minigames).</summary>
+    public void ClearHoverLabel()
     {
-        _heldItem     = null;
-        _heldIsSliced = false;
-        ClearVisual();
-        RefreshUI();
+        if (_hoveredHolder != null)
+        {
+            _hoveredHolder.HideLabel();
+            _hoveredHolder = null;
+        }
     }
 
     // ── Visual ────────────────────────────────────────────────────────────────

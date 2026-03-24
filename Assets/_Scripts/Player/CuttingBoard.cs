@@ -1,8 +1,20 @@
 using UnityEngine;
 
 /// <summary>
-/// Marker component for the cutting board.
+/// Cutting board station — slices items that have a SliceableItem component.
 /// Attach this (alongside a Collider) to the cutting board GameObject.
-/// SlicingController detects clicks on this to trigger an instant cut.
 /// </summary>
-public class CuttingBoard : MonoBehaviour { }
+public class CuttingBoard : Station
+{
+    public override bool CanInteract(InHandController hand)
+    {
+        if (hand.HeldItem == null) return false;
+        if (hand.IsSliced) return false;
+        return hand.HeldItem.GetComponent<SliceableItem>() != null;
+    }
+
+    public override void Interact(InHandController hand)
+    {
+        hand.SliceHeldItem();
+    }
+}
