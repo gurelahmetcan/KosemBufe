@@ -183,8 +183,15 @@ public class FryerStation : Station
 
         HoldableItem item = Instantiate(prefab);
 
-        // Build ingredients — sauce is optional (plain fries have no sauce)
+        // Build ingredients — large = 2× FrenchFries, small = 1×
+        // Sauce is optional (plain fries have no sauce)
+        bool isLarge = _currentBatch != null
+            ? _currentBatch.BatchSize == FryerBatch.Size.Large
+            : _collectedCount > (int)FryerBatch.Size.Small;
+
         var ingredients = new List<Ingredient> { Ingredient.FrenchFries };
+        if (isLarge)
+            ingredients.Add(Ingredient.FrenchFries);
         if (_selectedSauce != Ingredient.None)
             ingredients.Add(_selectedSauce);
 
