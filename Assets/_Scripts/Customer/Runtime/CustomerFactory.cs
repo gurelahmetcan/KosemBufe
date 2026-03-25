@@ -56,7 +56,7 @@ public class CustomerFactory : MonoBehaviour
             return null;
         }
 
-        OrderModifier modifier = archetype.PickModifier();
+        OrderModifier modifier = order.PickModifier();
         Sprite sprite = archetype.PickSprite();
 
         return new CustomerInstance(archetype, mood, order, modifier, sprite);

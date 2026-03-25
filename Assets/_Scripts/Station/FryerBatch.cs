@@ -7,12 +7,11 @@ public class FryerBatch
 {
     public enum Size { Small = 6, Large = 12 }
 
-    public const float CookDuration = 10f;
-    public const float ReadyEndTime = 15f;
-
-    public Size   BatchSize   { get; }
-    public int    TotalSlices => (int)BatchSize;
-    public float  ElapsedTime { get; private set; }
+    public Size   BatchSize    { get; }
+    public int    TotalSlices  => (int)BatchSize;
+    public float  ElapsedTime  { get; private set; }
+    public float  CookDuration { get; }
+    public float  ReadyEndTime { get; }
 
     private int  _collected;
     private bool _cleared;
@@ -20,9 +19,11 @@ public class FryerBatch
     public int  CollectedCount => _collected;
     public int  RemainingInVat => _cleared ? 0 : TotalSlices - _collected;
 
-    public FryerBatch(Size size)
+    public FryerBatch(Size size, float cookDuration, float readyEndTime)
     {
-        BatchSize = size;
+        BatchSize    = size;
+        CookDuration = cookDuration;
+        ReadyEndTime = readyEndTime;
     }
 
     public void Tick(float deltaTime)

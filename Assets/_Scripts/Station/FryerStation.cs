@@ -34,6 +34,13 @@ public class FryerStation : Station
     [Tooltip("How many raw slices one whole potato yields when deposited.")]
     public int slicesPerPotato = 12;
 
+    [Header("Timing")]
+    [Tooltip("Seconds the cooking phase lasts (fries not yet collectable).")]
+    public float cookDuration = 10f;
+
+    [Tooltip("Seconds after which ready fries become burnt (must be > cookDuration).")]
+    public float readyEndTime = 15f;
+
     // ── Runtime ──────────────────────────────────────────────────────────────
 
     private int         _rawSliceStock;
@@ -110,7 +117,7 @@ public class FryerStation : Station
     {
         int slices = (int)size;
         _rawSliceStock  -= slices;
-        _currentBatch    = new FryerBatch(size);
+        _currentBatch    = new FryerBatch(size, cookDuration, readyEndTime);
         _collectedCount  = 0;
         _selectedSauce   = Ingredient.None;
         Debug.Log($"[Fryer] Started {size} batch ({slices} slices). Stock remaining: {_rawSliceStock}");
@@ -157,7 +164,7 @@ public class FryerStation : Station
     /// </summary>
     public bool Finish(InHandController hand)
     {
-        if (_collectedCount == 0 || _selectedSauce == Ingredient.None)
+        if (_collectedCount == 0)
             return false;
 
         HoldableItem prefab = _currentBatch != null && _currentBatch.BatchSize == FryerBatch.Size.Small
@@ -175,12 +182,18 @@ public class FryerStation : Station
         }
 
         HoldableItem item = Instantiate(prefab);
-        item.preparedIngredients = new List<Ingredient> { Ingredient.FrenchFries, _selectedSauce };
+
+        // Build ingredients — sauce is optional (plain fries have no sauce)
+        var ingredients = new List<Ingredient> { Ingredient.FrenchFries };
+        if (_selectedSauce != Ingredient.None)
+            ingredients.Add(_selectedSauce);
+
+        item.preparedIngredients = ingredients;
         item.cookState = CookState.Cooked;
 
         hand.PickUp(item);
 
-        Debug.Log($"[Fryer] Finished! {_collectedCount} fries with {_selectedSauce}");
+        Debug.Log($"[Fryer] Finished! {_collectedCount} fries with {(_selectedSauce != Ingredient.None ? _selectedSauce.ToString() : "no sauce")}");
 
         _currentBatch   = null;
         _collectedCount = 0;

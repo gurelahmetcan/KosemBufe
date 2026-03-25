@@ -26,13 +26,6 @@ public class CustomerArchetype : ScriptableObject
     [Tooltip("What this archetype might order, with relative weights.")]
     public WeightedRecipe[] possibleOrders;
 
-    [Tooltip("Optional modifiers this archetype might request.")]
-    public OrderModifier[] possibleModifiers;
-
-    [Tooltip("Chance (0–1) that this customer adds a modifier to their order.")]
-    [Range(0f, 1f)]
-    public float modifierChance = 0.3f;
-
     [Header("Tuning")]
     [Tooltip("Multiplier on base patience duration (< 1 = impatient, > 1 = patient).")]
     [Min(0.1f)]
@@ -78,16 +71,5 @@ public class CustomerArchetype : ScriptableObject
     {
         if (possibleSprites == null || possibleSprites.Length == 0) return null;
         return possibleSprites[Random.Range(0, possibleSprites.Length)];
-    }
-
-    /// <summary>
-    /// Optionally selects a modifier based on modifierChance.
-    /// Returns null if no modifier is applied.
-    /// </summary>
-    public OrderModifier PickModifier()
-    {
-        if (possibleModifiers == null || possibleModifiers.Length == 0) return null;
-        if (Random.value > modifierChance) return null;
-        return possibleModifiers[Random.Range(0, possibleModifiers.Length)];
     }
 }

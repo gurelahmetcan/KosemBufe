@@ -53,6 +53,9 @@ public class FryerUI : MonoBehaviour
     [Tooltip("Apply mayonnaise to the collected fries.")]
     public Button mayoButton;
 
+    [Tooltip("Finish without sauce (plain fries).")]
+    public Button plainButton;
+
     [Tooltip("Clear remaining (burnt) slices from the vat.")]
     public Button clearButton;
 
@@ -105,6 +108,7 @@ public class FryerUI : MonoBehaviour
         if (largeButton   != null) largeButton.onClick.AddListener(OnLargeClicked);
         if (ketchupButton != null) ketchupButton.onClick.AddListener(() => OnSauceClicked(Ingredient.Ketchup));
         if (mayoButton    != null) mayoButton.onClick.AddListener(() => OnSauceClicked(Ingredient.Mayonnaise));
+        if (plainButton   != null) plainButton.onClick.AddListener(OnPlainClicked);
         if (clearButton   != null) clearButton.onClick.AddListener(OnClearClicked);
         if (finishButton  != null) finishButton.onClick.AddListener(OnFinishClicked);
         if (goBackButton  != null) goBackButton.onClick.AddListener(OnGoBackClicked);
@@ -195,6 +199,15 @@ public class FryerUI : MonoBehaviour
         if (_station != null)
         {
             _station.SelectSauce(sauce);
+            RefreshButtons();
+        }
+    }
+
+    private void OnPlainClicked()
+    {
+        if (_station != null)
+        {
+            _station.SelectSauce(Ingredient.None);
             RefreshButtons();
         }
     }
@@ -332,23 +345,24 @@ public class FryerUI : MonoBehaviour
         if (_station.CurrentBatch == null)
         {
             if (_station.CollectedCount > 0)
-                statusText.text = "Add sauce and finish!";
+                statusText.text = "Choose a sauce or finish plain";
             else
                 statusText.text = _station.RawSliceStock > 0 ? "Start a batch" : "No stock — bring sliced potatoes";
             return;
         }
 
-        FryState state   = _station.CurrentBatch.GetState();
-        float   elapsed  = _station.CurrentBatch.ElapsedTime;
+        FryerBatch batch = _station.CurrentBatch;
+        FryState   state = batch.GetState();
+        float    elapsed = batch.ElapsedTime;
 
         if (state == FryState.Cooking)
         {
-            float remaining = FryerBatch.CookDuration - elapsed;
+            float remaining = batch.CookDuration - elapsed;
             statusText.text = $"Cooking... {remaining:F1}s";
         }
         else if (state == FryState.Ready)
         {
-            float remaining = FryerBatch.ReadyEndTime - elapsed;
+            float remaining = batch.ReadyEndTime - elapsed;
             statusText.text = $"Ready! Click to collect! {remaining:F1}s";
         }
         else
@@ -361,7 +375,6 @@ public class FryerUI : MonoBehaviour
     {
         bool noBatch     = _station.CurrentBatch == null;
         bool hasCollected = _station.CollectedCount > 0;
-        bool sauceSelected = _station.SelectedSauce != Ingredient.None;
 
         // Can the player still click-to-collect fries?
         bool canCollectMore = !noBatch
@@ -383,26 +396,31 @@ public class FryerUI : MonoBehaviour
             largeButton.interactable = _station.CanStartBatch(FryerBatch.Size.Large);
         }
 
-        // ── Sauce: after collecting, once no more fries can be collected ─────
-        bool showSauce = hasCollected && !canCollectMore;
+        // ── Sauce + Plain: after collecting, once no more fries can be collected
+        bool showSaucePhase = hasCollected && !canCollectMore;
         if (ketchupButton != null)
         {
-            ketchupButton.gameObject.SetActive(showSauce);
+            ketchupButton.gameObject.SetActive(showSaucePhase);
             SetButtonHighlight(ketchupButton, _station.SelectedSauce == Ingredient.Ketchup);
         }
         if (mayoButton != null)
         {
-            mayoButton.gameObject.SetActive(showSauce);
+            mayoButton.gameObject.SetActive(showSaucePhase);
             SetButtonHighlight(mayoButton, _station.SelectedSauce == Ingredient.Mayonnaise);
+        }
+        if (plainButton != null)
+        {
+            plainButton.gameObject.SetActive(showSaucePhase);
+            SetButtonHighlight(plainButton, _station.SelectedSauce == Ingredient.None);
         }
 
         // ── Clear: visible when there are slices remaining in the vat ────────
         if (clearButton != null)
             clearButton.gameObject.SetActive(hasVatRemains);
 
-        // ── Finish: visible when sauce is selected ───────────────────────────
+        // ── Finish: available once sauce phase is active (sauce optional) ────
         if (finishButton != null)
-            finishButton.gameObject.SetActive(hasCollected && sauceSelected);
+            finishButton.gameObject.SetActive(showSaucePhase);
 
         // ── Stock text ───────────────────────────────────────────────────────
         RefreshStockText();
