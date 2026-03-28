@@ -3,30 +3,35 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Horizontal Stardew-style minigame for the Toaster station.
+/// Vertical press-style minigame for the Toaster station.
+/// Simulates pressing down a Turkish toaster machine.
 ///
-/// Layout (all inside a horizontal gauge track):
-///   ┌──────────────────────────────────────────┐
-///   │        [==BAR==]        🍞               │   ← gauge track
-///   └──────────────────────────────────────────┘
-///   [════════ progress slider ════════]
+/// Layout (all inside a vertical gauge track):
+///   ┌─────────┐
+///   │         │
+///   │  🍞    │   ← toast icon (bounces up/down)
+///   │         │
+///   │ [=BAR=] │   ← player bar (moves up/down with W / S)
+///   │         │
+///   └─────────┘
+///   [═ progress slider ═]
 ///
 /// Controls during minigame:
-///   A → move bar left     D → move bar right
+///   W → move bar up     S → move bar down
 ///
 /// Progress:
-///   Toast inside bar  → yellow slider fills  (toward 1)
-///   Toast outside bar → yellow slider depletes (toward 0)
+///   Toast inside bar  → slider fills  (toward 1)
+///   Toast outside bar → slider depletes (toward 0)
 ///   Slider reaches 1  → success  (Final Toast)
 ///   Slider reaches 0  → failure  (Burned Toast)
 ///
 /// Scene Setup:
 ///   1. Create a Screen Space – Overlay Canvas, start it disabled.
 ///   2. Inside it add:
-///        gaugeTrack  – a horizontal RectTransform (the track background image).
+///        gaugeTrack  – a vertical RectTransform (the track background image).
 ///        playerBar   – child RectTransform of gaugeTrack (the player bar image).
 ///        toastIcon   – child RectTransform of gaugeTrack (the toast icon image).
-///        progressSlider – a UI Slider below / above the track (yellow fill).
+///        progressSlider – a UI Slider beside / below the track (yellow fill).
 ///   3. Assign PlayerCameraRotation so it can be paused during the minigame.
 ///   4. Assign this component's minigamePanel to the root Canvas GameObject.
 /// </summary>
@@ -40,7 +45,7 @@ public class ToasterMinigame : MonoBehaviour
     [Tooltip("Root panel (Canvas or panel GameObject) shown during the minigame.")]
     public GameObject    minigamePanel;
 
-    [Tooltip("The horizontal track RectTransform that contains bar and icon.")]
+    [Tooltip("The vertical track RectTransform that contains bar and icon.")]
     public RectTransform gaugeTrack;
 
     [Tooltip("The player-controlled bar RectTransform (child of gaugeTrack).")]
@@ -53,7 +58,7 @@ public class ToasterMinigame : MonoBehaviour
     public Slider progressSlider;
 
     [Header("Tuning")]
-    [Tooltip("Speed (pixels/sec) the player bar moves with A / D.")]
+    [Tooltip("Speed (pixels/sec) the player bar moves with W / S.")]
     public float barSpeed = 400f;
 
     [Tooltip("Minimum speed (pixels/sec) of the toast icon.")]
@@ -119,24 +124,24 @@ public class ToasterMinigame : MonoBehaviour
     private void MoveBar()
     {
         float input = 0f;
-        if (Input.GetKey(KeyCode.A)) input = -1f;
-        if (Input.GetKey(KeyCode.D)) input =  1f;
+        if (Input.GetKey(KeyCode.S)) input = -1f;
+        if (Input.GetKey(KeyCode.W)) input =  1f;
 
-        float halfTrack = gaugeTrack.rect.width * 0.5f;
-        float halfBar   = playerBar.rect.width  * 0.5f;
+        float halfTrack = gaugeTrack.rect.height * 0.5f;
+        float halfBar   = playerBar.rect.height  * 0.5f;
 
-        float x = playerBar.anchoredPosition.x + input * barSpeed * Time.deltaTime;
-        x = Mathf.Clamp(x, -halfTrack + halfBar, halfTrack - halfBar);
+        float y = playerBar.anchoredPosition.y + input * barSpeed * Time.deltaTime;
+        y = Mathf.Clamp(y, -halfTrack + halfBar, halfTrack - halfBar);
 
-        playerBar.anchoredPosition = new Vector2(x, playerBar.anchoredPosition.y);
+        playerBar.anchoredPosition = new Vector2(playerBar.anchoredPosition.x, y);
     }
 
     // ── Toast icon movement ───────────────────────────────────────────────────
 
     private void MoveToast()
     {
-        float halfTrack = gaugeTrack.rect.width * 0.5f;
-        float halfIcon  = toastIcon.rect.width  * 0.5f;
+        float halfTrack = gaugeTrack.rect.height * 0.5f;
+        float halfIcon  = toastIcon.rect.height  * 0.5f;
 
         // Randomly change direction at intervals
         _dirChangeTimer -= Time.deltaTime;
@@ -146,31 +151,31 @@ public class ToasterMinigame : MonoBehaviour
             _dirChangeTimer = UnityEngine.Random.Range(0.4f, 1.8f);
         }
 
-        float x = toastIcon.anchoredPosition.x + _toastVelocity * Time.deltaTime;
+        float y = toastIcon.anchoredPosition.y + _toastVelocity * Time.deltaTime;
 
         // Bounce off track walls
-        if (x > halfTrack - halfIcon)
+        if (y > halfTrack - halfIcon)
         {
-            x              =  halfTrack - halfIcon;
+            y              =  halfTrack - halfIcon;
             _toastVelocity = -Mathf.Abs(_toastVelocity);
         }
-        else if (x < -halfTrack + halfIcon)
+        else if (y < -halfTrack + halfIcon)
         {
-            x              = -halfTrack + halfIcon;
+            y              = -halfTrack + halfIcon;
             _toastVelocity =  Mathf.Abs(_toastVelocity);
         }
 
-        toastIcon.anchoredPosition = new Vector2(x, toastIcon.anchoredPosition.y);
+        toastIcon.anchoredPosition = new Vector2(toastIcon.anchoredPosition.x, y);
     }
 
     // ── Progress ──────────────────────────────────────────────────────────────
 
     private bool IsToastInsideBar()
     {
-        float toastX   = toastIcon.anchoredPosition.x;
-        float barLeft  = playerBar.anchoredPosition.x - playerBar.rect.width * 0.5f;
-        float barRight = playerBar.anchoredPosition.x + playerBar.rect.width * 0.5f;
-        return toastX >= barLeft && toastX <= barRight;
+        float toastY    = toastIcon.anchoredPosition.y;
+        float barBottom = playerBar.anchoredPosition.y - playerBar.rect.height * 0.5f;
+        float barTop    = playerBar.anchoredPosition.y + playerBar.rect.height * 0.5f;
+        return toastY >= barBottom && toastY <= barTop;
     }
 
     private void UpdateProgress()
