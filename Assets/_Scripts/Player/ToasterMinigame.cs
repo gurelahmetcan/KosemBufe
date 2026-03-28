@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -123,9 +124,12 @@ public class ToasterMinigame : MonoBehaviour
 
     private void MoveBar()
     {
+        Keyboard kb = Keyboard.current;
+        if (kb == null) return;
+
         float input = 0f;
-        if (Input.GetKey(KeyCode.S)) input = -1f;
-        if (Input.GetKey(KeyCode.W)) input =  1f;
+        if (kb.sKey.isPressed) input = -1f;
+        if (kb.wKey.isPressed) input =  1f;
 
         float halfTrack = gaugeTrack.rect.height * 0.5f;
         float halfBar   = playerBar.rect.height  * 0.5f;

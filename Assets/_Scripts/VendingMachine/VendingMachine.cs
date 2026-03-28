@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Core state machine for the Ingredient Vending Machine (IVM).
@@ -45,7 +46,7 @@ public class VendingMachine : MonoBehaviour
 
     [Header("Kick / Mash Settings")]
     [Tooltip("Key the player presses repeatedly to unjam the machine.")]
-    public KeyCode kickKey = KeyCode.F;
+    public Key kickKey = Key.F;
 
     [Header("Mash Meter UI")]
     [Tooltip("UI controller for the floating 'F' prompt and progress bar.")]
@@ -247,7 +248,8 @@ public class VendingMachine : MonoBehaviour
         _mashProgress  = Mathf.Max(0f, _mashProgress);
 
         // Each key press adds progress
-        if (Input.GetKeyDown(kickKey))
+        Keyboard kb = Keyboard.current;
+        if (kb != null && kb[kickKey].wasPressedThisFrame)
         {
             _mashProgress += config.EffectiveMashPerPress;
             PlaySound(kickSound);

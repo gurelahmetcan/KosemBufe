@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using TMPro;
 
 /// <summary>
@@ -51,8 +52,11 @@ public class InHandController : MonoBehaviour
     {
         if (InputBlocked) return;
 
+        Mouse mouse = Mouse.current;
+        if (mouse == null) return;
+
         // Right-click → drop (clear holder contents first if applicable)
-        if (Input.GetMouseButtonDown(1))
+        if (mouse.rightButton.wasPressedThisFrame)
         {
             if (_heldItem != null)
             {
@@ -65,7 +69,7 @@ public class InHandController : MonoBehaviour
             return;
         }
 
-        if (!Input.GetMouseButtonDown(0)) return;
+        if (!mouse.leftButton.wasPressedThisFrame) return;
 
         GameObject hit = RaycastTarget();
         if (hit == null) return;
@@ -241,7 +245,10 @@ public class InHandController : MonoBehaviour
 
     private GameObject RaycastTarget()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Mouse mouse = Mouse.current;
+        if (mouse == null) return null;
+
+        Ray ray = Camera.main.ScreenPointToRay(mouse.position.ReadValue());
         return Physics.Raycast(ray, out RaycastHit hit, clickRange)
             ? hit.collider.gameObject
             : null;

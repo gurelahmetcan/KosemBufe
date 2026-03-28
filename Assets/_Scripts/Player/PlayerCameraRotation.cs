@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Fixed-Position Incremental Rotation System
@@ -47,12 +48,15 @@ public class PlayerCameraRotation : MonoBehaviour
     {
         if (!InputEnabled) return;
 
-        if (Input.GetKeyDown(KeyCode.D))
+        Keyboard kb = Keyboard.current;
+        if (kb == null) return;
+
+        if (kb.dKey.wasPressedThisFrame)
         {
             _targetYaw += turnAngle;
         }
 
-        if (Input.GetKeyDown(KeyCode.A))
+        if (kb.aKey.wasPressedThisFrame)
         {
             _targetYaw -= turnAngle;
         }

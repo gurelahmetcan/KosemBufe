@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
 /// <summary>
@@ -52,7 +53,7 @@ public class OrderManager : MonoBehaviour
 
     [Header("Input")]
     [Tooltip("Key to simulate picking up the prepared item (dev shortcut).")]
-    public KeyCode pickUpKey = KeyCode.B;
+    public Key pickUpKey = Key.B;
 
     // ── Runtime ──────────────────────────────────────────────────────────────
 
@@ -95,7 +96,8 @@ public class OrderManager : MonoBehaviour
 
     private void HandlePickUpInput()
     {
-        if (Input.GetKeyDown(pickUpKey))
+        Keyboard kb = Keyboard.current;
+        if (kb != null && kb[pickUpKey].wasPressedThisFrame)
         {
             _isHoldingOrder = true;
             Debug.Log("Order picked up (B pressed). isHoldingOrder = true");
@@ -104,14 +106,15 @@ public class OrderManager : MonoBehaviour
 
     private void HandleClickInput()
     {
-        if (!Input.GetMouseButtonDown(0)) return;
+        Mouse mouse = Mouse.current;
+        if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
         if (_activeCustomer == null) return;
 
         // Ignore clicks while the prompt is already showing
         if (customerUI != null && customerUI.IsPromptVisible) return;
 
         // Raycast to see if the player clicked the customer
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = Camera.main.ScreenPointToRay(mouse.position.ReadValue());
         if (!Physics.Raycast(ray, out RaycastHit hit, 100f)) return;
 
         Customer clicked = hit.collider.GetComponent<Customer>()
