@@ -433,6 +433,7 @@ MonoBehaviour:
   itemName: Bread
   handPrefab: {fileID: 5710688477349297871, guid: 63b0078413dd29e4f81218602f94c5b8, type: 3}
   ingredient: 1
+  supportedProcesses: 1
   preparedIngredients: 
   cookState: 0
 --- !u!65 &7516669420738511928

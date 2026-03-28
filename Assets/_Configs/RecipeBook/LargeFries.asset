@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53abfc8e007ce4c6ea2f8b92b7a08a32, type: 3}
+  m_Name: LargeFries
+  m_EditorClassIdentifier: 
+  recipeName: Large Fries
+  ingredients: 0600000006000000
+  requiresCooking: 1
+  possibleModifiers:
+  - {fileID: 11400000, guid: 6c73b91ee034846ccaf5faf6e77e84ea, type: 2}
+  - {fileID: 11400000, guid: a8220c8eec88c45e99d3efc4edf3873f, type: 2}
+  modifierChance: 0.7

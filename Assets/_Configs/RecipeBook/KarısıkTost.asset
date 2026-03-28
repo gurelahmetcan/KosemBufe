@@ -15,3 +15,5 @@ MonoBehaviour:
   recipeName: "Kar\u0131s\u0131kTost"
   ingredients: 010000000200000003000000
   requiresCooking: 1
+  possibleModifiers: []
+  modifierChance: 0.3

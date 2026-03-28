@@ -80,7 +80,7 @@ public class FryerStation : Station
             && hand.HeldItem.supportedProcesses.HasFlag(ProcessType.Fryable))
         {
             _rawSliceStock += slicesPerPotato;
-            hand.DestroyHeldItem();
+            hand.DropItem();
             Debug.Log($"[Fryer] Deposited {slicesPerPotato} slices. Stock: {_rawSliceStock}");
 
             if (fryerUI != null && fryerUI.IsOpen)

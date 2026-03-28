@@ -15,18 +15,21 @@ public class FrySliceUI : MonoBehaviour, IPointerClickHandler
     private Image    _image;
     private FryerUI  _owner;
     private bool     _collected;
+    private Animator _animator;
 
     public bool Collected => _collected;
 
     private void Awake()
     {
         _image = GetComponent<Image>();
+        _animator = GetComponent<Animator>();
     }
 
     public void Init(FryerUI owner)
     {
         _owner     = owner;
         _collected = false;
+        SetCookingAnimation(false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -44,5 +47,10 @@ public class FrySliceUI : MonoBehaviour, IPointerClickHandler
     {
         if (_image != null)
             _image.color = color;
+    }
+    
+    public void SetCookingAnimation(bool cooking)
+    {
+        _animator.SetBool("isCooking", cooking);
     }
 }

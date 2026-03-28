@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -286,6 +287,7 @@ public class FryerUI : MonoBehaviour
             slice.transform.localPosition = new Vector3(x, y, 0f);
             slice.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
             slice.Init(this);
+            slice.SetCookingAnimation(true);
             _vatSlices.Add(slice);
         }
     }
@@ -315,8 +317,10 @@ public class FryerUI : MonoBehaviour
         slice.transform.SetParent(collectionArea, false);
         float x = Random.Range(-20f, 20f);
         float y = Random.Range(-20f, 20f);
-        slice.transform.localPosition = new Vector3(x, y, 0f);
+        //slice.transform.localPosition = new Vector3(x, y, 0f);
+        slice.transform.DOLocalMove(new Vector3(x, y, 0f), 0.5f);
         slice.SetColor(ReadyColor);
+        slice.SetCookingAnimation(false);
         slice.SetCollected(true);
         slice.enabled = false;
         _collectedSlices.Add(slice);

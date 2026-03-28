@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1072887055897722116}
   m_Layer: 0
-  m_Name: OnionSlice
+  m_Name: PotatoSlice
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
