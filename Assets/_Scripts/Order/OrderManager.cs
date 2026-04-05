@@ -12,6 +12,8 @@ using UnityEngine.Serialization;
 ///   5. Player clicks customer with prepared item → validate (recipe + modifier).
 ///   6. Result → positive/negative exit line shown, customer leaves.
 ///   7. Timer expires → timeout exit line shown, customer leaves.
+///
+/// Spawning is driven by DayManager: customers only arrive while the shop is open.
 /// </summary>
 public class OrderManager : MonoBehaviour
 {
@@ -40,6 +42,9 @@ public class OrderManager : MonoBehaviour
 
     [Tooltip("Factory that creates customer instances from archetype pool.")]
     public CustomerFactory customerFactory;
+
+    [Tooltip("Day manager — controls when customers can spawn.")]
+    public DayManager dayManager;
 
     [Header("Settings")]
     [Tooltip("How many seconds the customer waits before leaving if ignored.")]
@@ -72,7 +77,17 @@ public class OrderManager : MonoBehaviour
             customerUI.OnClose  += OnPromptClose;
         }
 
-        SpawnCustomer();
+        if (dayManager != null)
+        {
+            dayManager.OnCustomerSpawnTick += OnSpawnTick;
+            dayManager.OnClosingTimeReached += OnClosingTime;
+            dayManager.OnDayEnded += OnDayEnded;
+        }
+        else
+        {
+            // Fallback: no day system — spawn immediately (legacy behaviour)
+            SpawnCustomer();
+        }
     }
 
     private void OnDestroy()
@@ -82,6 +97,13 @@ public class OrderManager : MonoBehaviour
             customerUI.OnAccept -= OnPromptAccept;
             customerUI.OnReject -= OnPromptReject;
             customerUI.OnClose  -= OnPromptClose;
+        }
+
+        if (dayManager != null)
+        {
+            dayManager.OnCustomerSpawnTick -= OnSpawnTick;
+            dayManager.OnClosingTimeReached -= OnClosingTime;
+            dayManager.OnDayEnded -= OnDayEnded;
         }
     }
 
@@ -235,6 +257,13 @@ public class OrderManager : MonoBehaviour
             _activeCustomer = null;
         }
 
+        // Notify day manager and only spawn next if still open
+        if (dayManager != null)
+        {
+            dayManager.SetActiveCustomer(false);
+            if (!dayManager.IsOpenForCustomers) return;
+        }
+
         Invoke(nameof(SpawnCustomer), 1.5f);
     }
 
@@ -274,6 +303,13 @@ public class OrderManager : MonoBehaviour
         {
             Destroy(_activeCustomer.gameObject);
             _activeCustomer = null;
+        }
+
+        // Notify day manager and only spawn next if still open
+        if (dayManager != null)
+        {
+            dayManager.SetActiveCustomer(false);
+            if (!dayManager.IsOpenForCustomers) return;
         }
 
         Invoke(nameof(SpawnCustomer), 1.5f);
@@ -392,8 +428,55 @@ public class OrderManager : MonoBehaviour
             _activeCustomer = null;
         }
 
-        // Spawn the next customer after a short delay
+        // Notify day manager that the customer slot is free
+        if (dayManager != null)
+        {
+            dayManager.SetActiveCustomer(false);
+
+            // Don't spawn new customers if the shop is no longer open
+            if (!dayManager.IsOpenForCustomers) return;
+        }
+
+        // Spawn the next customer after a short delay (legacy path or while open)
         Invoke(nameof(SpawnCustomer), 1.5f);
+    }
+
+    // ── Day system callbacks ────────────────────────────────────────────────
+
+    /// <summary>Called by DayManager on each spawn-interval tick while the shop is open.</summary>
+    private void OnSpawnTick()
+    {
+        // Only spawn if there is no customer already present
+        if (_activeCustomer != null) return;
+        SpawnCustomer();
+    }
+
+    /// <summary>Called when closing time is reached — stop spawning after the current customer.</summary>
+    private void OnClosingTime()
+    {
+        Debug.Log("[OrderManager] Closing time — no more customers after the current one.");
+        // If there is no active customer, tell DayManager immediately
+        if (_activeCustomer == null && dayManager != null)
+            dayManager.SetActiveCustomer(false);
+    }
+
+    /// <summary>Called when the player ends the day. Clean up for next day.</summary>
+    private void OnDayEnded(int dayNumber)
+    {
+        // Cancel any pending spawns from legacy Invoke calls
+        CancelInvoke(nameof(SpawnCustomer));
+
+        if (_activeCustomer != null)
+        {
+            Destroy(_activeCustomer.gameObject);
+            _activeCustomer = null;
+        }
+
+        _orderActive = false;
+        _isHoldingOrder = false;
+
+        if (timerUI != null) timerUI.StopTimer();
+        HideUI();
     }
 
     // ── Spawning ─────────────────────────────────────────────────────────────
@@ -403,6 +486,9 @@ public class OrderManager : MonoBehaviour
         // Don't spawn new customers after game over
         if (reputationManager != null && reputationManager.IsGameOver) return;
 
+        // Don't spawn if the day system says we're closed
+        if (dayManager != null && !dayManager.IsOpenForCustomers) return;
+
         if (customerPrefab == null || spawnPoint == null)
         {
             Debug.LogError("[OrderManager] customerPrefab or spawnPoint is not assigned!", this);
@@ -411,6 +497,10 @@ public class OrderManager : MonoBehaviour
 
         _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
         _isHoldingOrder = false;
+
+        // Notify day manager that we have an active customer
+        if (dayManager != null)
+            dayManager.SetActiveCustomer(true);
 
         // Initialise with factory-created instance data
         if (customerFactory != null)
