@@ -56,6 +56,7 @@ public class DayClock : MonoBehaviour
         _gameMinutesPerRealSecond  = gameMinutesPerRealSecond;
         _closingFired              = false;
         _ticking                   = false;
+        OnTimeChanged?.Invoke(CurrentHour, CurrentMinute);
     }
 
     /// <summary>Start the clock ticking.</summary>
