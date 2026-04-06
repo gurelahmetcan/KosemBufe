@@ -25,6 +25,11 @@ public class MoneyUI : MonoBehaviour
     public Color positiveColor = new Color(0.2f, 0.8f, 0.2f, 1f);
     public Color negativeColor = new Color(0.9f, 0.2f, 0.2f, 1f);
 
+    private void Start()
+    {
+        Refresh();
+    }
+
     private void OnEnable()
     {
         if (moneyManager != null)

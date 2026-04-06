@@ -29,10 +29,36 @@ public class MoneyManager : MonoBehaviour
     /// <summary>Fired when weekly rent is deducted. Passes (rentCost).</summary>
     public event Action<float> OnRentDeducted;
 
+    /// <summary>Fired once when the balance reaches 0 or below.</summary>
+    public event Action OnBankrupt;
+
     // ── Runtime ──────────────────────────────────────────────────────────────
 
     /// <summary>Current money balance.</summary>
     public float Balance { get; private set; }
+
+    /// <summary>True after the player has gone bankrupt.</summary>
+    public bool IsBankrupt { get; private set; }
+
+    // ── Debug (Inspector buttons) ────────────────────────────────────────────
+
+    [Header("Debug")]
+    [Tooltip("Amount used by the debug Add/Subtract buttons.")]
+    public float debugAmount = 50f;
+
+#if UNITY_EDITOR
+    [ContextMenu("Debug: Add Money")]
+    private void DebugAddMoney()
+    {
+        AddIncome(debugAmount);
+    }
+
+    [ContextMenu("Debug: Subtract Money")]
+    private void DebugSubtractMoney()
+    {
+        DeductExpense(debugAmount, "debug");
+    }
+#endif
 
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
@@ -68,7 +94,7 @@ public class MoneyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Deduct an expense from the balance. Balance can go negative.
+    /// Deduct an expense from the balance. Triggers bankrupt if balance hits 0.
     /// </summary>
     public void DeductExpense(float amount, string reason = "")
     {
@@ -77,6 +103,7 @@ public class MoneyManager : MonoBehaviour
         Balance -= amount;
         Debug.Log($"[Money] -{amount:F2} ({reason}) → Balance: {Balance:F2}");
         OnBalanceChanged?.Invoke(Balance, -amount);
+        CheckBankrupt();
     }
 
     // ── Day-end expense logic ────────────────────────────────────────────────
@@ -104,6 +131,7 @@ public class MoneyManager : MonoBehaviour
         Debug.Log($"[Money] Daily expenses: Food -{food:F2}, Electricity -{electricity:F2} → Balance: {Balance:F2}");
         OnBalanceChanged?.Invoke(Balance, -total);
         OnDailyExpensesDeducted?.Invoke(food, electricity);
+        CheckBankrupt();
     }
 
     private void DeductRent()
@@ -115,5 +143,16 @@ public class MoneyManager : MonoBehaviour
         Debug.Log($"[Money] Weekly rent: -{rent:F2} → Balance: {Balance:F2}");
         OnBalanceChanged?.Invoke(Balance, -rent);
         OnRentDeducted?.Invoke(rent);
+        CheckBankrupt();
+    }
+
+    private void CheckBankrupt()
+    {
+        if (IsBankrupt) return;
+        if (Balance > 0f) return;
+
+        IsBankrupt = true;
+        Debug.Log("[Money] BANKRUPT — balance reached 0!");
+        OnBankrupt?.Invoke();
     }
 }

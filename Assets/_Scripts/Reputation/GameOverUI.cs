@@ -2,8 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Displays a Game Over screen and pauses the game when reputation hits 0.
-/// Wire the ReputationManager reference; the panel starts hidden.
+/// Displays a Game Over screen and pauses the game when reputation hits 0
+/// or the player goes bankrupt (money reaches 0).
+/// Wire the ReputationManager and/or MoneyManager references; the panel starts hidden.
 ///
 /// Scene Setup:
 ///   Canvas (Screen Space – Overlay, high sort order)
@@ -14,6 +15,9 @@ public class GameOverUI : MonoBehaviour
 {
     [Header("References")]
     public ReputationManager reputationManager;
+
+    [Tooltip("Money manager — triggers game over on bankruptcy.")]
+    public MoneyManager moneyManager;
 
     [Tooltip("The panel to show on game over.")]
     public GameObject gameOverPanel;
@@ -32,6 +36,9 @@ public class GameOverUI : MonoBehaviour
         if (reputationManager != null)
             reputationManager.OnGameOver += ShowGameOver;
 
+        if (moneyManager != null)
+            moneyManager.OnBankrupt += ShowGameOver;
+
         if (restartButton != null)
             restartButton.onClick.AddListener(RestartGame);
     }
@@ -40,6 +47,9 @@ public class GameOverUI : MonoBehaviour
     {
         if (reputationManager != null)
             reputationManager.OnGameOver -= ShowGameOver;
+
+        if (moneyManager != null)
+            moneyManager.OnBankrupt -= ShowGameOver;
 
         if (restartButton != null)
             restartButton.onClick.RemoveListener(RestartGame);
