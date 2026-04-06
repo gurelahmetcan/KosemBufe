@@ -64,6 +64,9 @@ public class OrderManager : MonoBehaviour
     [Tooltip("How many seconds the player has to deliver the order.")]
     public float orderDuration = 30f;
 
+    [Tooltip("Seconds to wait after a customer leaves before the next one spawns.")]
+    public float timeBetweenCustomers = 3f;
+
     [Tooltip("Fallback recipes — used only if CustomerFactory is not assigned.")]
     public RecipeData[] recipes;
 
@@ -76,6 +79,7 @@ public class OrderManager : MonoBehaviour
     private Customer _activeCustomer;
     private bool     _isHoldingOrder;
     private bool     _orderActive;
+    private bool     _spawnScheduled;
 
     // ── Unity loop ───────────────────────────────────────────────────────────
 
@@ -384,7 +388,7 @@ public class OrderManager : MonoBehaviour
 
     /// <summary>
     /// Makes the active customer walk to the exit and frees the slot
-    /// so the next customer can spawn.
+    /// so the next customer can spawn after a delay.
     /// </summary>
     private void SendCustomerAway()
     {
@@ -411,8 +415,12 @@ public class OrderManager : MonoBehaviour
             if (!dayManager.IsOpenForCustomers) return;
         }
 
-        // Spawn the next customer after a short delay
-        Invoke(nameof(SpawnCustomer), 1.5f);
+        // Schedule the next customer spawn (guard against double-spawn)
+        if (!_spawnScheduled)
+        {
+            _spawnScheduled = true;
+            Invoke(nameof(SpawnCustomer), timeBetweenCustomers);
+        }
     }
 
     // ── Day system callbacks ────────────────────────────────────────────────
@@ -420,8 +428,8 @@ public class OrderManager : MonoBehaviour
     /// <summary>Called by DayManager on each spawn-interval tick while the shop is open.</summary>
     private void OnSpawnTick()
     {
-        // Only spawn if there is no customer already present
-        if (_activeCustomer != null) return;
+        // Only spawn if there is no customer and no spawn already scheduled
+        if (_activeCustomer != null || _spawnScheduled) return;
         SpawnCustomer();
     }
 
@@ -447,6 +455,7 @@ public class OrderManager : MonoBehaviour
         _activeCustomer = null;
         _orderActive    = false;
         _isHoldingOrder = false;
+        _spawnScheduled = false;
 
         if (timerUI != null) timerUI.StopTimer();
         HideUI();
@@ -456,6 +465,8 @@ public class OrderManager : MonoBehaviour
 
     private void SpawnCustomer()
     {
+        _spawnScheduled = false;
+
         // Don't spawn new customers after game over
         if (reputationManager != null && reputationManager.IsGameOver) return;
 
