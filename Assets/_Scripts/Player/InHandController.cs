@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 
+
 /// <summary>
 /// Item-in-hand controller. Handles pick-up, drop, and visual display.
 /// Interaction logic lives on the interactable objects themselves (IInteractable).
@@ -65,6 +66,20 @@ public class InHandController : MonoBehaviour
                     heldHolder.ClearItems();
 
                 DropItem();
+            }
+            return;
+        }
+
+        // F key → flip (grill items)
+        if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            GameObject flipHit = RaycastTarget();
+            if (flipHit != null)
+            {
+                IFlippable flippable = flipHit.GetComponent<IFlippable>()
+                                    ?? flipHit.GetComponentInParent<IFlippable>();
+                if (flippable != null && flippable.CanFlip())
+                    flippable.Flip();
             }
             return;
         }
