@@ -46,6 +46,9 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Day manager — controls when customers can spawn.")]
     public DayManager dayManager;
 
+    [Tooltip("Money tracker — receives income from delivered orders.")]
+    public MoneyManager moneyManager;
+
     [Header("Settings")]
     [Tooltip("How many seconds the customer waits before leaving if ignored.")]
     public float patienceDuration = 15f;
@@ -367,6 +370,8 @@ public class OrderManager : MonoBehaviour
         if (heldItem == null && _isHoldingOrder)
         {
             Debug.Log("Order Delivered: SUCCESS (B-key shortcut)");
+            if (moneyManager != null)
+                moneyManager.AddIncome(recipe.price);
             ShowResultExit(OrderResult.Perfect);
             _isHoldingOrder = false;
             EndOrder();
@@ -389,6 +394,7 @@ public class OrderManager : MonoBehaviour
             case OrderResult.Perfect:
                 Debug.Log($"Order Delivered: PERFECT! ({recipe.recipeName})");
                 if (reputationManager != null) reputationManager.ChangeReputation(+5);
+                if (moneyManager != null) moneyManager.AddIncome(recipe.price);
                 break;
 
             case OrderResult.WrongIngredients:
