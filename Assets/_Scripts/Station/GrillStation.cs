@@ -170,27 +170,18 @@ public class GrillStation : Station
             burnGraceTime
         );
 
-        // Spawn visual on the grill surface
+        // Spawn visual on the grill surface (not parented to avoid scale distortion)
         if (visualPrefab != null && slotPositions[index] != null)
         {
-            GameObject visual = Instantiate(visualPrefab, slotPositions[index]);
-            visual.transform.localPosition = Vector3.zero;
-            visual.transform.localRotation = Quaternion.identity;
-
-            // Compensate for parent scale so the item keeps its original size
-            Vector3 parentLossy = slotPositions[index].lossyScale;
-            visual.transform.localScale = new Vector3(
-                1f / parentLossy.x,
-                1f / parentLossy.y,
-                1f / parentLossy.z
-            );
+            GameObject visual = Instantiate(visualPrefab);
+            visual.transform.position = slotPositions[index].position;
+            visual.transform.rotation = slotPositions[index].rotation;
 
             // Ensure the visual has a collider for raycasting
             if (visual.GetComponent<Collider>() == null
                 && visual.GetComponentInChildren<Collider>() == null)
             {
                 BoxCollider box = visual.AddComponent<BoxCollider>();
-                // Auto-fit to renderer bounds when possible
                 Renderer rend = visual.GetComponentInChildren<Renderer>();
                 if (rend != null)
                 {
