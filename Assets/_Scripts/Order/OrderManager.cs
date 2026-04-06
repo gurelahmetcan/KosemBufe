@@ -6,24 +6,35 @@ using UnityEngine.Serialization;
 /// Orchestrates the full order-delivery loop for normal customers:
 ///
 ///   1. CustomerFactory creates a CustomerInstance (archetype + mood + order + modifier).
-///   2. Customer spawns → opening line shown via customer UI.
-///   3. Player clicks customer → order line (+ optional modifier) shown, prompt appears.
-///   4. Player accepts → prepares the order (slice, fill, toast).
-///   5. Player clicks customer with prepared item → validate (recipe + modifier).
-///   6. Result → positive/negative exit line shown, customer leaves.
-///   7. Timer expires → timeout exit line shown, customer leaves.
+///   2. Customer spawns at spawnPoint → walks to counterPoint (Walking anim).
+///   3. Customer arrives → waves (Wave anim) + opening line shown.
+///   4. Player clicks customer → order line (+ optional modifier) shown, prompt appears.
+///   5. Player accepts → customer idles (Idle anim), timer starts.
+///   6. Player clicks customer with prepared item → validate (recipe + modifier).
+///   7. Result → exit line shown, customer walks to exitPoint (Walking anim) → self-destroys.
+///   8. Timer expires → timeout exit line shown, customer leaves.
 ///
 /// Spawning is driven by DayManager: customers only arrive while the shop is open.
 /// </summary>
 public class OrderManager : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("Prefab with SpriteRenderer, Collider, and Customer component.")]
+    [Tooltip("Prefab with Collider, Animator, and Customer component.")]
     public Customer customerPrefab;
 
+    [Header("Waypoints")]
     [Tooltip("World-space position where new customers appear.")]
     public Transform spawnPoint;
 
+    [Tooltip("Position in front of the counter where the customer stands and waves. " +
+             "The transform's forward direction is the facing direction.")]
+    public Transform counterPoint;
+
+    [Tooltip("Position the customer walks to after the order is done. " +
+             "Self-destroys on arrival.")]
+    public Transform exitPoint;
+
+    [Header("UI & Systems")]
     [Tooltip("Circular countdown UI (top-left of screen).")]
     public OrderTimerUI timerUI;
 
@@ -243,20 +254,7 @@ public class OrderManager : MonoBehaviour
             HideUI();
         }
 
-        if (_activeCustomer != null)
-        {
-            Destroy(_activeCustomer.gameObject);
-            _activeCustomer = null;
-        }
-
-        // Notify day manager and only spawn next if still open
-        if (dayManager != null)
-        {
-            dayManager.SetActiveCustomer(false);
-            if (!dayManager.IsOpenForCustomers) return;
-        }
-
-        Invoke(nameof(SpawnCustomer), 1.5f);
+        SendCustomerAway();
     }
 
     private void OnPromptClose()
@@ -356,7 +354,7 @@ public class OrderManager : MonoBehaviour
                 break;
 
             case OrderResult.Raw:
-                Debug.Log($"Order Failed: RAW — {recipe.recipeName} needs toasting!");
+                Debug.Log($"Order Failed: RAW — {recipe.recipeName} needs cooking!");
                 if (reputationManager != null) reputationManager.ChangeReputation(-10);
                 break;
 
@@ -381,9 +379,26 @@ public class OrderManager : MonoBehaviour
         if (timerUI != null)
             timerUI.StopTimer();
 
+        SendCustomerAway();
+    }
+
+    /// <summary>
+    /// Makes the active customer walk to the exit and frees the slot
+    /// so the next customer can spawn.
+    /// </summary>
+    private void SendCustomerAway()
+    {
         if (_activeCustomer != null)
         {
-            Destroy(_activeCustomer.gameObject);
+            if (exitPoint != null)
+            {
+                // Customer walks to exit and self-destroys on arrival
+                _activeCustomer.StartLeaving(exitPoint.position);
+            }
+            else
+            {
+                Destroy(_activeCustomer.gameObject);
+            }
             _activeCustomer = null;
         }
 
@@ -396,7 +411,7 @@ public class OrderManager : MonoBehaviour
             if (!dayManager.IsOpenForCustomers) return;
         }
 
-        // Spawn the next customer after a short delay (legacy path or while open)
+        // Spawn the next customer after a short delay
         Invoke(nameof(SpawnCustomer), 1.5f);
     }
 
@@ -425,13 +440,12 @@ public class OrderManager : MonoBehaviour
         // Cancel any pending spawns from legacy Invoke calls
         CancelInvoke(nameof(SpawnCustomer));
 
-        if (_activeCustomer != null)
-        {
-            Destroy(_activeCustomer.gameObject);
-            _activeCustomer = null;
-        }
+        // Destroy all customers (active + any still walking to exit)
+        foreach (Customer c in FindObjectsByType<Customer>(FindObjectsSortMode.None))
+            Destroy(c.gameObject);
 
-        _orderActive = false;
+        _activeCustomer = null;
+        _orderActive    = false;
         _isHoldingOrder = false;
 
         if (timerUI != null) timerUI.StopTimer();
@@ -469,11 +483,18 @@ public class OrderManager : MonoBehaviour
                 _activeCustomer.Initialise(instance);
         }
 
-        // Show opening line on spawn
-        if (_activeCustomer.Instance != null && customerUI != null)
+        // Walk to the counter — opening line shown on arrival
+        if (counterPoint != null)
         {
-            string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
-            customerUI.ShowOpeningLine(opening);
+            _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation, () =>
+            {
+                ShowOpeningLine();
+            });
+        }
+        else
+        {
+            // No counter point — legacy fallback: appear directly and show opening line
+            ShowOpeningLine();
         }
 
         string archetypeName = _activeCustomer.Instance != null
@@ -484,5 +505,14 @@ public class OrderManager : MonoBehaviour
             : "default";
 
         Debug.Log($"New customer spawned: {archetypeName} ({moodName})");
+    }
+
+    private void ShowOpeningLine()
+    {
+        if (_activeCustomer == null) return;
+        if (_activeCustomer.Instance == null || customerUI == null) return;
+
+        string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
+        customerUI.ShowOpeningLine(opening);
     }
 }
