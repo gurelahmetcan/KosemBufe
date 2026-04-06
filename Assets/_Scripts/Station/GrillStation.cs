@@ -177,6 +177,14 @@ public class GrillStation : Station
             visual.transform.localPosition = Vector3.zero;
             visual.transform.localRotation = Quaternion.identity;
 
+            // Compensate for parent scale so the item keeps its original size
+            Vector3 parentLossy = slotPositions[index].lossyScale;
+            visual.transform.localScale = new Vector3(
+                1f / parentLossy.x,
+                1f / parentLossy.y,
+                1f / parentLossy.z
+            );
+
             // Ensure the visual has a collider for raycasting
             if (visual.GetComponent<Collider>() == null
                 && visual.GetComponentInChildren<Collider>() == null)
@@ -187,7 +195,7 @@ public class GrillStation : Station
                 if (rend != null)
                 {
                     box.center = visual.transform.InverseTransformPoint(rend.bounds.center);
-                    box.size   = rend.bounds.size;
+                    box.size   = visual.transform.InverseTransformVector(rend.bounds.size);
                 }
             }
 
@@ -274,15 +282,17 @@ public class GrillStation : Station
         if (hintText == null) return;
 
         Mouse mouse = Mouse.current;
-        if (mouse == null) { hintText.gameObject.SetActive(false); return; }
+        if (mouse == null) { hintText.text = string.Empty; return; }
 
         Camera cam = Camera.main;
-        if (cam == null)  { hintText.gameObject.SetActive(false); return; }
+        if (cam == null)  { hintText.text = string.Empty; return; }
 
         Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit, 10f))
         {
-            GrillSlotDisplay display = hit.collider.GetComponent<GrillSlotDisplay>();
+            // Check the hit object and its parents for a GrillSlotDisplay
+            GrillSlotDisplay display = hit.collider.GetComponent<GrillSlotDisplay>()
+                                    ?? hit.collider.GetComponentInParent<GrillSlotDisplay>();
             if (display != null && display.Station == this)
             {
                 GrillSlot slot = _slots[display.SlotIndex];
@@ -292,26 +302,28 @@ public class GrillStation : Station
                     if (state == GrillState.NeedsFlip)
                     {
                         hintText.text = "Press [F] to Flip";
-                        hintText.gameObject.SetActive(true);
                         return;
                     }
                     if (state == GrillState.Cooked)
                     {
                         hintText.text = "Click to Collect";
-                        hintText.gameObject.SetActive(true);
                         return;
                     }
                     if (state == GrillState.Burnt)
                     {
                         hintText.text = "Burnt! Click to Discard";
-                        hintText.gameObject.SetActive(true);
+                        return;
+                    }
+                    if (state == GrillState.CookingSide1 || state == GrillState.CookingSide2)
+                    {
+                        hintText.text = "Cooking...";
                         return;
                     }
                 }
             }
         }
 
-        hintText.gameObject.SetActive(false);
+        hintText.text = string.Empty;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
