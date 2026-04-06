@@ -258,11 +258,9 @@ public class GrillStation : Station
         Renderer[] renderers = _slotVisuals[index].GetComponentsInChildren<Renderer>();
         foreach (Renderer r in renderers)
         {
-            // Use shared material property block to avoid creating material instances
-            MaterialPropertyBlock block = new MaterialPropertyBlock();
-            r.GetPropertyBlock(block);
-            block.SetColor("_Color", targetColor);
-            r.SetPropertyBlock(block);
+            // Use .material.color which auto-maps to the correct shader property
+            // (_BaseColor for URP Lit, _Color for Standard, etc.)
+            r.material.color = targetColor;
         }
     }
 
