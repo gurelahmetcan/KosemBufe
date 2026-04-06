@@ -27,14 +27,5 @@ public class CustomerInstance
         Sprite    = sprite;
     }
 
-    /// <summary>
-    /// Returns the patience duration for this customer,
-    /// factoring in the archetype's patience multiplier.
-    /// </summary>
-    public float GetPatienceDuration(float baseDuration)
-    {
-        return baseDuration * Archetype.patienceMultiplier;
-    }
-
     public bool HasModifier => Modifier != null;
 }

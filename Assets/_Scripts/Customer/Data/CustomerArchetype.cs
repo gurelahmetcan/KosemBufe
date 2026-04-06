@@ -26,11 +26,6 @@ public class CustomerArchetype : ScriptableObject
     [Tooltip("What this archetype might order, with relative weights.")]
     public WeightedRecipe[] possibleOrders;
 
-    [Header("Tuning")]
-    [Tooltip("Multiplier on base patience duration (< 1 = impatient, > 1 = patient).")]
-    [Min(0.1f)]
-    public float patienceMultiplier = 1f;
-
     /// <summary>
     /// Selects a random weighted recipe from possibleOrders.
     /// </summary>

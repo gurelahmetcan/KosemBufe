@@ -22,9 +22,6 @@ public class Customer : MonoBehaviour
     [Tooltip("World-space TextMeshPro label shown above the customer after ordering.")]
     public TextMeshPro orderLabel;
 
-    [Tooltip("World-space patience countdown timer (child of this prefab).")]
-    public PatienceTimer patienceTimer;
-
     [Tooltip("SpriteRenderer used to display the customer's appearance.")]
     public SpriteRenderer spriteRenderer;
 

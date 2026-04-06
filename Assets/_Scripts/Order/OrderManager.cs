@@ -50,9 +50,6 @@ public class OrderManager : MonoBehaviour
     public MoneyManager moneyManager;
 
     [Header("Settings")]
-    [Tooltip("How many seconds the customer waits before leaving if ignored.")]
-    public float patienceDuration = 15f;
-
     [Tooltip("How many seconds the player has to deliver the order.")]
     public float orderDuration = 30f;
 
@@ -195,10 +192,6 @@ public class OrderManager : MonoBehaviour
 
         _activeCustomer.ShowOrder(recipe);
 
-        // Pause patience timer while player is deciding
-        if (_activeCustomer.patienceTimer != null)
-            _activeCustomer.patienceTimer.Pause();
-
         // Build the prompt text from dialogue phrases
         string promptText = recipe.recipeName;
         if (_activeCustomer.Instance != null)
@@ -222,10 +215,6 @@ public class OrderManager : MonoBehaviour
         SetCameraLocked(false);
 
         if (_activeCustomer == null) return;
-
-        // Patience timer is no longer needed — order was taken
-        if (_activeCustomer.patienceTimer != null)
-            _activeCustomer.patienceTimer.Stop();
 
         _activeCustomer.AcceptOrder();
         _orderActive = true;
@@ -276,46 +265,10 @@ public class OrderManager : MonoBehaviour
 
         // Return customer to WaitingForOrder so the player can click again later
         if (_activeCustomer != null)
-        {
             _activeCustomer.ResetCustomer();
-
-            // Resume patience timer — it continues from where it was paused
-            if (_activeCustomer.patienceTimer != null)
-                _activeCustomer.patienceTimer.Resume();
-        }
 
         HideUI();
         Debug.Log("Order prompt closed — customer still waiting.");
-    }
-
-    private void OnPatienceExpired()
-    {
-        Debug.Log("Customer lost patience and left! -7 Reputation");
-        if (reputationManager != null) reputationManager.ChangeReputation(-7);
-
-        // If the prompt is open, close it
-        if (customerUI != null && customerUI.IsPromptVisible)
-            customerUI.HidePrompt();
-
-        SetCameraLocked(false);
-
-        // Show timeout exit line
-        ShowTimeoutExit();
-
-        if (_activeCustomer != null)
-        {
-            Destroy(_activeCustomer.gameObject);
-            _activeCustomer = null;
-        }
-
-        // Notify day manager and only spawn next if still open
-        if (dayManager != null)
-        {
-            dayManager.SetActiveCustomer(false);
-            if (!dayManager.IsOpenForCustomers) return;
-        }
-
-        Invoke(nameof(SpawnCustomer), 1.5f);
     }
 
     private void SetCameraLocked(bool locked)
@@ -521,17 +474,6 @@ public class OrderManager : MonoBehaviour
         {
             string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
             customerUI.ShowOpeningLine(opening);
-        }
-
-        // Start the patience timer (adjusted by archetype multiplier)
-        if (_activeCustomer.patienceTimer != null)
-        {
-            float patience = _activeCustomer.Instance != null
-                ? _activeCustomer.Instance.GetPatienceDuration(patienceDuration)
-                : patienceDuration;
-
-            _activeCustomer.patienceTimer.OnExpired += OnPatienceExpired;
-            _activeCustomer.patienceTimer.StartTimer(patience);
         }
 
         string archetypeName = _activeCustomer.Instance != null
