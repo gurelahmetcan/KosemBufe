@@ -54,7 +54,7 @@ public class GrillStation : Station
     private GrillSlot[]  _slots;
     private GameObject[] _slotVisuals;
 
-    public int Capacity => slotPositions != null ? slotPositions.Length : 0;
+    public int Capacity => slotPositions?.Length ?? 0;
 
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
