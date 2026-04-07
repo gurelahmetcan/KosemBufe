@@ -52,7 +52,7 @@ public class ReputationUI : MonoBehaviour
     {
         if (reputationManager == null) return;
 
-        float ratio = reputationManager.Reputation / (float)ReputationManager.MaxReputation;
+        float ratio = reputationManager.Reputation / (float)reputationManager.MaxReputation;
 
         if (fillBar != null)
         {
@@ -61,6 +61,6 @@ public class ReputationUI : MonoBehaviour
         }
 
         if (valueText != null)
-            valueText.text = $"{reputationManager.Reputation} / {ReputationManager.MaxReputation}";
+            valueText.text = $"{reputationManager.Reputation} / {reputationManager.MaxReputation}";
     }
 }

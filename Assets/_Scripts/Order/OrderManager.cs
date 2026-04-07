@@ -61,10 +61,10 @@ public class OrderManager : MonoBehaviour
     public MoneyManager moneyManager;
 
     [Header("Settings")]
-    [Tooltip("How many seconds the player has to deliver the order.")]
+    [Tooltip("Fallback order duration if GameManager/GameConfig is not present.")]
     public float orderDuration = 30f;
 
-    [Tooltip("Seconds to wait after a customer leaves before the next one spawns.")]
+    [Tooltip("Fallback delay if GameManager/GameConfig is not present.")]
     public float timeBetweenCustomers = 3f;
 
     [Tooltip("Fallback recipes — used only if CustomerFactory is not assigned.")]
@@ -80,6 +80,17 @@ public class OrderManager : MonoBehaviour
     private bool     _isHoldingOrder;
     private bool     _orderActive;
     private bool     _spawnScheduled;
+
+    // ── Init (called by GameManager) ─────────────────────────────────────────
+
+    /// <summary>
+    /// Called by GameManager.ApplyConfig() to override settings from GameConfig.
+    /// </summary>
+    public void Init(float configOrderDuration, float configTimeBetween)
+    {
+        orderDuration        = configOrderDuration;
+        timeBetweenCustomers = configTimeBetween;
+    }
 
     // ── Unity loop ───────────────────────────────────────────────────────────
 
@@ -467,7 +478,10 @@ public class OrderManager : MonoBehaviour
     {
         _spawnScheduled = false;
 
-        // Don't spawn new customers after game over
+        // Don't spawn if the game is paused or over
+        if (GameManager.Instance != null && !GameManager.Instance.IsPlaying) return;
+
+        // Don't spawn new customers after game over (fallback if no GameManager)
         if (reputationManager != null && reputationManager.IsGameOver) return;
 
         // Don't spawn if the day system says we're closed

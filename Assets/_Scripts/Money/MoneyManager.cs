@@ -9,7 +9,7 @@ using UnityEngine;
 public class MoneyManager : MonoBehaviour
 {
     [Header("Settings")]
-    [Tooltip("How much money the player starts with.")]
+    [Tooltip("Fallback starting money if GameManager/GameConfig is not present.")]
     public float startingMoney = 500f;
 
     [Tooltip("Expense configuration (rent, food, electricity costs).")]
@@ -60,11 +60,26 @@ public class MoneyManager : MonoBehaviour
     }
 #endif
 
+    // ── Init (called by GameManager) ────────────────────────────────────────
+
+    private bool _initialized;
+
+    /// <summary>
+    /// Called by GameManager.ApplyConfig() to override the starting balance.
+    /// </summary>
+    public void Init(float starting)
+    {
+        Balance = starting;
+        _initialized = true;
+    }
+
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
     private void Awake()
     {
-        Balance = startingMoney;
+        // Only use the inspector fallback if GameManager hasn't called Init()
+        if (!_initialized)
+            Balance = startingMoney;
     }
 
     private void OnEnable()

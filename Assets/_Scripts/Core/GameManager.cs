@@ -1,0 +1,211 @@
+using System;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+/// <summary>
+/// Central authority for game lifecycle: state machine, pause/resume,
+/// game-over orchestration, and day-transition coordination.
+///
+/// All managers reference GameManager instead of each other for
+/// cross-cutting concerns. GameManager is the single listener for
+/// game-ending conditions (reputation 0, bankrupt).
+///
+/// Scene Setup:
+///   1. Add a single GameManager to the scene.
+///   2. Assign GameConfig, DayManager, OrderManager, MoneyManager,
+///      ReputationManager, and GameOverUI.
+///   3. Remove direct manager-to-manager game-over wiring.
+/// </summary>
+public class GameManager : MonoBehaviour
+{
+    public enum GameState { Playing, Paused, GameOver }
+
+    // ── Singleton ────────────────────────────────────────────────────────────
+
+    public static GameManager Instance { get; private set; }
+
+    // ── Configuration ────────────────────────────────────────────────────────
+
+    [Header("Configuration")]
+    [Tooltip("Central game balance configuration asset.")]
+    public GameConfig config;
+
+    // ── Manager references ───────────────────────────────────────────────────
+
+    [Header("Managers")]
+    public DayManager dayManager;
+    public OrderManager orderManager;
+    public MoneyManager moneyManager;
+    public ReputationManager reputationManager;
+
+    [Header("UI")]
+    public GameOverUI gameOverUI;
+
+    // ── Events ───────────────────────────────────────────────────────────────
+
+    /// <summary>Fired when the game state changes (Playing, Paused, GameOver).</summary>
+    public event Action<GameState> OnGameStateChanged;
+
+    /// <summary>Fired when a day ends and all expenses are settled. Passes day number.</summary>
+    public event Action<int> OnDaySettled;
+
+    // ── Runtime ──────────────────────────────────────────────────────────────
+
+    public GameState CurrentState { get; private set; } = GameState.Playing;
+
+    /// <summary>True when the game is in a playable state (not paused or game over).</summary>
+    public bool IsPlaying => CurrentState == GameState.Playing;
+
+    // ── Unity lifecycle ──────────────────────────────────────────────────────
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning("[GameManager] Duplicate instance destroyed.", this);
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
+        ValidateReferences();
+        ApplyConfig();
+    }
+
+    private void OnEnable()
+    {
+        if (reputationManager != null)
+            reputationManager.OnGameOver += OnReputationGameOver;
+
+        if (moneyManager != null)
+            moneyManager.OnBankrupt += OnBankrupt;
+
+        if (dayManager != null)
+            dayManager.OnDayEnded += OnDayEnded;
+    }
+
+    private void OnDisable()
+    {
+        if (reputationManager != null)
+            reputationManager.OnGameOver -= OnReputationGameOver;
+
+        if (moneyManager != null)
+            moneyManager.OnBankrupt -= OnBankrupt;
+
+        if (dayManager != null)
+            dayManager.OnDayEnded -= OnDayEnded;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
+    // ── Public API ───────────────────────────────────────────────────────────
+
+    public void PauseGame()
+    {
+        if (CurrentState != GameState.Playing) return;
+
+        SetState(GameState.Paused);
+        Time.timeScale = 0f;
+        Debug.Log("[GameManager] Game paused.");
+    }
+
+    public void ResumeGame()
+    {
+        if (CurrentState != GameState.Paused) return;
+
+        SetState(GameState.Playing);
+        Time.timeScale = 1f;
+        Debug.Log("[GameManager] Game resumed.");
+    }
+
+    public void TriggerGameOver(string reason)
+    {
+        if (CurrentState == GameState.GameOver) return;
+
+        SetState(GameState.GameOver);
+        Time.timeScale = 0f;
+
+        Debug.Log($"[GameManager] GAME OVER — {reason}");
+
+        if (gameOverUI != null)
+            gameOverUI.ShowGameOver(reason);
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // ── Config distribution ──────────────────────────────────────────────────
+
+    private void ApplyConfig()
+    {
+        if (config == null)
+        {
+            Debug.LogWarning("[GameManager] GameConfig not assigned — using defaults.", this);
+            return;
+        }
+
+        if (reputationManager != null)
+            reputationManager.Init(config.maxReputation, config.startingReputation);
+
+        if (moneyManager != null)
+            moneyManager.Init(config.startingMoney);
+
+        if (orderManager != null)
+            orderManager.Init(config.orderDuration, config.timeBetweenCustomers);
+    }
+
+    // ── Event handlers ───────────────────────────────────────────────────────
+
+    private void OnReputationGameOver()
+    {
+        TriggerGameOver("Reputation reached zero!");
+    }
+
+    private void OnBankrupt()
+    {
+        TriggerGameOver("You went bankrupt!");
+    }
+
+    /// <summary>
+    /// Coordinates day-end: expenses are already deducted by MoneyManager
+    /// (it listens to DayManager.OnDayEnded directly). We check if the
+    /// player survived and notify listeners.
+    /// </summary>
+    private void OnDayEnded(int dayNumber)
+    {
+        // MoneyManager and OrderManager handle their own DayEnded logic.
+        // GameManager fires a "settled" event after all handlers have run,
+        // so UI or analytics can react to the final post-expense state.
+        OnDaySettled?.Invoke(dayNumber);
+
+        Debug.Log($"[GameManager] Day {dayNumber} settled. " +
+                  $"Money: {moneyManager?.Balance:F2}, " +
+                  $"Reputation: {reputationManager?.Reputation}");
+    }
+
+    // ── Internal ─────────────────────────────────────────────────────────────
+
+    private void SetState(GameState newState)
+    {
+        if (CurrentState == newState) return;
+        CurrentState = newState;
+        OnGameStateChanged?.Invoke(CurrentState);
+    }
+
+    private void ValidateReferences()
+    {
+        if (config == null) Debug.LogWarning("[GameManager] GameConfig is not assigned!", this);
+        if (dayManager == null) Debug.LogWarning("[GameManager] DayManager is not assigned!", this);
+        if (orderManager == null) Debug.LogWarning("[GameManager] OrderManager is not assigned!", this);
+        if (moneyManager == null) Debug.LogWarning("[GameManager] MoneyManager is not assigned!", this);
+        if (reputationManager == null) Debug.LogWarning("[GameManager] ReputationManager is not assigned!", this);
+        if (gameOverUI == null) Debug.LogWarning("[GameManager] GameOverUI is not assigned!", this);
+    }
+}

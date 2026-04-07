@@ -1,26 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// Displays a Game Over screen and pauses the game when reputation hits 0
-/// or the player goes bankrupt (money reaches 0).
-/// Wire the ReputationManager and/or MoneyManager references; the panel starts hidden.
+/// Displays the Game Over screen. No longer owns timeScale or listens
+/// to managers directly — GameManager calls ShowGameOver() and RestartGame().
 ///
 /// Scene Setup:
 ///   Canvas (Screen Space – Overlay, high sort order)
 ///     └─ GameOverPanel (starts inactive)
-///         └─ "Game Over" text, optional restart button, etc.
+///         └─ "Game Over" text, reason label, restart button
 /// </summary>
 public class GameOverUI : MonoBehaviour
 {
     [Header("References")]
-    public ReputationManager reputationManager;
-
-    [Tooltip("Money manager — triggers game over on bankruptcy.")]
-    public MoneyManager moneyManager;
-
     [Tooltip("The panel to show on game over.")]
     public GameObject gameOverPanel;
+
+    [Tooltip("Optional text showing the game-over reason.")]
+    public TextMeshProUGUI reasonText;
 
     [Tooltip("Optional restart button.")]
     public Button restartButton;
@@ -29,46 +27,34 @@ public class GameOverUI : MonoBehaviour
     {
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
-    }
-
-    private void OnEnable()
-    {
-        if (reputationManager != null)
-            reputationManager.OnGameOver += ShowGameOver;
-
-        if (moneyManager != null)
-            moneyManager.OnBankrupt += ShowGameOver;
 
         if (restartButton != null)
-            restartButton.onClick.AddListener(RestartGame);
+            restartButton.onClick.AddListener(OnRestartClicked);
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        if (reputationManager != null)
-            reputationManager.OnGameOver -= ShowGameOver;
-
-        if (moneyManager != null)
-            moneyManager.OnBankrupt -= ShowGameOver;
-
         if (restartButton != null)
-            restartButton.onClick.RemoveListener(RestartGame);
+            restartButton.onClick.RemoveListener(OnRestartClicked);
     }
 
-    private void ShowGameOver()
+    /// <summary>
+    /// Called by GameManager when a game-over condition is met.
+    /// </summary>
+    public void ShowGameOver(string reason)
     {
-        Debug.Log("[GameOverUI] Showing Game Over screen.");
+        Debug.Log($"[GameOverUI] Showing Game Over: {reason}");
+
+        if (reasonText != null)
+            reasonText.text = reason;
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
-
-        Time.timeScale = 0f;
     }
 
-    private void RestartGame()
+    private void OnRestartClicked()
     {
-        Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        if (GameManager.Instance != null)
+            GameManager.Instance.RestartGame();
     }
 }
