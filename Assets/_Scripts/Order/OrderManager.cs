@@ -80,6 +80,17 @@ public class OrderManager : MonoBehaviour
     private bool     _isHoldingOrder;
     private bool     _orderActive;
     private bool     _spawnScheduled;
+    private bool     _spawningPaused;
+
+    /// <summary>When true, no new customers will spawn until resumed.</summary>
+    public bool SpawningPaused => _spawningPaused;
+
+    /// <summary>Toggle customer spawning on/off (debug).</summary>
+    public void SetSpawningPaused(bool paused)
+    {
+        _spawningPaused = paused;
+        Debug.Log($"[OrderManager] Customer spawning {(paused ? "PAUSED" : "RESUMED")}.");
+    }
 
     // ── Init (called by GameManager) ─────────────────────────────────────────
 
@@ -480,6 +491,9 @@ public class OrderManager : MonoBehaviour
 
         // Don't spawn if the game is paused or over
         if (GameManager.Instance != null && !GameManager.Instance.IsPlaying) return;
+
+        // Don't spawn if debug-paused
+        if (_spawningPaused) return;
 
         // Don't spawn new customers after game over (fallback if no GameManager)
         if (reputationManager != null && reputationManager.IsGameOver) return;

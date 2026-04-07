@@ -44,6 +44,17 @@ public class DayClock : MonoBehaviour
         return Mathf.Clamp01((_currentTimeMinutes - openingMinutes) / range);
     }
 
+    /// <summary>Current game-minutes per real second.</summary>
+    public float GameMinutesPerRealSecond => _gameMinutesPerRealSecond;
+
+    /// <summary>
+    /// Change the clock speed at runtime (debug / fast-forward).
+    /// </summary>
+    public void SetSpeed(float gameMinutesPerRealSecond)
+    {
+        _gameMinutesPerRealSecond = Mathf.Max(0f, gameMinutesPerRealSecond);
+    }
+
     // ── Public API ───────────────────────────────────────────────────────────
 
     /// <summary>

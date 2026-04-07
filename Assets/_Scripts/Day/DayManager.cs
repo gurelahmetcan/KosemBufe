@@ -175,6 +175,29 @@ public class DayManager : MonoBehaviour
         BeginNewDay();
     }
 
+    // ── Debug API ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Forces the day to end immediately, regardless of current phase.
+    /// Stops the clock, fires closing + end-of-day events, and starts next day.
+    /// </summary>
+    public void ForceEndDay()
+    {
+        if (clock != null) clock.StopTicking();
+
+        // If we were Open, fire closing so OrderManager cleans up
+        if (_currentPhase == DayPhase.Open || _currentPhase == DayPhase.PreOpen)
+            OnClosingTimeReached?.Invoke();
+
+        int dayThatEnded = _currentDay;
+        _currentDay++;
+
+        Debug.Log($"[DayManager] DEBUG — forced end of day {dayThatEnded}.");
+        OnDayEnded?.Invoke(dayThatEnded);
+
+        BeginNewDay();
+    }
+
     // ── Internal ─────────────────────────────────────────────────────────────
 
     private void BeginNewDay()
