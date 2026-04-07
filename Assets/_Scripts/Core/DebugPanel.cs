@@ -195,7 +195,7 @@ public class DebugPanel : MonoBehaviour
             ? $"{dayManager.clock.CurrentHour:D2}:{dayManager.clock.CurrentMinute:D2}"
             : "?";
 
-        statusText.text = $"{day} | {phase} | {time}\nMoney: {money} | Rep: {rep}";
+        statusText.text = $"{day} | {phase} | {time} | Money: {money} | Rep: {rep}";
     }
 
     private void RefreshSpeedLabel()
