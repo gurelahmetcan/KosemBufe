@@ -17,21 +17,16 @@ public class InteractableItem : MonoBehaviour
     public ProcessType supportedProcesses = ProcessType.None;
 
     /// <summary>
-    /// Called when the player picks this item up from the world.
-    /// Override in subclasses for custom pickup behavior.
+    /// Notification called after the player picks this item up.
+    /// Physics and parenting are handled by PlayerHand — use this
+    /// for custom reactions (sounds, VFX, etc.).
     /// </summary>
-    public virtual void OnPickedUp()
-    {
-        gameObject.SetActive(false);
-    }
+    public virtual void OnPickedUp() { }
 
     /// <summary>
-    /// Called when the player drops or places this item back into the world.
-    /// Override in subclasses for custom drop behavior.
+    /// Notification called after the player drops this item.
+    /// Physics and unparenting are handled by PlayerHand — use this
+    /// for custom reactions (sounds, VFX, etc.).
     /// </summary>
-    public virtual void OnDropped(Vector3 position)
-    {
-        transform.position = position;
-        gameObject.SetActive(true);
-    }
+    public virtual void OnDropped() { }
 }
