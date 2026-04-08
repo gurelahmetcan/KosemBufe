@@ -176,6 +176,29 @@ public class PlayerHand : MonoBehaviour
     }
 
     /// <summary>
+    /// Releases the held item from the hand without repositioning or physics.
+    /// The item stays in its dormant state (kinematic, colliders disabled).
+    /// The caller (e.g. PrepStation) is responsible for positioning it.
+    /// Returns the released item.
+    /// </summary>
+    public InteractableItem Release()
+    {
+        if (_heldItem == null) return null;
+
+        InteractableItem item = _heldItem;
+        _heldItem = null;
+
+        // Unparent — item keeps kinematic + disabled colliders from PickUp
+        item.transform.SetParent(null);
+
+        _heldRb = null;
+        _heldColliders = null;
+        RefreshUI();
+
+        return item;
+    }
+
+    /// <summary>
     /// Silently removes the held item (destroys the GameObject).
     /// Used when delivering an order or consuming the item.
     /// </summary>

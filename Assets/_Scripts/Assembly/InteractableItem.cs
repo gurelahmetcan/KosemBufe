@@ -5,9 +5,9 @@ using UnityEngine;
 /// can pick up, hold, and place on stations or prep surfaces.
 ///
 /// Subclass this for specific item types (e.g. Ingredient, FinalizedStack).
-/// Attach a Collider alongside this component for raycast detection.
+/// Editor-placed items should have a Collider for raycast detection.
+/// Runtime-created items (FinalizedStack) add their own collider in code.
 /// </summary>
-[RequireComponent(typeof(Collider))]
 public class InteractableItem : MonoBehaviour
 {
     [Tooltip("Display name shown in the hand UI (e.g. 'Sucuk', 'Ekmek').")]
