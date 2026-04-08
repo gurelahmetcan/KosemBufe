@@ -22,21 +22,6 @@ public class Ingredient : InteractableItem
     public bool isClosingBread;
 
     [Header("Cooking State")]
-    [Tooltip("Current cooking state of this ingredient.")]
+    [Tooltip("Current cooking state of this ingredient. Set by the Grill.")]
     public CookState cookState = CookState.Raw;
-
-    [Header("Visual Variants")]
-    [Tooltip("Optional prefab shown in hand after this ingredient has been cooked/grilled.")]
-    public GameObject cookedHandPrefab;
-
-    /// <summary>
-    /// Returns the appropriate hand prefab based on the current cook state.
-    /// Falls back to the default handPrefab if no cooked variant is assigned.
-    /// </summary>
-    public GameObject GetCurrentHandPrefab()
-    {
-        if (cookState != CookState.Raw && cookedHandPrefab != null)
-            return cookedHandPrefab;
-        return handPrefab;
-    }
 }

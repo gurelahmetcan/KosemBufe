@@ -13,9 +13,6 @@ public class InteractableItem : MonoBehaviour
     [Tooltip("Display name shown in the hand UI (e.g. 'Sucuk', 'Ekmek').")]
     public string itemName = "Item";
 
-    [Tooltip("Prefab instantiated at the hand display point when the player holds this item.")]
-    public GameObject handPrefab;
-
     [Tooltip("Which cooking station processes this item supports.")]
     public ProcessType supportedProcesses = ProcessType.None;
 
