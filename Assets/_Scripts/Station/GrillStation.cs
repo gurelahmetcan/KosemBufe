@@ -135,7 +135,7 @@ public class GrillStation : Station
         output.ingredient           = slot.SavedIngredient;
         output.supportedProcesses   = ProcessType.Grillable;
         output.cookState            = cookState;
-        output.preparedIngredients  = new List<Ingredient> { slot.SavedIngredient };
+        output.preparedIngredients  = new List<IngredientType> { slot.SavedIngredient };
 
         hand.PickUp(output);
 

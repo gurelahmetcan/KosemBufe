@@ -46,14 +46,14 @@ public class FryerStation : Station
     private int         _rawSliceStock;
     private FryerBatch  _currentBatch;
     private int         _collectedCount;
-    private Ingredient  _selectedSauce = Ingredient.None;
+    private IngredientType  _selectedSauce = IngredientType.None;
 
     // ── Public read-only state (used by FryerUI) ─────────────────────────────
 
     public int         RawSliceStock  => _rawSliceStock;
     public FryerBatch  CurrentBatch   => _currentBatch;
     public int         CollectedCount => _collectedCount;
-    public Ingredient  SelectedSauce  => _selectedSauce;
+    public IngredientType  SelectedSauce  => _selectedSauce;
 
     // ── Station interface ────────────────────────────────────────────────────
 
@@ -119,7 +119,7 @@ public class FryerStation : Station
         _rawSliceStock  -= slices;
         _currentBatch    = new FryerBatch(size, cookDuration, readyEndTime);
         _collectedCount  = 0;
-        _selectedSauce   = Ingredient.None;
+        _selectedSauce   = IngredientType.None;
         Debug.Log($"[Fryer] Started {size} batch ({slices} slices). Stock remaining: {_rawSliceStock}");
     }
 
@@ -153,7 +153,7 @@ public class FryerStation : Station
         }
     }
 
-    public void SelectSauce(Ingredient sauce)
+    public void SelectSauce(IngredientType sauce)
     {
         _selectedSauce = sauce;
         Debug.Log($"[Fryer] Selected sauce: {sauce}");
@@ -189,10 +189,10 @@ public class FryerStation : Station
             ? _currentBatch.BatchSize == FryerBatch.Size.Large
             : _collectedCount > (int)FryerBatch.Size.Small;
 
-        var ingredients = new List<Ingredient> { Ingredient.FrenchFries };
+        var ingredients = new List<IngredientType> { IngredientType.FrenchFries };
         if (isLarge)
-            ingredients.Add(Ingredient.FrenchFries);
-        if (_selectedSauce != Ingredient.None)
+            ingredients.Add(IngredientType.FrenchFries);
+        if (_selectedSauce != IngredientType.None)
             ingredients.Add(_selectedSauce);
 
         item.preparedIngredients = ingredients;
@@ -200,11 +200,11 @@ public class FryerStation : Station
 
         hand.PickUp(item);
 
-        Debug.Log($"[Fryer] Finished! {_collectedCount} fries with {(_selectedSauce != Ingredient.None ? _selectedSauce.ToString() : "no sauce")}");
+        Debug.Log($"[Fryer] Finished! {_collectedCount} fries with {(_selectedSauce != IngredientType.None ? _selectedSauce.ToString() : "no sauce")}");
 
         _currentBatch   = null;
         _collectedCount = 0;
-        _selectedSauce  = Ingredient.None;
+        _selectedSauce  = IngredientType.None;
 
         return true;
     }

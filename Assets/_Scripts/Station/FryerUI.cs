@@ -107,8 +107,8 @@ public class FryerUI : MonoBehaviour
     {
         if (smallButton   != null) smallButton.onClick.AddListener(OnSmallClicked);
         if (largeButton   != null) largeButton.onClick.AddListener(OnLargeClicked);
-        if (ketchupButton != null) ketchupButton.onClick.AddListener(() => OnSauceClicked(Ingredient.Ketchup));
-        if (mayoButton    != null) mayoButton.onClick.AddListener(() => OnSauceClicked(Ingredient.Mayonnaise));
+        if (ketchupButton != null) ketchupButton.onClick.AddListener(() => OnSauceClicked(IngredientType.Ketchup));
+        if (mayoButton    != null) mayoButton.onClick.AddListener(() => OnSauceClicked(IngredientType.Mayonnaise));
         if (plainButton   != null) plainButton.onClick.AddListener(OnPlainClicked);
         if (clearButton   != null) clearButton.onClick.AddListener(OnClearClicked);
         if (finishButton  != null) finishButton.onClick.AddListener(OnFinishClicked);
@@ -195,7 +195,7 @@ public class FryerUI : MonoBehaviour
         }
     }
 
-    private void OnSauceClicked(Ingredient sauce)
+    private void OnSauceClicked(IngredientType sauce)
     {
         if (_station != null)
         {
@@ -208,7 +208,7 @@ public class FryerUI : MonoBehaviour
     {
         if (_station != null)
         {
-            _station.SelectSauce(Ingredient.None);
+            _station.SelectSauce(IngredientType.None);
             RefreshButtons();
         }
     }
@@ -405,17 +405,17 @@ public class FryerUI : MonoBehaviour
         if (ketchupButton != null)
         {
             ketchupButton.gameObject.SetActive(showSaucePhase);
-            SetButtonHighlight(ketchupButton, _station.SelectedSauce == Ingredient.Ketchup);
+            SetButtonHighlight(ketchupButton, _station.SelectedSauce == IngredientType.Ketchup);
         }
         if (mayoButton != null)
         {
             mayoButton.gameObject.SetActive(showSaucePhase);
-            SetButtonHighlight(mayoButton, _station.SelectedSauce == Ingredient.Mayonnaise);
+            SetButtonHighlight(mayoButton, _station.SelectedSauce == IngredientType.Mayonnaise);
         }
         if (plainButton != null)
         {
             plainButton.gameObject.SetActive(showSaucePhase);
-            SetButtonHighlight(plainButton, _station.SelectedSauce == Ingredient.None);
+            SetButtonHighlight(plainButton, _station.SelectedSauce == IngredientType.None);
         }
 
         // ── Clear: visible when there are slices remaining in the vat ────────

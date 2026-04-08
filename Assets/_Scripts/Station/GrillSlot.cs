@@ -11,7 +11,7 @@ public class GrillSlot
 {
     // ── Saved item data (needed to create the output when collected) ─────────
 
-    public Ingredient  SavedIngredient { get; }
+    public IngredientType  SavedIngredient { get; }
     public string      SavedItemName   { get; }
     public GameObject  SavedHandPrefab { get; }
 
@@ -26,7 +26,7 @@ public class GrillSlot
     private readonly float _cookTime;
     private readonly float _burnGrace;
 
-    public GrillSlot(Ingredient ingredient, string itemName, GameObject handPrefab,
+    public GrillSlot(IngredientType ingredient, string itemName, GameObject handPrefab,
                      float cookTime, float burnGrace)
     {
         SavedIngredient = ingredient;

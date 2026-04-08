@@ -1,8 +1,8 @@
 /// <summary>
-/// All available ingredients in the game.
+/// All available ingredient types in the game.
 /// Add new entries here as new food items are introduced.
 /// </summary>
-public enum Ingredient
+public enum IngredientType
 {
     None,
     Bread,

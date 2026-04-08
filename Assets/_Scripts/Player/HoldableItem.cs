@@ -17,7 +17,7 @@ public class HoldableItem : MonoBehaviour
     public GameObject handPrefab;
 
     [Tooltip("Which ingredient this item represents (used for recipe validation).")]
-    public Ingredient ingredient = Ingredient.None;
+    public IngredientType ingredient = IngredientType.None;
 
     [Tooltip("Which station processes this item supports (set per prefab).")]
     public ProcessType supportedProcesses = ProcessType.None;
@@ -26,6 +26,6 @@ public class HoldableItem : MonoBehaviour
     // These fields carry the full preparation data on toaster result items
     // so OrderManager can validate against a recipe.
 
-    [HideInInspector] public List<Ingredient> preparedIngredients = new List<Ingredient>();
+    [HideInInspector] public List<IngredientType> preparedIngredients = new List<IngredientType>();
     [HideInInspector] public CookState cookState = CookState.Raw;
 }

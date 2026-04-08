@@ -18,7 +18,7 @@ public static class OrderValidator
     /// <summary>
     /// Validate a prepared order against the target recipe (no modifier).
     /// </summary>
-    public static OrderResult Validate(RecipeData recipe, List<Ingredient> preparedIngredients, CookState cookState)
+    public static OrderResult Validate(RecipeData recipe, List<IngredientType> preparedIngredients, CookState cookState)
     {
         return Validate(recipe, null, preparedIngredients, cookState);
     }
@@ -27,10 +27,10 @@ public static class OrderValidator
     /// Validate a prepared order against the target recipe + optional modifier.
     /// The modifier adds extra ingredients to the expected list before comparison.
     /// </summary>
-    public static OrderResult Validate(RecipeData recipe, OrderModifier modifier, List<Ingredient> preparedIngredients, CookState cookState)
+    public static OrderResult Validate(RecipeData recipe, OrderModifier modifier, List<IngredientType> preparedIngredients, CookState cookState)
     {
         // Build the expected ingredient list (base recipe + modifier)
-        List<Ingredient> expected = BuildExpectedIngredients(recipe, modifier);
+        List<IngredientType> expected = BuildExpectedIngredients(recipe, modifier);
 
         Debug.Log($"[OrderValidator] Recipe='{recipe.recipeName}'" +
                   (modifier != null ? $" + modifier '{modifier.modifierName}' ({modifier.quantity}× {modifier.ingredient})" : "") +
@@ -59,9 +59,9 @@ public static class OrderValidator
     /// Builds the full expected ingredient list by combining the base recipe
     /// with any modifier additions.
     /// </summary>
-    private static List<Ingredient> BuildExpectedIngredients(RecipeData recipe, OrderModifier modifier)
+    private static List<IngredientType> BuildExpectedIngredients(RecipeData recipe, OrderModifier modifier)
     {
-        var expected = new List<Ingredient>();
+        var expected = new List<IngredientType>();
 
         if (recipe.ingredients != null)
         {
@@ -82,15 +82,15 @@ public static class OrderValidator
     /// Order-insensitive comparison. Both lists must contain
     /// the same elements with the same counts.
     /// </summary>
-    private static bool IngredientsMatch(List<Ingredient> required, List<Ingredient> prepared)
+    private static bool IngredientsMatch(List<IngredientType> required, List<IngredientType> prepared)
     {
         if (required == null || prepared == null) return false;
         if (required.Count != prepared.Count) return false;
 
         // Build a frequency map of the required ingredients
-        var counts = new Dictionary<Ingredient, int>();
+        var counts = new Dictionary<IngredientType, int>();
 
-        foreach (Ingredient ing in required)
+        foreach (IngredientType ing in required)
         {
             if (counts.ContainsKey(ing))
                 counts[ing]++;
@@ -99,7 +99,7 @@ public static class OrderValidator
         }
 
         // Subtract prepared ingredients
-        foreach (Ingredient ing in prepared)
+        foreach (IngredientType ing in prepared)
         {
             if (!counts.ContainsKey(ing))
                 return false;

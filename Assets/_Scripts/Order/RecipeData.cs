@@ -20,7 +20,7 @@ public class RecipeData : ScriptableObject
     public float price = 10f;
 
     [Tooltip("Exact ingredients required. Order doesn't matter.")]
-    public Ingredient[] ingredients;
+    public IngredientType[] ingredients;
 
     [Tooltip("If true, the order must be toasted (CookState.Cooked) to succeed.")]
     public bool requiresCooking = true;

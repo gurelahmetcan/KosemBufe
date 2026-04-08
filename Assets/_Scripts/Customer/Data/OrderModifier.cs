@@ -20,7 +20,7 @@ public class OrderModifier : ScriptableObject
 
     [Header("Ingredient Effect")]
     [Tooltip("The ingredient to add to the expected order.")]
-    public Ingredient ingredient;
+    public IngredientType ingredient;
 
     [Tooltip("How many of this ingredient to add (e.g. 1 for 'extra cheese').")]
     [Min(1)]

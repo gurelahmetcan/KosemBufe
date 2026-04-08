@@ -38,7 +38,7 @@ public class ToasterStation : Station
             if (savedItem != null)
             {
                 if (savedHolder != null)
-                    savedItem.preparedIngredients = new List<Ingredient>(savedHolder.GetIngredients());
+                    savedItem.preparedIngredients = new List<IngredientType>(savedHolder.GetIngredients());
 
                 savedItem.cookState = success ? CookState.Cooked : CookState.Burnt;
 
