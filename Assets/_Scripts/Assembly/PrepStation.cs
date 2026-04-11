@@ -13,10 +13,15 @@ using UnityEngine;
 ///   - Empty hand + stack IS finalized → left-click to pick up the whole group.
 ///
 /// Setup:
-///   1. Place a GameObject with a Collider in the scene (the prep surface).
-///   2. Add this component.
-///   3. Create an empty child Transform and assign it as stackAnchor.
-///   4. Tune stackOffset for the vertical gap between stacked items.
+///   1. Create an UNSCALED (1,1,1) root GameObject for the prep station.
+///   2. Make the board model a child of the root and apply any visual scale there.
+///   3. Add a GameObject with a Collider to the root (the prep surface) and
+///      attach this component.
+///   4. Create an empty child Transform with scale (1,1,1) under the root,
+///      position it where the bottom of the stack should sit, and assign it
+///      as stackAnchor. The anchor MUST have uniform (1,1,1) lossy scale so
+///      stacked ingredients are not distorted.
+///   5. Tune stackOffset for the vertical gap between stacked items.
 /// </summary>
 public class PrepStation : MonoBehaviour, IAssemblyInteractable
 {
@@ -81,17 +86,20 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
 
     private void PlaceIngredient(Ingredient ingredient, PlayerHand hand)
     {
-        // Release from hand (item stays dormant: kinematic, colliders disabled)
-        // Release unparents the item — we deliberately leave it unparented so a
-        // non-uniformly scaled stackAnchor cannot distort the ingredient.
+        // Release from hand (item stays dormant: kinematic, colliders disabled).
+        // Release unparents the item.
         hand.Release();
 
-        // Restore the prefab's authored rotation and scale, then position it
-        // in world space on top of the stack.
+        // Parent under stackAnchor so the stack follows the board if it moves.
+        // stackAnchor MUST have a uniform (1,1,1) lossy scale — place it as a
+        // child of an unscaled board root so parenting cannot distort the
+        // ingredient's size. Rotation and scale are restored from the prefab's
+        // authored values; position is stacked upward along the anchor's local
+        // Y so the stack follows the board's orientation.
+        ingredient.transform.SetParent(stackAnchor, worldPositionStays: false);
         ingredient.transform.localRotation = ingredient.OriginalLocalRotation;
         ingredient.transform.localScale    = ingredient.OriginalLocalScale;
-        ingredient.transform.position =
-            stackAnchor.position + Vector3.up * (stackOffset * _stack.Count);
+        ingredient.transform.localPosition = new Vector3(0f, stackOffset * _stack.Count, 0f);
 
         _stack.Add(ingredient);
 
