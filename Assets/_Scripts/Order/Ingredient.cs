@@ -12,5 +12,6 @@ public enum IngredientType
     Potato,
     FrenchFries,
     Ketchup,
-    Mayonnaise
+    Mayonnaise,
+    Patty
 }
