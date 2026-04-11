@@ -135,10 +135,14 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
 
     private void Finalize()
     {
-        // Create a parent object for the entire group
+        // Create the group object and parent it under stackAnchor so it sits
+        // exactly where the stack was built and moves with the board. Because
+        // stackAnchor has uniform (1,1,1) lossy scale, local = world for size.
         GameObject groupObj = new GameObject("FinalizedStack");
-        groupObj.transform.position = stackAnchor.position;
-        groupObj.transform.rotation = stackAnchor.rotation;
+        groupObj.transform.SetParent(stackAnchor, worldPositionStays: false);
+        groupObj.transform.localPosition = Vector3.zero;
+        groupObj.transform.localRotation = Quaternion.identity;
+        groupObj.transform.localScale    = Vector3.one;
 
         // Add the FinalizedStack component
         FinalizedStack stack = groupObj.AddComponent<FinalizedStack>();
@@ -166,10 +170,10 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         Rigidbody rb = groupObj.AddComponent<Rigidbody>();
         rb.isKinematic = true;
 
-        // Add a BoxCollider that encompasses all child meshes
+        // Add a BoxCollider that encompasses all child meshes. Keep it enabled
+        // so the player can click the stack directly to pick it up.
         BoxCollider box = groupObj.AddComponent<BoxCollider>();
         FitBoxColliderToChildren(groupObj, box);
-        box.enabled = false; // disabled until picked up
 
         // Station state
         _finalizedStack = stack;
@@ -187,13 +191,9 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
     {
         if (_finalizedStack == null) return;
 
-        // Unparent from station anchor
-        _finalizedStack.transform.SetParent(null);
-
-        // Enable collider so PlayerHand.PickUp() can cache and disable it
-        Collider col = _finalizedStack.GetComponent<Collider>();
-        if (col != null) col.enabled = true;
-
+        // hand.PickUp reparents to holdPoint and disables physics/colliders.
+        // The stack is already a child of stackAnchor with its collider
+        // enabled, so no manual unparenting or collider toggling is needed.
         hand.PickUp(_finalizedStack);
 
         Debug.Log($"[PrepStation] Picked up finalized stack '{_finalizedStack.itemName}'");
