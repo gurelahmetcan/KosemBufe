@@ -217,7 +217,7 @@ public class GrillSlotItem : MonoBehaviour, IAssemblyInteractable, IFlippable
         Vector3 startPos = transform.localPosition;
 
         Sequence seq = DOTween.Sequence();
-        seq.Append(transform.DOLocalMoveY(startPos.y + 0.15f, 0.15f).SetEase(Ease.OutQuad));
+        seq.Append(transform.DOLocalMoveY(startPos.y + 3f, 0.15f).SetEase(Ease.OutQuad));
         seq.Join(transform.DOLocalRotate(new Vector3(180f, 0f, 0f), 0.3f, RotateMode.LocalAxisAdd)
                           .SetEase(Ease.InOutQuad));
         seq.Append(transform.DOLocalMoveY(startPos.y, 0.15f).SetEase(Ease.InQuad));
