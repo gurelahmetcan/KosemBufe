@@ -35,9 +35,6 @@ public class OrderManager : MonoBehaviour
     public Transform exitPoint;
 
     [Header("UI & Systems")]
-    [Tooltip("Circular countdown UI (top-left of screen).")]
-    public OrderTimerUI timerUI;
-
     [FormerlySerializedAs("slicingController")]
     [Tooltip("Player's InHandController — used to read the item in hand for validation.")]
     public InHandController ınHandController;
@@ -148,7 +145,6 @@ public class OrderManager : MonoBehaviour
     {
         HandlePickUpInput();
         HandleClickInput();
-        CheckTimerExpiry();
     }
 
     // ── Input handling ───────────────────────────────────────────────────────
@@ -191,19 +187,6 @@ public class OrderManager : MonoBehaviour
                 TryDeliver();
                 break;
         }
-    }
-
-    // ── Timer expiry ─────────────────────────────────────────────────────────
-
-    private void CheckTimerExpiry()
-    {
-        if (!_orderActive) return;
-        if (timerUI == null || timerUI.Remaining > 0f) return;
-
-        Debug.Log("Order Failed: DELIVERY TIMER EXPIRED");
-        if (reputationManager != null) reputationManager.ChangeReputation(-10);
-        ShowTimeoutExit();
-        EndOrder();
     }
 
     // ── Order prompt ────────────────────────────────────────────────────────
@@ -256,10 +239,7 @@ public class OrderManager : MonoBehaviour
         _activeCustomer.AcceptOrder();
         _orderActive = true;
 
-        if (timerUI != null)
-            timerUI.StartTimer(orderDuration);
-
-        Debug.Log($"Order accepted: {_activeCustomer.Recipe.recipeName} — {orderDuration}s on the clock");
+        Debug.Log($"Order accepted: {_activeCustomer.Recipe.recipeName}");
     }
 
     private void OnPromptReject()
@@ -402,9 +382,6 @@ public class OrderManager : MonoBehaviour
     {
         _orderActive = false;
 
-        if (timerUI != null)
-            timerUI.StopTimer();
-
         SendCustomerAway();
     }
 
@@ -479,7 +456,6 @@ public class OrderManager : MonoBehaviour
         _isHoldingOrder = false;
         _spawnScheduled = false;
 
-        if (timerUI != null) timerUI.StopTimer();
         HideUI();
     }
 
