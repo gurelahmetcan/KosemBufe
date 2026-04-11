@@ -75,6 +75,21 @@ public class PlayerHand : MonoBehaviour
             return;
         }
 
+        // F key → flip whatever IFlippable is under the cursor (e.g. grill items)
+        Keyboard kb = Keyboard.current;
+        if (kb != null && kb.fKey.wasPressedThisFrame)
+        {
+            GameObject flipHit = RaycastTarget();
+            if (flipHit != null)
+            {
+                IFlippable flippable = flipHit.GetComponent<IFlippable>()
+                                    ?? flipHit.GetComponentInParent<IFlippable>();
+                if (flippable != null && flippable.CanFlip())
+                    flippable.Flip();
+            }
+            return;
+        }
+
         if (!mouse.leftButton.wasPressedThisFrame) return;
 
         GameObject hit = RaycastTarget();

@@ -1,116 +1,130 @@
 using UnityEngine;
 
 /// <summary>
-/// Grill appliance — accepts a single raw Ingredient with the Grillable flag,
-/// cooks it over time (Raw → Cooked), and burns it if left too long (Cooked → Burnt).
+/// Multi-slot grill surface. Accepts raw Ingredients with the Grillable
+/// process flag and cooks them with a flip-based 2-side mechanic.
 ///
-/// The ingredient remains visible on the grill surface at itemSlot and is
-/// color-tinted to reflect cooking progress.
+/// Behaviour:
+///   - Click the grill with a Grillable ingredient → auto-places on the next
+///     free slot (LIFO-ish, first empty index wins).
+///   - Each slot cooks independently: CookingSide1 → NeedsFlip → CookingSide2
+///     → Cooked → Burnt, driven by a GrillSlotItem component on the ingredient.
+///   - Hover an ingredient and press F → flip it (only during NeedsFlip).
+///   - Click an ingredient with an empty hand → collect it once Cooked/Burnt.
 ///
-/// For multiple grill spots, place multiple Grill GameObjects on the surface.
+/// Per-slot state, timing, visual tinting, and flip/collect interactions all
+/// live on GrillSlotItem so each ingredient manages itself.
 ///
 /// Setup:
 ///   1. Place a GameObject with a Collider (the grill surface).
 ///   2. Add this component.
-///   3. Create an empty child Transform and assign it as itemSlot.
-///   4. On ingredient prefabs: set supportedProcesses = Grillable.
+///   3. Create empty child Transforms for each slot position.
+///   4. Assign them to slotPositions (length determines capacity).
+///   5. On grillable ingredient prefabs: set supportedProcesses = Grillable.
 /// </summary>
-public class Grill : Appliance
+public class Grill : MonoBehaviour, IAssemblyInteractable
 {
-    [Header("Grill Setup")]
-    [Tooltip("Position where the ingredient sits on the grill surface.")]
-    public Transform itemSlot;
+    [Header("Slot Positions")]
+    [Tooltip("Empty child Transforms marking where ingredients sit on the grill. " +
+             "Array length determines capacity.")]
+    public Transform[] slotPositions;
+
+    [Header("Timing")]
+    [Tooltip("Seconds each side needs to cook before the next phase.")]
+    public float cookTimePerSide = 5f;
+
+    [Tooltip("Seconds of grace after a side is done before the ingredient burns.")]
+    public float burnGraceTime = 5f;
 
     [Header("Visual — Cook Colors")]
-    [Tooltip("Tint applied to raw / just-placed items.")]
+    [Tooltip("Tint applied to raw / just-placed ingredients.")]
     public Color rawColor = new Color(0.85f, 0.35f, 0.35f);
 
-    [Tooltip("Tint applied to fully-cooked items.")]
+    [Tooltip("Tint applied to fully-cooked ingredients.")]
     public Color cookedColor = new Color(0.55f, 0.35f, 0.18f);
 
-    [Tooltip("Tint applied to burnt items.")]
+    [Tooltip("Tint applied to burnt ingredients.")]
     public Color burntColor = new Color(0.15f, 0.10f, 0.05f);
 
-    // ── Runtime ──────────────────────────────────────────────────────────────
+    // ── Runtime state ────────────────────────────────────────────────────────
 
-    private Ingredient _ingredient;
-    private Renderer[] _itemRenderers;
+    private GrillSlotItem[] _slots;
 
-    // ── Appliance overrides ──────────────────────────────────────────────────
+    public int Capacity => slotPositions?.Length ?? 0;
 
-    protected override bool CanAccept(InteractableItem item)
+    // ── Unity lifecycle ──────────────────────────────────────────────────────
+
+    private void Awake()
     {
-        return item is Ingredient && item.supportedProcesses.HasFlag(ProcessType.Grillable);
+        _slots = new GrillSlotItem[Capacity];
     }
 
-    protected override void OnItemInserted()
+    // ── IAssemblyInteractable ────────────────────────────────────────────────
+
+    public bool CanInteract(PlayerHand hand)
     {
-        _ingredient = _storedItem as Ingredient;
-
-        // Position ingredient on the grill surface
-        if (itemSlot != null)
-        {
-            _storedItem.transform.position = itemSlot.position;
-            _storedItem.transform.rotation = itemSlot.rotation;
-        }
-
-        // Cache renderers for color tinting
-        _itemRenderers = _storedItem.GetComponentsInChildren<Renderer>();
-        ApplyColor(rawColor);
-
-        Debug.Log($"[Grill] Inserted '{_ingredient.itemName}' — cooking for {processTime}s");
+        // Only handles placement — collect/flip is done via GrillSlotItem on each slot.
+        if (hand.IsHandEmpty) return false;
+        if (!(hand.HeldItem is Ingredient)) return false;
+        if (!hand.HeldItem.supportedProcesses.HasFlag(ProcessType.Grillable)) return false;
+        return FindFreeSlot() >= 0;
     }
 
-    protected override void OnProcessingComplete()
+    public void Interact(PlayerHand hand)
     {
-        _ingredient.cookState = CookState.Cooked;
-        Debug.Log($"[Grill] '{_ingredient.itemName}' is COOKED! Collect before it burns ({burnGraceTime}s).");
+        int slot = FindFreeSlot();
+        if (slot < 0) return;
+
+        Ingredient ingredient = hand.HeldItem as Ingredient;
+        if (ingredient == null) return;
+
+        PlaceOnSlot(slot, ingredient, hand);
     }
 
-    protected override void OnBurned()
+    // ── Public API (called by GrillSlotItem on collect) ─────────────────────
+
+    /// <summary>
+    /// Clears the given slot. Called by GrillSlotItem when the player collects it.
+    /// </summary>
+    public void FreeSlot(int index)
     {
-        _ingredient.cookState = CookState.Burnt;
-        Debug.Log($"[Grill] '{_ingredient.itemName}' is BURNT!");
+        if (index < 0 || index >= _slots.Length) return;
+        _slots[index] = null;
     }
 
-    protected override void OnBeforeCollect()
+    // ── Placement ────────────────────────────────────────────────────────────
+
+    private void PlaceOnSlot(int index, Ingredient ingredient, PlayerHand hand)
     {
-        _itemRenderers = null;
-        _ingredient = null;
+        // Release from the player's hand — stays dormant (kinematic, colliders off).
+        hand.Release();
+
+        // Parent and position on the slot transform.
+        Transform slotT = slotPositions[index];
+        ingredient.transform.SetParent(slotT);
+        ingredient.transform.position = slotT.position;
+        ingredient.transform.rotation = slotT.rotation;
+
+        // Re-enable colliders so the player can click / raycast this ingredient.
+        foreach (Collider col in ingredient.GetComponentsInChildren<Collider>())
+            col.enabled = true;
+
+        // Attach the per-slot cooking component and track it.
+        GrillSlotItem slotItem = ingredient.gameObject.AddComponent<GrillSlotItem>();
+        slotItem.Init(this, index, ingredient, cookTimePerSide, burnGraceTime);
+
+        _slots[index] = slotItem;
+
+        Debug.Log($"[Grill] Placed '{ingredient.itemName}' on slot {index}.");
     }
 
-    // ── Per-frame visual feedback ────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────────────
 
-    protected override void Update()
+    private int FindFreeSlot()
     {
-        base.Update();
-        UpdateVisual();
-    }
-
-    private void UpdateVisual()
-    {
-        if (_itemRenderers == null) return;
-
-        switch (_state)
-        {
-            case ApplianceState.Processing:
-                ApplyColor(Color.Lerp(rawColor, cookedColor, ProcessProgress));
-                break;
-
-            case ApplianceState.Done:
-                ApplyColor(Color.Lerp(cookedColor, burntColor, BurnProgress));
-                break;
-
-            case ApplianceState.Burned:
-                ApplyColor(burntColor);
-                break;
-        }
-    }
-
-    private void ApplyColor(Color color)
-    {
-        if (_itemRenderers == null) return;
-        foreach (Renderer r in _itemRenderers)
-            r.material.color = color;
+        if (_slots == null) return -1;
+        for (int i = 0; i < _slots.Length; i++)
+            if (_slots[i] == null) return i;
+        return -1;
     }
 }
