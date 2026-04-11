@@ -17,6 +17,26 @@ public class InteractableItem : MonoBehaviour
     public ProcessType supportedProcesses = ProcessType.None;
 
     /// <summary>
+    /// Local rotation authored on the prefab / scene object at Awake.
+    /// Stations restore this when placing the item so the original
+    /// orientation is preserved through pickup → release cycles.
+    /// </summary>
+    public Quaternion OriginalLocalRotation { get; private set; }
+
+    /// <summary>
+    /// Local scale authored on the prefab / scene object at Awake.
+    /// Stations restore this when placing the item so the original
+    /// size is preserved through pickup → release cycles.
+    /// </summary>
+    public Vector3 OriginalLocalScale { get; private set; }
+
+    protected virtual void Awake()
+    {
+        OriginalLocalRotation = transform.localRotation;
+        OriginalLocalScale    = transform.localScale;
+    }
+
+    /// <summary>
     /// Notification called after the player picks this item up.
     /// Physics and parenting are handled by PlayerHand — use this
     /// for custom reactions (sounds, VFX, etc.).

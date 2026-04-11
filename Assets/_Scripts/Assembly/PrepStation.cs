@@ -82,13 +82,16 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
     private void PlaceIngredient(Ingredient ingredient, PlayerHand hand)
     {
         // Release from hand (item stays dormant: kinematic, colliders disabled)
+        // Release unparents the item — we deliberately leave it unparented so a
+        // non-uniformly scaled stackAnchor cannot distort the ingredient.
         hand.Release();
 
-        // Position on top of the stack
-        Vector3 pos = stackAnchor.position + Vector3.up * (stackOffset * _stack.Count);
-        ingredient.transform.SetParent(stackAnchor);
-        ingredient.transform.position = pos;
-        ingredient.transform.rotation = stackAnchor.rotation;
+        // Restore the prefab's authored rotation and scale, then position it
+        // in world space on top of the stack.
+        ingredient.transform.localRotation = ingredient.OriginalLocalRotation;
+        ingredient.transform.localScale    = ingredient.OriginalLocalScale;
+        ingredient.transform.position =
+            stackAnchor.position + Vector3.up * (stackOffset * _stack.Count);
 
         _stack.Add(ingredient);
 
