@@ -1,4 +1,5 @@
 using UnityEngine;
+using DG.Tweening;
 
 /// <summary>
 /// Runtime-added component placed on each Ingredient sitting on a Grill slot.
@@ -30,6 +31,7 @@ public class GrillSlotItem : MonoBehaviour, IAssemblyInteractable, IFlippable
 
     private float _sideTime;
     private bool  _flipped;
+    private bool  _isFlipping;
 
     // ── Visual ───────────────────────────────────────────────────────────────
 
@@ -138,7 +140,8 @@ public class GrillSlotItem : MonoBehaviour, IAssemblyInteractable, IFlippable
         if (!hand.IsHandEmpty)
             return _grill != null && _grill.CanInteract(hand);
 
-        // Empty hand → can collect once fully cooked or burnt
+        // Empty hand → can collect once fully cooked or burnt (not mid-flip)
+        if (_isFlipping) return false;
         GrillSlotState state = GetState();
         return state == GrillSlotState.Cooked || state == GrillSlotState.Burnt;
     }
@@ -188,6 +191,7 @@ public class GrillSlotItem : MonoBehaviour, IAssemblyInteractable, IFlippable
 
     public bool CanFlip()
     {
+        if (_isFlipping) return false;
         return GetState() == GrillSlotState.NeedsFlip;
     }
 
@@ -198,9 +202,30 @@ public class GrillSlotItem : MonoBehaviour, IAssemblyInteractable, IFlippable
         _flipped  = true;
         _sideTime = 0f;
 
-        // Simple visual flip — rotate 180° around local X axis.
-        transform.Rotate(180f, 0f, 0f, Space.Self);
+        PlayFlipAnimation();
 
         Debug.Log($"[Grill] Flipped slot {_slotIndex}.");
+    }
+
+    // ── Flip animation ───────────────────────────────────────────────────────
+
+    private void PlayFlipAnimation()
+    {
+        _isFlipping = true;
+
+        // Quick jump + 180° rotation on the local X axis
+        Vector3 startPos = transform.localPosition;
+
+        Sequence seq = DOTween.Sequence();
+        seq.Append(transform.DOLocalMoveY(startPos.y + 0.15f, 0.15f).SetEase(Ease.OutQuad));
+        seq.Join(transform.DOLocalRotate(new Vector3(180f, 0f, 0f), 0.3f, RotateMode.LocalAxisAdd)
+                          .SetEase(Ease.InOutQuad));
+        seq.Append(transform.DOLocalMoveY(startPos.y, 0.15f).SetEase(Ease.InQuad));
+        seq.OnComplete(() => _isFlipping = false);
+    }
+
+    private void OnDestroy()
+    {
+        transform.DOKill();
     }
 }
