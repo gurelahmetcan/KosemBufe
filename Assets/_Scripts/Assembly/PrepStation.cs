@@ -134,11 +134,21 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         stack.itemName = BuildStackName();
         stack.supportedProcesses = ProcessType.Toastable;
 
-        // Reparent all ingredients under the group and record their types
+        // Reparent all ingredients under the group and record their types.
+        // Strip each ingredient's own Rigidbody + Colliders — the parent's
+        // single Rigidbody and fitted BoxCollider drive physics for the whole
+        // group. Nested rigidbodies inside a kinematic parent cause the
+        // "floating and spinning" glitch when the stack is thrown.
         foreach (Ingredient ing in _stack)
         {
             stack.ingredientTypes.Add(ing.ingredientType);
             ing.transform.SetParent(groupObj.transform);
+
+            Rigidbody ingRb = ing.GetComponent<Rigidbody>();
+            if (ingRb != null) Destroy(ingRb);
+
+            foreach (Collider ingCol in ing.GetComponentsInChildren<Collider>())
+                Destroy(ingCol);
         }
 
         // Add a Rigidbody (starts kinematic while on station)
