@@ -52,6 +52,15 @@ public class PlayerLook : MonoBehaviour
 
     private float _pitch; // camera's current vertical tilt
 
+    /// <summary>
+    /// Set to true by external systems (e.g. OrderManager) when a UI panel
+    /// is open. While true:
+    ///   - Cursor is forced unlocked so the player can click UI buttons.
+    ///   - All look input and auto-relock behaviour are suppressed.
+    ///   - Resetting to false immediately re-locks the cursor and resumes look.
+    /// </summary>
+    public bool UIMode { get; set; }
+
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
     private void Start()
@@ -81,6 +90,22 @@ public class PlayerLook : MonoBehaviour
 
     private void Update()
     {
+        // ── UI mode: a menu/panel is open ────────────────────────────────────
+        // Force cursor visible so the player can click UI buttons.
+        // Skip ALL look input and the auto-relock check — without this guard
+        // the same click that opens the UI would be detected here
+        // (PlayerLook runs after OrderManager due to [DefaultExecutionOrder(10)])
+        // and would immediately re-lock the cursor.
+        if (UIMode)
+        {
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible   = true;
+            }
+            return;
+        }
+
         Keyboard kb    = Keyboard.current;
         Mouse    mouse = Mouse.current;
 
@@ -92,9 +117,7 @@ public class PlayerLook : MonoBehaviour
             return;
         }
 
-        // ── Click → re-lock cursor ───────────────────────────────────────────
-        // (PlayerHand skips input this frame because cursor was still unlocked
-        //  when it ran — this script executes after default order.)
+        // ── Click → re-lock cursor (after Escape or window focus loss) ───────
         if (Cursor.lockState != CursorLockMode.Locked)
         {
             if (mouse != null && mouse.leftButton.wasPressedThisFrame)

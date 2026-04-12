@@ -45,6 +45,10 @@ public class OrderManager : MonoBehaviour
     [Tooltip("Player camera — rotation is disabled while the prompt is visible.")]
     public PlayerCameraRotation playerCamera;
 
+    [Tooltip("Player look controller — UIMode is set while the prompt is visible " +
+             "so the cursor stays free and the auto-relock is suppressed.")]
+    public PlayerLook playerLook;
+
     [Tooltip("Reputation tracker — receives score changes from order outcomes.")]
     public ReputationManager reputationManager;
 
@@ -284,9 +288,14 @@ public class OrderManager : MonoBehaviour
         if (playerCamera != null)
             playerCamera.InputEnabled = !locked;
 
-        // Cursor management — unlocking it automatically stops PlayerMovement,
-        // PlayerLook, and PlayerHand (all three gate on Cursor.lockState).
-        // Freeing the cursor also lets the player click UI buttons normally.
+        // UIMode suppresses PlayerLook's auto-relock so the same click that
+        // opens the UI doesn't immediately re-lock the cursor again.
+        // PlayerLook.Update() will force the cursor free while UIMode is true
+        // and re-lock it as soon as UIMode is set back to false.
+        if (playerLook != null)
+            playerLook.UIMode = locked;
+
+        // Immediately apply cursor state so other systems see it this frame.
         if (locked)
         {
             Cursor.lockState = CursorLockMode.None;
