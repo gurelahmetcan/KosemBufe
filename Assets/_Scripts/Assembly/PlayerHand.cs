@@ -187,19 +187,26 @@ public class PlayerHand : MonoBehaviour
 
         _heldItem = item;
 
-        // Cache and disable Rigidbody
-        _heldRb = item.GetComponent<Rigidbody>();
-        if (_heldRb != null)
-        {
-            _heldRb.linearVelocity = Vector3.zero;
-            _heldRb.angularVelocity = Vector3.zero;
-            _heldRb.isKinematic = true;
-        }
-
-        // Cache and disable all colliders so the held item doesn't block raycasts
+        // Disable colliders FIRST — eliminates any chance of the item's collider
+        // interacting with the CharacterController between now and kinematic toggle.
         _heldColliders = item.GetComponentsInChildren<Collider>();
         foreach (Collider col in _heldColliders)
             col.enabled = false;
+
+        // Handle Rigidbody.
+        // Only zero velocity when the body is still dynamic — setting velocity on
+        // a kinematic body is unsupported and logs a warning (e.g. when collecting
+        // from the Grill, where the body was already kinematic on the slot).
+        _heldRb = item.GetComponent<Rigidbody>();
+        if (_heldRb != null)
+        {
+            if (!_heldRb.isKinematic)
+            {
+                _heldRb.linearVelocity  = Vector3.zero;
+                _heldRb.angularVelocity = Vector3.zero;
+            }
+            _heldRb.isKinematic = true;
+        }
 
         // Parent to the hold point — the item's own mesh is the visual
         item.transform.SetParent(holdPoint);
