@@ -25,12 +25,7 @@ public class IngredientStorage : MonoBehaviour, IAssemblyInteractable
     [Header("Data")]
     [Tooltip("ScriptableObject describing what ingredient this storage holds.")]
     public IngredientStorageData data;
-
-    [Header("Spawn")]
-    [Tooltip("Transform from which the ingredient is instantiated. " +
-             "If null, this object's own position/rotation are used.")]
-    public Transform spawnPoint;
-
+    
     [Header("UI (Optional)")]
     [Tooltip("World-space TextMeshPro label. If assigned it is set to data.storageName on Start.")]
     public TextMeshPro label;
@@ -65,10 +60,7 @@ public class IngredientStorage : MonoBehaviour, IAssemblyInteractable
     {
         if (!CanInteract(hand)) return;
 
-        Vector3    spawnPos = spawnPoint != null ? spawnPoint.position : transform.position;
-        Quaternion spawnRot = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
-
-        GameObject spawnedObj = Instantiate(data.ingredientPrefab, spawnPos, spawnRot);
+        GameObject spawnedObj = Instantiate(data.ingredientPrefab, transform.position, Quaternion.identity);
 
         InteractableItem item = spawnedObj.GetComponent<InteractableItem>();
 
