@@ -161,6 +161,9 @@ public class OrderManager : MonoBehaviour
 
     private void HandleClickInput()
     {
+        // Only process while the cursor is locked (gameplay mode, not UI mode)
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+
         Mouse mouse = Mouse.current;
         if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
         if (_activeCustomer == null) return;
@@ -168,8 +171,8 @@ public class OrderManager : MonoBehaviour
         // Ignore clicks while the prompt is already showing
         if (customerUI != null && customerUI.IsPromptVisible) return;
 
-        // Raycast to see if the player clicked the customer
-        Ray ray = Camera.main.ScreenPointToRay(mouse.position.ReadValue());
+        // Raycast from the viewport centre — aligned with the crosshair
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         if (!Physics.Raycast(ray, out RaycastHit hit, 100f)) return;
 
         Customer clicked = hit.collider.GetComponent<Customer>()
@@ -277,8 +280,23 @@ public class OrderManager : MonoBehaviour
 
     private void SetCameraLocked(bool locked)
     {
+        // Legacy incremental rotation (A/D snap turns)
         if (playerCamera != null)
             playerCamera.InputEnabled = !locked;
+
+        // Cursor management — unlocking it automatically stops PlayerMovement,
+        // PlayerLook, and PlayerHand (all three gate on Cursor.lockState).
+        // Freeing the cursor also lets the player click UI buttons normally.
+        if (locked)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible   = true;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible   = false;
+        }
     }
 
     private void HideUI()
