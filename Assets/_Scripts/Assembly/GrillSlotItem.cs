@@ -171,9 +171,13 @@ public class GrillSlotItem : MonoBehaviour, IAssemblyInteractable, IFlippable
         // Unparent from the grill slot
         _ingredient.transform.SetParent(null);
 
-        // NOTE: colliders are already enabled from PlaceOnSlot — no need to
-        // re-enable them here. PlayerHand.PickUp() disables them as its first
-        // operation, so they are never active while the item moves to holdPoint.
+        // Colliders are enabled but set as triggers by PlaceOnSlot (to prevent
+        // CharacterController pushes). Reset them to solid before PickUp() so
+        // that when the player later drops the item it behaves as a normal
+        // physics object. PickUp() immediately disables them as its first step,
+        // so there is no window where a solid collider is active near the player.
+        foreach (Collider col in _ingredient.GetComponentsInChildren<Collider>())
+            col.isTrigger = false;
 
         // Free the slot on the grill
         _grill.FreeSlot(_slotIndex);

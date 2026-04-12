@@ -35,6 +35,20 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         _cc = GetComponent<CharacterController>();
+
+        // CharacterController provides its own internal capsule collider.
+        // A separate CapsuleCollider on the same GameObject is redundant and
+        // causes physics conflicts: the extra collider can trigger depenetration
+        // pushes from nearby Rigidbodies that unexpectedly move the player.
+        // Auto-disable it here so the scene does not need to be manually fixed.
+        CapsuleCollider extra = GetComponent<CapsuleCollider>();
+        if (extra != null)
+        {
+            extra.enabled = false;
+            Debug.Log("[PlayerMovement] Disabled redundant CapsuleCollider — " +
+                      "CharacterController provides its own. " +
+                      "Remove it from the Player GameObject to clean up.", this);
+        }
     }
 
     private void Update()

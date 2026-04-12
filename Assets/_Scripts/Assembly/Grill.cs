@@ -105,9 +105,15 @@ public class Grill : MonoBehaviour, IAssemblyInteractable
         ingredient.transform.position = slotT.position;
         ingredient.transform.rotation = slotT.rotation;
 
-        // Re-enable colliders so the player can click / raycast this ingredient.
+        // Re-enable colliders so the player can raycast this ingredient on the grill.
+        // Use isTrigger = true so the CharacterController is NOT physically pushed
+        // when the collider appears near the player. Raycasts detect triggers by
+        // default (Physics.queriesHitTriggers), so interaction still works normally.
         foreach (Collider col in ingredient.GetComponentsInChildren<Collider>())
-            col.enabled = true;
+        {
+            col.enabled   = true;
+            col.isTrigger = true;
+        }
 
         // Attach the per-slot cooking component and track it.
         GrillSlotItem slotItem = ingredient.gameObject.AddComponent<GrillSlotItem>();
