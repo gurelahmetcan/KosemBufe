@@ -40,6 +40,7 @@ public class PlayerHand : MonoBehaviour
     private InteractableItem _heldItem;
     private Rigidbody        _heldRb;
     private Collider[]       _heldColliders;
+    private string           _hoverLabel;
 
     // ── Public API ───────────────────────────────────────────────────────────
 
@@ -58,6 +59,7 @@ public class PlayerHand : MonoBehaviour
     {
         if (InputBlocked) return;
         HandleInput();
+        UpdateHover();
     }
 
     // ── Input ────────────────────────────────────────────────────────────────
@@ -116,6 +118,61 @@ public class PlayerHand : MonoBehaviour
             if (item != null)
                 PickUp(item);
         }
+    }
+
+    // ── Hover detection ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Runs every frame. When the hand is empty, raycasts from the screen
+    /// centre and resolves a display label for whatever interactable the
+    /// crosshair is pointing at, then refreshes the status text.
+    /// </summary>
+    private void UpdateHover()
+    {
+        // Hover only makes sense when the hand is empty and game is in focus
+        if (_heldItem != null || Cursor.lockState != CursorLockMode.Locked)
+        {
+            if (_hoverLabel != null)
+            {
+                _hoverLabel = null;
+                RefreshUI();
+            }
+            return;
+        }
+
+        GameObject hit   = RaycastTarget();
+        string     label = hit != null ? GetHoverLabel(hit) : null;
+
+        if (label == _hoverLabel) return; // no change — skip RefreshUI call
+
+        _hoverLabel = label;
+        RefreshUI();
+    }
+
+    /// <summary>
+    /// Resolves a human-readable label for the object under the crosshair.
+    /// Priority: InteractableItem.itemName → IngredientStorage.storageName
+    ///           → any IAssemblyInteractable (uses GameObject name).
+    /// Returns null if the object has no relevant component.
+    /// </summary>
+    private string GetHoverLabel(GameObject hit)
+    {
+        // Pickable world item
+        InteractableItem item = hit.GetComponent<InteractableItem>()
+                              ?? hit.GetComponentInParent<InteractableItem>();
+        if (item != null) return item.itemName;
+
+        // Infinite ingredient source
+        IngredientStorage storage = hit.GetComponent<IngredientStorage>()
+                                  ?? hit.GetComponentInParent<IngredientStorage>();
+        if (storage != null && storage.data != null) return storage.data.storageName;
+
+        // Any other station / appliance (PrepStation, Grill, Toaster, …)
+        IAssemblyInteractable interactable = hit.GetComponent<IAssemblyInteractable>()
+                                           ?? hit.GetComponentInParent<IAssemblyInteractable>();
+        if (interactable != null) return hit.name;
+
+        return null;
     }
 
     // ── Hand operations ──────────────────────────────────────────────────────
@@ -237,20 +294,25 @@ public class PlayerHand : MonoBehaviour
     private void RefreshUI()
     {
         if (handStatusText == null) return;
-        handStatusText.text = _heldItem != null ? _heldItem.itemName : string.Empty;
+
+        if (_heldItem != null)
+            handStatusText.text = _heldItem.itemName;       // holding something
+        else if (_hoverLabel != null)
+            handStatusText.text = _hoverLabel;              // hovering an interactable
+        else
+            handStatusText.text = string.Empty;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private GameObject RaycastTarget()
     {
-        Mouse mouse = Mouse.current;
-        if (mouse == null) return null;
-
         Camera cam = Camera.main;
         if (cam == null) return null;
 
-        Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
+        // Always shoot from the viewport centre — this aligns with the crosshair
+        // and works correctly regardless of cursor lock state.
+        Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         return Physics.Raycast(ray, out RaycastHit hit, interactRange)
             ? hit.collider.gameObject
             : null;
