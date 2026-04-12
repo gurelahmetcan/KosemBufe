@@ -64,6 +64,10 @@ public class PlayerHand : MonoBehaviour
 
     private void HandleInput()
     {
+        // Interactions are only processed while the cursor is locked
+        // (i.e. the game is in focus). PlayerLook manages lock/unlock.
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+
         Mouse mouse = Mouse.current;
         if (mouse == null) return;
 
