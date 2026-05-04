@@ -1,61 +1,149 @@
 using UnityEngine;
 
 /// <summary>
-/// Toaster appliance — accepts a FinalizedStack (closed sandwich), hides it
-/// inside the toaster, and applies a ToastState after processing.
+/// Toaster for the TostBread pipeline. Replaces the previous Appliance-based version.
 ///
-/// The stack is hidden while inside (SetActive false) and shown again on collect.
-/// ToastState is set on the FinalizedStack: None → Toasted, or → Burnt if left too long.
+/// Flow:
+///   1. Player holds a closed TostBread and clicks the toaster body → bread placed in slot.
+///   2. Player click-drags the ToasterLid down until it closes → cooking timer starts.
+///   3. After cookTime seconds the toast is ready. No burn timer.
+///   4. Player click-drags the lid back up → bread becomes visible and pickable.
 ///
-/// Only accepts items with the Toastable process flag, which PrepStation
-/// automatically sets on every FinalizedStack.
+/// The bread rests visibly in the slot between insertion and lid-close, so the player
+/// can pick it back up at any point before the lid locks shut.
 ///
 /// Setup:
-///   1. Place a GameObject with a Collider (the toaster body).
-///   2. Add this component.
-///   3. Tune processTime and burnGraceTime.
+///   1. Create a Toaster root GameObject with a Collider. Attach this component.
+///   2. Create a child GameObject for the lid with a Collider. Attach ToasterLid.
+///      Assign it to the 'lid' field.
+///   3. Optionally create a child Transform at the bread resting point and assign
+///      it to 'breadSlot'. If left empty the bread centres on the toaster root.
 /// </summary>
-public class Toaster : Appliance
+public class Toaster : MonoBehaviour, IAssemblyInteractable
 {
-    // ── Runtime ──────────────────────────────────────────────────────────────
+    [Header("Timing")]
+    [Tooltip("Seconds from lid-close to toast ready.")]
+    public float cookTime = 10f;
 
-    private FinalizedStack _stack;
+    [Header("References")]
+    [Tooltip("The lid component on this toaster's lid child object.")]
+    public ToasterLid lid;
 
-    // ── Appliance overrides ──────────────────────────────────────────────────
+    [Tooltip("Optional transform indicating where the bread should rest inside the toaster.")]
+    public Transform breadSlot;
 
-    protected override bool CanAccept(InteractableItem item)
+    // ── Runtime state ─────────────────────────────────────────────────────────
+
+    private TostBread     _bread;
+    private float         _timer;
+    private ToasterState  _state = ToasterState.Empty;
+
+    private enum ToasterState { Empty, BreadInside, Cooking, Done }
+
+    // ── Unity lifecycle ───────────────────────────────────────────────────────
+
+    private void Start()
     {
-        return item is FinalizedStack && item.supportedProcesses.HasFlag(ProcessType.Toastable);
+        lid.OnLidClosed += HandleLidClosed;
+        lid.OnLidOpened += HandleLidOpened;
     }
 
-    protected override void OnItemInserted()
+    private void OnDestroy()
     {
-        _stack = _storedItem as FinalizedStack;
-
-        // Hide the stack — it's "inside" the toaster
-        _storedItem.gameObject.SetActive(false);
-
-        Debug.Log($"[Toaster] Inserted '{_stack.itemName}' — toasting for {processTime}s");
+        lid.OnLidClosed -= HandleLidClosed;
+        lid.OnLidOpened -= HandleLidOpened;
     }
 
-    protected override void OnProcessingComplete()
+    private void Update()
     {
-        _stack.toastState = ToastState.Toasted;
-        Debug.Log($"[Toaster] '{_stack.itemName}' is TOASTED! Collect before it burns ({burnGraceTime}s).");
+        if (_state != ToasterState.Cooking) return;
+
+        _timer += Time.deltaTime;
+        if (_timer >= cookTime)
+        {
+            _state = ToasterState.Done;
+            _bread.FinishToasting();
+            lid.SetLocked(false);
+            Debug.Log("[Toaster] Toast is ready! Open the lid to collect.");
+        }
     }
 
-    protected override void OnBurned()
+    // ── IAssemblyInteractable (toaster body) ──────────────────────────────────
+
+    public bool CanInteract(PlayerHand hand)
     {
-        _stack.toastState = ToastState.Burnt;
-        Debug.Log($"[Toaster] '{_stack.itemName}' is BURNT!");
+        // Insert: holding a closed TostBread + toaster is empty
+        if (!hand.IsHandEmpty && hand.HeldItem is TostBread bread)
+            return _state == ToasterState.Empty && bread.State == BreadState.Closed;
+
+        return false;
     }
 
-    protected override void OnBeforeCollect()
+    public void Interact(PlayerHand hand)
     {
-        // Show the stack again before giving it back to the player
-        if (_storedItem != null)
-            _storedItem.gameObject.SetActive(true);
+        if (!hand.IsHandEmpty && hand.HeldItem is TostBread)
+            InsertBread(hand);
+    }
 
-        _stack = null;
+    // ── Called by TostBread when the player picks it up ───────────────────────
+
+    /// <summary>
+    /// Notifies the toaster that the bread has been taken out, resetting state.
+    /// Called via TostBread.OnPickedUp().
+    /// </summary>
+    public void OnTostBreadPickedUp()
+    {
+        _bread = null;
+        _state = ToasterState.Empty;
+        Debug.Log("[Toaster] Bread collected — toaster reset.");
+    }
+
+    // ── State transitions ─────────────────────────────────────────────────────
+
+    private void InsertBread(PlayerHand hand)
+    {
+        _bread = hand.Release() as TostBread;
+
+        // Position the bread at the slot (visible so the player can still cancel)
+        Transform anchor = breadSlot != null ? breadSlot : transform;
+        _bread.transform.SetParent(anchor);
+        _bread.transform.localPosition = Vector3.zero;
+        _bread.transform.localRotation = Quaternion.identity;
+
+        // Re-enable colliders so the player can pick the bread back up before cooking
+        foreach (Collider col in _bread.GetComponentsInChildren<Collider>())
+            col.enabled = true;
+
+        _bread.PlaceInToaster(this);
+        _state = ToasterState.BreadInside;
+
+        Debug.Log("[Toaster] Bread inserted. Close the lid to start toasting.");
+    }
+
+    private void HandleLidClosed()
+    {
+        if (_state != ToasterState.BreadInside) return;
+
+        _bread.StartToasting();
+        _bread.gameObject.SetActive(false); // hidden while toasting
+
+        _state = ToasterState.Cooking;
+        _timer = 0f;
+        lid.SetLocked(true);
+
+        Debug.Log($"[Toaster] Cooking started — {cookTime}s until ready.");
+    }
+
+    private void HandleLidOpened()
+    {
+        if (_state != ToasterState.Done) return;
+
+        _bread.gameObject.SetActive(true);
+
+        // Re-enable colliders so PlayerHand can pick it up directly
+        foreach (Collider col in _bread.GetComponentsInChildren<Collider>())
+            col.enabled = true;
+
+        Debug.Log("[Toaster] Lid open. Pick up your toast!");
     }
 }

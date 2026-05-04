@@ -35,6 +35,7 @@ public class TostBread : InteractableItem, IAssemblyInteractable
     public List<IngredientType> Ingredients { get; } = new List<IngredientType>();
 
     private PrepStation _station;
+    private Toaster     _toaster;
 
     // ── Unity ─────────────────────────────────────────────────────────────────
 
@@ -105,7 +106,17 @@ public class TostBread : InteractableItem, IAssemblyInteractable
         _station = station;
     }
 
-    /// <summary>Called by PrepStation when the player picks the bread up again.</summary>
+    // ── Called by Toaster ─────────────────────────────────────────────────────
+
+    /// <summary>Registers the toaster this bread is currently inside.</summary>
+    public void PlaceInToaster(Toaster toaster)
+    {
+        _toaster = toaster;
+    }
+
+    // ── InteractableItem override ─────────────────────────────────────────────
+
+    /// <summary>Notifies the station or toaster that this bread has been picked up.</summary>
     public override void OnPickedUp()
     {
         if (_station != null)
@@ -113,9 +124,15 @@ public class TostBread : InteractableItem, IAssemblyInteractable
             _station.OnTostBreadPickedUp();
             _station = null;
         }
+
+        if (_toaster != null)
+        {
+            _toaster.OnTostBreadPickedUp();
+            _toaster = null;
+        }
     }
 
-    // ── Called by TostToaster ─────────────────────────────────────────────────
+    // ── Called by Toaster ────────────────────────────────────────────────────
 
     public void StartToasting()
     {
