@@ -6,11 +6,9 @@ using UnityEngine;
 /// Flow:
 ///   1. Player holds a closed TostBread and clicks the toaster body → bread placed in slot.
 ///   2. Player click-drags the ToasterLid down until it closes → cooking timer starts.
-///   3. After cookTime seconds the toast is ready. No burn timer.
-///   4. Player click-drags the lid back up → bread becomes visible and pickable.
-///
-/// The bread rests visibly in the slot between insertion and lid-close, so the player
-/// can pick it back up at any point before the lid locks shut.
+///   3. Timer only counts while the lid is closed. Opening the lid pauses it;
+///      closing again resumes from where it left off.
+///   4. After cookTime total closed-lid seconds the toast is ready.
 ///
 /// Setup:
 ///   1. Create a Toaster root GameObject with a Collider. Attach this component.
@@ -57,14 +55,14 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
     private void Update()
     {
         if (_state != ToasterState.Cooking) return;
+        if (lid.IsOpen) return; // lid open → timer paused
 
         _timer += Time.deltaTime;
         if (_timer >= cookTime)
         {
             _state = ToasterState.Done;
             _bread.FinishToasting();
-            lid.SetLocked(false);
-            Debug.Log("[Toaster] Toast is ready! Open the lid to collect.");
+            Debug.Log("[Toaster] Toast is ready!");
         }
     }
 
@@ -122,15 +120,16 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
 
     private void HandleLidClosed()
     {
-        if (_state != ToasterState.BreadInside) return;
-
-        _bread.StartToasting();
-
-        _state = ToasterState.Cooking;
-        _timer = 0f;
-        lid.SetLocked(true);
-
-        Debug.Log($"[Toaster] Cooking started — {cookTime}s until ready.");
+        if (_state == ToasterState.BreadInside)
+        {
+            // First close — start cooking
+            _bread.StartToasting();
+            _state = ToasterState.Cooking;
+            _timer = 0f;
+            Debug.Log($"[Toaster] Cooking started — {cookTime}s of closed-lid time needed.");
+        }
+        // If state is already Cooking, the lid was reopened and closed again.
+        // Update() will simply resume ticking _timer — nothing extra needed.
     }
 
     private void HandleLidOpened()
