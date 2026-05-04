@@ -72,9 +72,9 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
 
     public bool CanInteract(PlayerHand hand)
     {
-        // Insert: holding a closed TostBread + toaster is empty
+        // Insert: holding a closed TostBread + toaster is empty + lid is open
         if (!hand.IsHandEmpty && hand.HeldItem is TostBread bread)
-            return _state == ToasterState.Empty && bread.State == BreadState.Closed;
+            return _state == ToasterState.Empty && bread.State == BreadState.Closed && lid.IsOpen;
 
         return false;
     }
@@ -125,7 +125,6 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
         if (_state != ToasterState.BreadInside) return;
 
         _bread.StartToasting();
-        _bread.gameObject.SetActive(false); // hidden while toasting
 
         _state = ToasterState.Cooking;
         _timer = 0f;
@@ -137,13 +136,6 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
     private void HandleLidOpened()
     {
         if (_state != ToasterState.Done) return;
-
-        _bread.gameObject.SetActive(true);
-
-        // Re-enable colliders so PlayerHand can pick it up directly
-        foreach (Collider col in _bread.GetComponentsInChildren<Collider>())
-            col.enabled = true;
-
         Debug.Log("[Toaster] Lid open. Pick up your toast!");
     }
 }

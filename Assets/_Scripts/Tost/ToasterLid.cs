@@ -64,6 +64,9 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
 
     // ── Public API ────────────────────────────────────────────────────────────
 
+    /// <summary>True when the lid is fully open.</summary>
+    public bool IsOpen => _snapState == SnapState.Open;
+
     /// <summary>Locks/unlocks the lid. Called by Toaster during cooking.</summary>
     public void SetLocked(bool locked)
     {
