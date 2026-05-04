@@ -12,6 +12,12 @@ using UnityEngine;
 ///     the stack is finalized into a FinalizedStack grouped object.
 ///   - Empty hand + stack IS finalized → left-click to pick up the whole group.
 ///
+/// Toast Flow (TostBread):
+///   - Player holds TostBread → left-click station to place it on the surface.
+///   - Further bread interactions (open/fill/close) are handled by TostBread's
+///     own IAssemblyInteractable — click on the bread itself, not the station.
+///   - PrepStation is blocked for all other interactions while a TostBread is on it.
+///
 /// Setup:
 ///   1. Create an UNSCALED (1,1,1) root GameObject for the prep station.
 ///   2. Make the board model a child of the root and apply any visual scale there.
@@ -37,17 +43,29 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
     private readonly List<Ingredient> _stack = new List<Ingredient>();
     private FinalizedStack _finalizedStack;
     private bool _isFinalized;
+    private TostBread _tostBread;
 
     // ── Public read-only state ───────────────────────────────────────────────
 
     public int  StackCount  => _stack.Count;
     public bool IsFinalized => _isFinalized;
-    public bool IsEmpty     => _stack.Count == 0 && !_isFinalized;
+    public bool IsEmpty     => _stack.Count == 0 && !_isFinalized && _tostBread == null;
 
     // ── IAssemblyInteractable ────────────────────────────────────────────────
 
     public bool CanInteract(PlayerHand hand)
     {
+        // ── TostBread placement ──────────────────────────────────────────────
+        if (!hand.IsHandEmpty && hand.HeldItem is TostBread)
+            return _tostBread == null && _stack.Count == 0 && !_isFinalized;
+
+        // While a TostBread is on the station the player interacts with the bread
+        // itself (TostBread.IAssemblyInteractable). Block all other station logic.
+        if (_tostBread != null)
+            return false;
+
+        // ── Original stacking logic ──────────────────────────────────────────
+
         // Holding an ingredient → can place (unless a finalized stack is waiting)
         if (!hand.IsHandEmpty)
         {
@@ -61,6 +79,13 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
 
     public void Interact(PlayerHand hand)
     {
+        // ── TostBread placement ──────────────────────────────────────────────
+        if (!hand.IsHandEmpty && hand.HeldItem is TostBread bread)
+        {
+            PlaceTostBread(bread, hand);
+            return;
+        }
+
         // ── Holding an ingredient → place it on the stack ────────────────────
         if (!hand.IsHandEmpty)
         {
@@ -80,6 +105,34 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         {
             PopTopIngredient(hand);
         }
+    }
+
+    // ── TostBread placement ──────────────────────────────────────────────────
+
+    private void PlaceTostBread(TostBread bread, PlayerHand hand)
+    {
+        hand.Release();
+
+        bread.transform.SetParent(stackAnchor, worldPositionStays: false);
+        bread.transform.localRotation = bread.OriginalLocalRotation;
+        bread.transform.localScale    = bread.OriginalLocalScale;
+        bread.transform.localPosition = Vector3.zero;
+
+        // Re-enable colliders so the player can click the bread directly
+        foreach (Collider col in bread.GetComponentsInChildren<Collider>())
+            col.enabled = true;
+
+        _tostBread = bread;
+        bread.PlaceOnStation(this);
+
+        Debug.Log("[PrepStation] TostBread placed on station.");
+    }
+
+    /// <summary>Called by TostBread.OnPickedUp when the player lifts it off the station.</summary>
+    public void OnTostBreadPickedUp()
+    {
+        _tostBread = null;
+        Debug.Log("[PrepStation] TostBread removed from station.");
     }
 
     // ── Place an ingredient onto the stack ───────────────────────────────────
