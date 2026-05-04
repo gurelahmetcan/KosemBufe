@@ -61,6 +61,12 @@ public class PlayerLook : MonoBehaviour
     /// </summary>
     public bool UIMode { get; set; }
 
+    /// <summary>
+    /// Suppresses mouse-look input without touching the cursor lock state.
+    /// Used by systems that need to consume mouse delta themselves (e.g. ToasterLid drag).
+    /// </summary>
+    public bool LookBlocked { get; set; }
+
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
     private void Start()
@@ -126,6 +132,9 @@ public class PlayerLook : MonoBehaviour
         }
 
         if (mouse == null) return;
+
+        // External system (e.g. ToasterLid) is consuming mouse input this frame
+        if (LookBlocked) return;
 
         // ── Look ─────────────────────────────────────────────────────────────
         Vector2 delta = mouse.delta.ReadValue() * sensitivity;

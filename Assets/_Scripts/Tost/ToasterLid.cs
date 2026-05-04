@@ -33,7 +33,7 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
     public Vector3 rotationAxis = Vector3.right;
 
     [Tooltip("Degrees of rotation per pixel of upward mouse movement.")]
-    public float dragSensitivity = 0.5f;
+    public float dragSensitivity = 1.5f;
 
     [Tooltip("Duration of the snap animation when the mouse is released.")]
     public float snapDuration = 0.2f;
@@ -51,6 +51,8 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
     private bool _isDragging;
     private bool _isLocked;
 
+    private PlayerLook _playerLook;
+
     private enum SnapState { Closed, Open }
     private SnapState _snapState = SnapState.Closed;
 
@@ -62,6 +64,11 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
         _currentAngle   = 0f;
     }
 
+    private void Start()
+    {
+        _playerLook = FindFirstObjectByType<PlayerLook>();
+    }
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>Locks/unlocks the lid. Called by Toaster during cooking.</summary>
@@ -69,7 +76,10 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
     {
         _isLocked = locked;
         if (locked && _isDragging)
+        {
             _isDragging = false;
+            if (_playerLook != null) _playerLook.LookBlocked = false;
+        }
     }
 
     // ── IAssemblyInteractable ─────────────────────────────────────────────────
@@ -82,6 +92,7 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
     public void Interact(PlayerHand hand)
     {
         _isDragging = true;
+        if (_playerLook != null) _playerLook.LookBlocked = true;
     }
 
     // ── Drag update ───────────────────────────────────────────────────────────
@@ -96,6 +107,7 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
         if (!mouse.leftButton.isPressed)
         {
             _isDragging = false;
+            if (_playerLook != null) _playerLook.LookBlocked = false;
             SnapToNearest();
             return;
         }
