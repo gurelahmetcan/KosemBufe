@@ -14,9 +14,11 @@ using UnityEngine;
 ///
 /// Toast Flow (TostBread):
 ///   - Player holds TostBread → left-click station to place it on the surface.
-///   - Further bread interactions (open/fill/close) are handled by TostBread's
-///     own IAssemblyInteractable — click on the bread itself, not the station.
-///   - PrepStation is blocked for all other interactions while a TostBread is on it.
+///     Bread colliders stay DISABLED while on the station (same as regular ingredients)
+///     to prevent the CharacterController from being pushed on placement.
+///   - All bread interactions (knife/cut, open, fill, close, pickup) are forwarded
+///     through the PrepStation's own collider, not the bread's.
+///   - PrepStation is blocked for regular stack interactions while a TostBread is on it.
 ///
 /// Setup:
 ///   1. Create an UNSCALED (1,1,1) root GameObject for the prep station.
@@ -59,10 +61,15 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         if (!hand.IsHandEmpty && hand.HeldItem is TostBread)
             return _tostBread == null && _stack.Count == 0 && !_isFinalized;
 
-        // While a TostBread is on the station the player interacts with the bread
-        // itself (TostBread.IAssemblyInteractable). Block all other station logic.
+        // TostBread is on the station — forward to its interaction logic.
+        // Pickup (Closed state + empty hand) is also handled here so the bread's
+        // own collider never needs to be enabled while it sits on the surface.
         if (_tostBread != null)
-            return false;
+        {
+            if (hand.IsHandEmpty && _tostBread.State == BreadState.Closed)
+                return true; // player wants to pick up the finished bread
+            return _tostBread.CanInteract(hand);
+        }
 
         // ── Original stacking logic ──────────────────────────────────────────
 
@@ -83,6 +90,16 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         if (!hand.IsHandEmpty && hand.HeldItem is TostBread bread)
         {
             PlaceTostBread(bread, hand);
+            return;
+        }
+
+        // ── TostBread on station: forward interaction or pick up ────────────
+        if (_tostBread != null)
+        {
+            if (hand.IsHandEmpty && _tostBread.State == BreadState.Closed)
+                PickUpTostBread(hand);
+            else
+                _tostBread.Interact(hand);
             return;
         }
 
@@ -118,14 +135,22 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         bread.transform.localScale    = bread.OriginalLocalScale;
         bread.transform.localPosition = Vector3.zero;
 
-        // Re-enable colliders so the player can click the bread directly
-        foreach (Collider col in bread.GetComponentsInChildren<Collider>())
-            col.enabled = true;
+        // Colliders intentionally left DISABLED (same as regular ingredients).
+        // All interactions go through the PrepStation's collider to avoid
+        // physics overlap pushing the CharacterController on placement.
 
         _tostBread = bread;
         bread.PlaceOnStation(this);
 
         Debug.Log("[PrepStation] TostBread placed on station.");
+    }
+
+    private void PickUpTostBread(PlayerHand hand)
+    {
+        // PlayerHand.PickUp uses GetComponentsInChildren which finds disabled
+        // colliders, so no pre-enabling is needed here.
+        hand.PickUp(_tostBread);
+        // TostBread.OnPickedUp fires and calls OnTostBreadPickedUp below.
     }
 
     /// <summary>Called by TostBread.OnPickedUp when the player lifts it off the station.</summary>

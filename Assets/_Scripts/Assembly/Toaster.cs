@@ -74,13 +74,26 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
         if (!hand.IsHandEmpty && hand.HeldItem is TostBread bread)
             return _state == ToasterState.Empty && bread.State == BreadState.Closed && lid.IsOpen;
 
+        // Collect: empty hand + lid open + bread is ready or can be cancelled
+        if (hand.IsHandEmpty && lid.IsOpen)
+            return _state == ToasterState.Done || _state == ToasterState.BreadInside;
+
         return false;
     }
 
     public void Interact(PlayerHand hand)
     {
         if (!hand.IsHandEmpty && hand.HeldItem is TostBread)
+        {
             InsertBread(hand);
+            return;
+        }
+
+        if (hand.IsHandEmpty && lid.IsOpen &&
+            (_state == ToasterState.Done || _state == ToasterState.BreadInside))
+        {
+            CollectBread(hand);
+        }
     }
 
     // ── Called by TostBread when the player picks it up ───────────────────────
@@ -102,20 +115,26 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
     {
         _bread = hand.Release() as TostBread;
 
-        // Position the bread at the slot (visible so the player can still cancel)
         Transform anchor = breadSlot != null ? breadSlot : transform;
         _bread.transform.SetParent(anchor);
         _bread.transform.localPosition = Vector3.zero;
         _bread.transform.localRotation = Quaternion.identity;
 
-        // Re-enable colliders so the player can pick the bread back up before cooking
-        foreach (Collider col in _bread.GetComponentsInChildren<Collider>())
-            col.enabled = true;
+        // Colliders intentionally left DISABLED — player collects via the
+        // toaster body interaction (CollectBread), not by clicking the bread.
 
         _bread.PlaceInToaster(this);
         _state = ToasterState.BreadInside;
 
         Debug.Log("[Toaster] Bread inserted. Close the lid to start toasting.");
+    }
+
+    private void CollectBread(PlayerHand hand)
+    {
+        // PlayerHand.PickUp finds disabled colliders via GetComponentsInChildren,
+        // so no pre-enabling needed.
+        hand.PickUp(_bread);
+        // TostBread.OnPickedUp fires → OnTostBreadPickedUp resets state.
     }
 
     private void HandleLidClosed()
