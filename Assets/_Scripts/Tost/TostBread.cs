@@ -167,7 +167,29 @@ public class TostBread : InteractableItem, IAssemblyInteractable
     private void AddIngredient(IngredientType type, PlayerHand hand)
     {
         Ingredients.Add(type);
-        hand.DestroyHeldItem();
+
+        // Keep the ingredient visible inside the open bread rather than destroying it.
+        InteractableItem item = hand.Release();
+        if (item != null)
+        {
+            Transform anchor = openBreadVisual != null
+                ? openBreadVisual.transform
+                : transform;
+
+            item.transform.SetParent(anchor);
+            // Stack each ingredient slightly above the previous one so they don't z-fight
+            item.transform.localPosition = new Vector3(0f, 0.02f * (Ingredients.Count - 1), 0f);
+            item.transform.localRotation = Quaternion.identity;
+
+            // Disable colliders — ingredient is now part of the bread, not independently pickable
+            foreach (Collider col in item.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+
+            // Remove Rigidbody to prevent physics interference with the bread
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null) Destroy(rb);
+        }
+
         Debug.Log($"[TostBread] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
     }
 

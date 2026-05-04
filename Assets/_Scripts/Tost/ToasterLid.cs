@@ -10,25 +10,20 @@ using UnityEngine.InputSystem;
 /// to push the lid down (close) or pull it up (open). Releasing mid-travel
 /// snaps the lid to the nearest fully-open or fully-closed position.
 ///
+/// The open position is captured automatically from the lid's local Y at startup,
+/// so placement in the scene requires no manual Y configuration.
+/// closeDistance controls how far down the lid travels.
+///
 /// Events:
 ///   OnLidClosed  — fired when the lid reaches the closed position.
 ///   OnLidOpened  — fired when the lid returns to the open position after being closed.
-///
-/// Setup:
-///   1. Create a child GameObject on the Toaster with this component + a Collider.
-///   2. Set openLocalY to the lid's starting local Y (usually 0).
-///   3. Set closedLocalY to the local Y when fully pressed down (negative if lid moves down).
-///   4. Wire OnLidClosed / OnLidOpened to Toaster (done in code via Subscribe()).
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class ToasterLid : MonoBehaviour, IAssemblyInteractable
 {
     [Header("Travel")]
-    [Tooltip("Local Y of the lid when fully open (rest position).")]
-    public float openLocalY = 0f;
-
-    [Tooltip("Local Y of the lid when fully closed (pressed down).")]
-    public float closedLocalY = -0.15f;
+    [Tooltip("How far down (local Y units) the lid travels from open to closed.")]
+    public float closeDistance = 0.15f;
 
     [Tooltip("World-units of lid movement per pixel of mouse movement.")]
     public float dragSensitivity = 0.003f;
@@ -43,11 +38,22 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
+    private float _openLocalY;
+    private float _closedLocalY;
+
     private bool _isDragging;
     private bool _isLocked;
 
     private enum SnapState { Open, Closed }
     private SnapState _snapState = SnapState.Open;
+
+    private void Awake()
+    {
+        // Capture the lid's starting position as the open position at runtime.
+        // This way the lid works correctly regardless of where it is placed in the scene.
+        _openLocalY   = transform.localPosition.y;
+        _closedLocalY = _openLocalY - closeDistance;
+    }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -94,7 +100,7 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
         float delta = mouse.delta.y.ReadValue() * dragSensitivity;
 
         Vector3 pos = transform.localPosition;
-        pos.y = Mathf.Clamp(pos.y + delta, closedLocalY, openLocalY);
+        pos.y = Mathf.Clamp(pos.y + delta, _closedLocalY, _openLocalY);
         transform.localPosition = pos;
 
         CheckThresholds();
@@ -105,8 +111,8 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
     private void SnapToNearest()
     {
         float current = transform.localPosition.y;
-        float mid     = (openLocalY + closedLocalY) * 0.5f;
-        float targetY = current > mid ? openLocalY : closedLocalY;
+        float mid     = (_openLocalY + _closedLocalY) * 0.5f;
+        float targetY = current > mid ? _openLocalY : _closedLocalY;
 
         transform.DOLocalMoveY(targetY, snapDuration)
                  .SetEase(Ease.OutQuad)
@@ -118,12 +124,12 @@ public class ToasterLid : MonoBehaviour, IAssemblyInteractable
         const float epsilon = 0.005f;
         float y = transform.localPosition.y;
 
-        if (y <= closedLocalY + epsilon && _snapState == SnapState.Open)
+        if (y <= _closedLocalY + epsilon && _snapState == SnapState.Open)
         {
             _snapState = SnapState.Closed;
             OnLidClosed?.Invoke();
         }
-        else if (y >= openLocalY - epsilon && _snapState == SnapState.Closed)
+        else if (y >= _openLocalY - epsilon && _snapState == SnapState.Closed)
         {
             _snapState = SnapState.Open;
             OnLidOpened?.Invoke();
