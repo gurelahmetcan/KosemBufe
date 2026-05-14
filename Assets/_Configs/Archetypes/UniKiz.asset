@@ -18,6 +18,5 @@ MonoBehaviour:
   possibleMoods:
   - {fileID: 11400000, guid: 68521ffc3714c4533b02954442124d75, type: 2}
   possibleOrders:
-  - recipe: {fileID: 11400000, guid: ff9d02028ca0841fe9bbd97870db6723, type: 2}
+  - recipe: {fileID: 11400000, guid: ef14b2399791c48e990445448271ab50, type: 2}
     weight: 1
-  patienceMultiplier: 1
