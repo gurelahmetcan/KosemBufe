@@ -26,7 +26,6 @@ namespace Bufe
         private InteractableItem _heldItem;
         private Rigidbody        _heldRb;
         private Collider[]       _heldColliders;
-        private bool             _isSliced;
         private string           _hoverLabel;
         private HolderItem       _hoveredHolder;
 
@@ -34,7 +33,6 @@ namespace Bufe
 
         public InteractableItem HeldItem    => _heldItem;
         public bool             IsHandEmpty => _heldItem == null;
-        public bool             IsSliced    => _isSliced;
 
         /// <summary>Set by stations (e.g. during appliance processing) to block all input.</summary>
         public bool InputBlocked { get; set; }
@@ -151,8 +149,7 @@ namespace Bufe
         {
             if (_heldItem != null) return;
 
-            _heldItem  = item;
-            _isSliced  = false;
+            _heldItem = item;
 
             _heldColliders = item.GetComponentsInChildren<Collider>();
             foreach (Collider col in _heldColliders)
@@ -183,7 +180,6 @@ namespace Bufe
 
             InteractableItem item = _heldItem;
             _heldItem = null;
-            _isSliced = false;
 
             item.transform.SetParent(null);
 
@@ -202,7 +198,7 @@ namespace Bufe
 
                 if (_heldRb != null)
                 {
-                    _heldRb.isKinematic   = false;
+                    _heldRb.isKinematic    = false;
                     _heldRb.linearVelocity = cam.transform.forward * throwForce;
                 }
             }
@@ -225,7 +221,6 @@ namespace Bufe
 
             InteractableItem item = _heldItem;
             _heldItem = null;
-            _isSliced = false;
 
             item.transform.SetParent(null);
 
@@ -236,14 +231,6 @@ namespace Bufe
             return item;
         }
 
-        /// <summary>Marks the held item as sliced.</summary>
-        public void SliceHeldItem()
-        {
-            if (_heldItem == null) return;
-            _isSliced = true;
-            RefreshUI();
-        }
-
         /// <summary>Destroys the held item. Used when delivering an order.</summary>
         public void DestroyHeldItem()
         {
@@ -251,7 +238,6 @@ namespace Bufe
 
             Destroy(_heldItem.gameObject);
             _heldItem      = null;
-            _isSliced      = false;
             _heldRb        = null;
             _heldColliders = null;
             RefreshUI();
@@ -264,7 +250,7 @@ namespace Bufe
             if (handStatusText == null) return;
 
             if (_heldItem != null)
-                handStatusText.text = _isSliced ? $"Sliced {_heldItem.itemName}" : _heldItem.itemName;
+                handStatusText.text = _heldItem.itemName;
             else if (_hoverLabel != null)
                 handStatusText.text = _hoverLabel;
             else

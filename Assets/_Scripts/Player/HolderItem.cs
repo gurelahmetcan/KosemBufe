@@ -30,7 +30,7 @@ public class HolderItem : MonoBehaviour, IAssemblyInteractable
 
     public bool CanInteract(PlayerHand hand)
     {
-        return hand.HeldItem != null && hand.IsSliced && !IsFull;
+        return hand.HeldItem is Ingredient && !IsFull;
     }
 
     public void Interact(PlayerHand hand)
