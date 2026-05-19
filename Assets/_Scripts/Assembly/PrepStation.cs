@@ -20,18 +20,10 @@ using UnityEngine;
 ///     through the PrepStation's own collider, not the bread's.
 ///   - PrepStation is blocked for regular stack interactions while a TostBread is on it.
 ///
-/// Setup:
-///   1. Create an UNSCALED (1,1,1) root GameObject for the prep station.
-///   2. Make the board model a child of the root and apply any visual scale there.
-///   3. Add a GameObject with a Collider to the root (the prep surface) and
-///      attach this component.
-///   4. Create an empty child Transform with scale (1,1,1) under the root,
-///      position it where the bottom of the stack should sit, and assign it
-///      as stackAnchor. The anchor MUST have uniform (1,1,1) lossy scale so
-///      stacked ingredients are not distorted.
-///   5. Tune stackOffset for the vertical gap between stacked items.
 /// </summary>
-public class PrepStation : MonoBehaviour, IAssemblyInteractable
+namespace Bufe
+{
+    public class PrepStation : MonoBehaviour, IAssemblyInteractable
 {
     [Header("Setup")]
     [Tooltip("Position where the first ingredient is placed. Items stack upward from here.")]
@@ -183,10 +175,6 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
 
         Debug.Log($"[PrepStation] Placed '{ingredient.itemName}' ({ingredient.ingredientType})" +
                   $" → stack size: {_stack.Count}");
-
-        // Finalize if this is a closing bread and we have at least 2 items
-        if (ingredient.isClosingBread && _stack.Count >= 2)
-            Finalize();
     }
 
     // ── Pop the top ingredient (LIFO error correction) ──────────────────────
@@ -207,60 +195,6 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         hand.PickUp(top);
 
         Debug.Log($"[PrepStation] Popped '{top.itemName}' → stack size: {_stack.Count}");
-    }
-
-    // ── Finalize the stack into a grouped object ────────────────────────────
-
-    private void Finalize()
-    {
-        // Create the group object and parent it under stackAnchor so it sits
-        // exactly where the stack was built and moves with the board. Because
-        // stackAnchor has uniform (1,1,1) lossy scale, local = world for size.
-        GameObject groupObj = new GameObject("FinalizedStack");
-        groupObj.transform.SetParent(stackAnchor, worldPositionStays: false);
-        groupObj.transform.localPosition = Vector3.zero;
-        groupObj.transform.localRotation = Quaternion.identity;
-        groupObj.transform.localScale    = Vector3.one;
-
-        // Add the FinalizedStack component
-        FinalizedStack stack = groupObj.AddComponent<FinalizedStack>();
-        stack.itemName = BuildStackName();
-        stack.supportedProcesses = ProcessType.Toastable;
-
-        // Reparent all ingredients under the group and record their types.
-        // Strip each ingredient's own Rigidbody + Colliders — the parent's
-        // single Rigidbody and fitted BoxCollider drive physics for the whole
-        // group. Nested rigidbodies inside a kinematic parent cause the
-        // "floating and spinning" glitch when the stack is thrown.
-        foreach (Ingredient ing in _stack)
-        {
-            stack.ingredientTypes.Add(ing.ingredientType);
-            ing.transform.SetParent(groupObj.transform);
-
-            Rigidbody ingRb = ing.GetComponent<Rigidbody>();
-            if (ingRb != null) Destroy(ingRb);
-
-            foreach (Collider ingCol in ing.GetComponentsInChildren<Collider>())
-                Destroy(ingCol);
-        }
-
-        // Add a Rigidbody (starts kinematic while on station)
-        Rigidbody rb = groupObj.AddComponent<Rigidbody>();
-        rb.isKinematic = true;
-
-        // Add a BoxCollider that encompasses all child meshes. Keep it enabled
-        // so the player can click the stack directly to pick it up.
-        BoxCollider box = groupObj.AddComponent<BoxCollider>();
-        FitBoxColliderToChildren(groupObj, box);
-
-        // Station state
-        _finalizedStack = stack;
-        _isFinalized = true;
-        _stack.Clear();
-
-        Debug.Log($"[PrepStation] Finalized! '{stack.itemName}' with " +
-                  $"{stack.ingredientTypes.Count} ingredients: " +
-                  $"[{string.Join(", ", stack.ingredientTypes)}]");
     }
 
     // ── Pick up the finalized stack ─────────────────────────────────────────
@@ -305,4 +239,5 @@ public class PrepStation : MonoBehaviour, IAssemblyInteractable
         box.center = root.transform.InverseTransformPoint(bounds.center);
         box.size   = root.transform.InverseTransformVector(bounds.size);
     }
+}
 }

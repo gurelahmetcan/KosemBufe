@@ -2,59 +2,53 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Displays the Game Over screen. No longer owns timeScale or listens
-/// to managers directly — GameManager calls ShowGameOver() and RestartGame().
-///
-/// Scene Setup:
-///   Canvas (Screen Space – Overlay, high sort order)
-///     └─ GameOverPanel (starts inactive)
-///         └─ "Game Over" text, reason label, restart button
-/// </summary>
-public class GameOverUI : MonoBehaviour
+namespace Bufe.UI
 {
-    [Header("References")]
-    [Tooltip("The panel to show on game over.")]
-    public GameObject gameOverPanel;
-
-    [Tooltip("Optional text showing the game-over reason.")]
-    public TextMeshProUGUI reasonText;
-
-    [Tooltip("Optional restart button.")]
-    public Button restartButton;
-
-    private void Awake()
+    public class GameOverUI : MonoBehaviour
     {
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(false);
+        [Header("References")]
+        [Tooltip("The panel to show on game over.")]
+        public GameObject gameOverPanel;
 
-        if (restartButton != null)
-            restartButton.onClick.AddListener(OnRestartClicked);
-    }
+        [Tooltip("Optional text showing the game-over reason.")]
+        public TextMeshProUGUI reasonText;
 
-    private void OnDestroy()
-    {
-        if (restartButton != null)
-            restartButton.onClick.RemoveListener(OnRestartClicked);
-    }
+        [Tooltip("Optional restart button.")]
+        public Button restartButton;
 
-    /// <summary>
-    /// Called by GameManager when a game-over condition is met.
-    /// </summary>
-    public void ShowGameOver(string reason)
-    {
-        Debug.Log($"[GameOverUI] Showing Game Over: {reason}");
+        private void Awake()
+        {
+            if (gameOverPanel != null)
+                gameOverPanel.SetActive(false);
 
-        if (reasonText != null)
-            reasonText.text = reason;
+            if (restartButton != null)
+                restartButton.onClick.AddListener(OnRestartClicked);
+        }
 
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(true);
-    }
+        private void OnDestroy()
+        {
+            if (restartButton != null)
+                restartButton.onClick.RemoveListener(OnRestartClicked);
+        }
 
-    private void OnRestartClicked()
-    {
-        if (GameManager.Instance != null)
-            GameManager.Instance.RestartGame();
+        /// <summary>
+        /// Called by GameManager when a game-over condition is met.
+        /// </summary>
+        public void ShowGameOver(string reason)
+        {
+            Debug.Log($"[GameOverUI] Showing Game Over: {reason}");
+
+            if (reasonText != null)
+                reasonText.text = reason;
+
+            if (gameOverPanel != null)
+                gameOverPanel.SetActive(true);
+        }
+
+        private void OnRestartClicked()
+        {
+            if (GameManager.Instance != null)
+                GameManager.Instance.RestartGame();
+        }
     }
 }

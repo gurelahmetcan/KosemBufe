@@ -28,18 +28,10 @@ public class CustomerMood : ScriptableObject
     public string[] modifierPhrases;
 
     [Header("Exit Lines")]
-    [Tooltip("Positive exit — order was perfect.")]
+    [Tooltip("Exit line.")]
     [TextArea(1, 3)]
-    public string[] positiveExitLines;
-
-    [Tooltip("Negative exit — order was wrong, raw, or burnt.")]
-    [TextArea(1, 3)]
-    public string[] negativeExitLines;
-
-    [Tooltip("Timeout exit — customer ran out of patience or delivery timer expired.")]
-    [TextArea(1, 3)]
-    public string[] timeoutExitLines;
-
+    public string[] exitLines;
+    
     // ── Helpers ────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -54,7 +46,5 @@ public class CustomerMood : ScriptableObject
     public string GetOpeningLine()      => Pick(openingLines, "Hey.");
     public string GetOrderPhrase()      => Pick(orderPhrases, "I'll have a {0}.");
     public string GetModifierPhrase()   => Pick(modifierPhrases, "Oh, and {0}.");
-    public string GetPositiveExit()     => Pick(positiveExitLines, "Thanks!");
-    public string GetNegativeExit()     => Pick(negativeExitLines, "This isn't right...");
-    public string GetTimeoutExit()      => Pick(timeoutExitLines, "I can't wait any longer.");
+    public string GetExitLine()     => Pick(exitLines, "Thanks!");
 }

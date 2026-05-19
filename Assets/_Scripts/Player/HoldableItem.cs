@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Bufe;
 using UnityEngine;
 
 /// <summary>
@@ -17,15 +18,12 @@ public class HoldableItem : MonoBehaviour
     public GameObject handPrefab;
 
     [Tooltip("Which ingredient this item represents (used for recipe validation).")]
-    public IngredientType ingredient = IngredientType.None;
-
-    [Tooltip("Which station processes this item supports (set per prefab).")]
-    public ProcessType supportedProcesses = ProcessType.None;
-
+    public Constants.IngredientType ingredient = Constants.IngredientType.None;
+    
     // ── Prepared-order state (set by toaster flow) ───────────────────────────
     // These fields carry the full preparation data on toaster result items
     // so OrderManager can validate against a recipe.
 
-    [HideInInspector] public List<IngredientType> preparedIngredients = new List<IngredientType>();
-    [HideInInspector] public CookState cookState = CookState.Raw;
+    [HideInInspector] public List<Constants.IngredientType> preparedIngredients = new List<Constants.IngredientType>();
+    [HideInInspector] public Constants.CookState cookState = Constants.CookState.Raw;
 }

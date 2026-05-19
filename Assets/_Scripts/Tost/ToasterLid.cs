@@ -22,127 +22,132 @@ using UnityEngine.InputSystem;
 ///   OnLidClosed — fired when the lid rotates back to its fully-closed position.
 ///   OnLidOpened — fired when the lid reaches the fully-open angle.
 /// </summary>
-[RequireComponent(typeof(Collider))]
-public class ToasterLid : MonoBehaviour, IAssemblyInteractable
+
+namespace Bufe
 {
-    [Header("Rotation")]
-    [Tooltip("Degrees the lid rotates from closed to fully open.")]
-    public float openAngle = 110f;
-
-    [Tooltip("Local axis the lid rotates around. Default is X (hinge along left-right).")]
-    public Vector3 rotationAxis = Vector3.right;
-
-    [Tooltip("Degrees of rotation per pixel of upward mouse movement.")]
-    public float dragSensitivity = 0.5f;
-
-    [Tooltip("Duration of the snap animation when the mouse is released.")]
-    public float snapDuration = 0.2f;
-
-    // ── Events ────────────────────────────────────────────────────────────────
-
-    public event Action OnLidClosed;
-    public event Action OnLidOpened;
-
-    // ── Runtime state ─────────────────────────────────────────────────────────
-
-    private Quaternion _closedRotation;
-    private float      _currentAngle;   // 0 = closed, openAngle = fully open
-
-    private bool _isDragging;
-    private bool _isLocked;
-
-    private enum SnapState { Closed, Open }
-    private SnapState _snapState = SnapState.Closed;
-
-    private void Awake()
+    [RequireComponent(typeof(Collider))]
+    public class ToasterLid : MonoBehaviour, IAssemblyInteractable
     {
-        // Record the authored rotation as the closed position.
-        // All rotations are applied as offsets from this baseline.
-        _closedRotation = transform.localRotation;
-        _currentAngle   = 0f;
-    }
+        [Header("Rotation")]
+        [Tooltip("Degrees the lid rotates from closed to fully open.")]
+        public float openAngle = 110f;
 
-    // ── Public API ────────────────────────────────────────────────────────────
+        [Tooltip("Local axis the lid rotates around. Default is X (hinge along left-right).")]
+        public Vector3 rotationAxis = Vector3.right;
 
-    /// <summary>True when the lid is fully open.</summary>
-    public bool IsOpen => _snapState == SnapState.Open;
+        [Tooltip("Degrees of rotation per pixel of upward mouse movement.")]
+        public float dragSensitivity = 0.5f;
 
-    /// <summary>Locks/unlocks the lid. Called by Toaster during cooking.</summary>
-    public void SetLocked(bool locked)
-    {
-        _isLocked = locked;
-        if (locked && _isDragging)
-            _isDragging = false;
-    }
+        [Tooltip("Duration of the snap animation when the mouse is released.")]
+        public float snapDuration = 0.2f;
 
-    // ── IAssemblyInteractable ─────────────────────────────────────────────────
+        // ── Events ────────────────────────────────────────────────────────────────
 
-    public bool CanInteract(PlayerHand hand)
-    {
-        return hand.IsHandEmpty && !_isLocked && !_isDragging;
-    }
+        public event Action OnLidClosed;
+        public event Action OnLidOpened;
 
-    public void Interact(PlayerHand hand)
-    {
-        _isDragging = true;
-    }
+        // ── Runtime state ─────────────────────────────────────────────────────────
 
-    // ── Drag update ───────────────────────────────────────────────────────────
+        private Quaternion _closedRotation;
+        private float      _currentAngle;   // 0 = closed, openAngle = fully open
 
-    private void Update()
-    {
-        if (!_isDragging) return;
+        private bool _isDragging;
+        private bool _isLocked;
 
-        Mouse mouse = Mouse.current;
-        if (mouse == null) return;
+        private enum SnapState { Closed, Open }
+        private SnapState _snapState = SnapState.Closed;
 
-        if (!mouse.leftButton.isPressed)
+        private void Awake()
         {
-            _isDragging = false;
-            SnapToNearest();
-            return;
+            // Record the authored rotation as the closed position.
+            // All rotations are applied as offsets from this baseline.
+            _closedRotation = transform.localRotation;
+            _currentAngle   = 0f;
         }
 
-        // Mouse up → angle increases (lid opens). Mouse down → angle decreases (lid closes).
-        float delta = mouse.delta.y.ReadValue() * dragSensitivity;
-        _currentAngle = Mathf.Clamp(_currentAngle + delta, 0f, openAngle);
+        // ── Public API ────────────────────────────────────────────────────────────
 
-        ApplyRotation();
-        CheckThresholds();
-    }
+        /// <summary>True when the lid is fully open.</summary>
+        public bool IsOpen => _snapState == SnapState.Open;
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private void ApplyRotation()
-    {
-        transform.localRotation = _closedRotation * Quaternion.AngleAxis(_currentAngle, rotationAxis);
-    }
-
-    private void SnapToNearest()
-    {
-        float targetAngle = _currentAngle > openAngle * 0.5f ? openAngle : 0f;
-
-        DOTween.To(
-            () => _currentAngle,
-            x  => { _currentAngle = x; ApplyRotation(); },
-            targetAngle,
-            snapDuration
-        ).SetEase(Ease.OutQuad).OnComplete(CheckThresholds);
-    }
-
-    private void CheckThresholds()
-    {
-        const float epsilon = 1f; // degrees
-
-        if (_currentAngle <= epsilon && _snapState == SnapState.Open)
+        /// <summary>Locks/unlocks the lid. Called by Toaster during cooking.</summary>
+        public void SetLocked(bool locked)
         {
-            _snapState = SnapState.Closed;
-            OnLidClosed?.Invoke();
+            _isLocked = locked;
+            if (locked && _isDragging)
+                _isDragging = false;
         }
-        else if (_currentAngle >= openAngle - epsilon && _snapState == SnapState.Closed)
+
+        // ── IAssemblyInteractable ─────────────────────────────────────────────────
+
+        public bool CanInteract(PlayerHand hand)
         {
-            _snapState = SnapState.Open;
-            OnLidOpened?.Invoke();
+            return hand.IsHandEmpty && !_isLocked && !_isDragging;
+        }
+
+        public void Interact(PlayerHand hand)
+        {
+            _isDragging = true;
+        }
+
+        // ── Drag update ───────────────────────────────────────────────────────────
+
+        private void Update()
+        {
+            if (!_isDragging) return;
+
+            Mouse mouse = Mouse.current;
+            if (mouse == null) return;
+
+            if (!mouse.leftButton.isPressed)
+            {
+                _isDragging = false;
+                SnapToNearest();
+                return;
+            }
+
+            // Mouse up → angle increases (lid opens). Mouse down → angle decreases (lid closes).
+            float delta = mouse.delta.y.ReadValue() * dragSensitivity;
+            _currentAngle = Mathf.Clamp(_currentAngle + delta, 0f, openAngle);
+
+            ApplyRotation();
+            CheckThresholds();
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+
+        private void ApplyRotation()
+        {
+            transform.localRotation = _closedRotation * Quaternion.AngleAxis(_currentAngle, rotationAxis);
+        }
+
+        private void SnapToNearest()
+        {
+            float targetAngle = _currentAngle > openAngle * 0.5f ? openAngle : 0f;
+
+            DOTween.To(
+                () => _currentAngle,
+                x  => { _currentAngle = x; ApplyRotation(); },
+                targetAngle,
+                snapDuration
+            ).SetEase(Ease.OutQuad).OnComplete(CheckThresholds);
+        }
+
+        private void CheckThresholds()
+        {
+            const float epsilon = 1f; // degrees
+
+            if (_currentAngle <= epsilon && _snapState == SnapState.Open)
+            {
+                _snapState = SnapState.Closed;
+                OnLidClosed?.Invoke();
+            }
+            else if (_currentAngle >= openAngle - epsilon && _snapState == SnapState.Closed)
+            {
+                _snapState = SnapState.Open;
+                OnLidOpened?.Invoke();
+            }
         }
     }
+        
 }

@@ -13,202 +13,206 @@ using TMPro;
 ///   3. Assign all references in the inspector.
 ///   4. The panel starts hidden; press F1 to toggle.
 /// </summary>
-public class DebugPanel : MonoBehaviour
+namespace Bufe
 {
-    [Header("Panel")]
-    [Tooltip("The root panel GameObject (toggled on/off with F1).")]
-    public GameObject panel;
-
-    [Header("Manager References")]
-    public GameManager gameManager;
-    public DayManager dayManager;
-    public OrderManager orderManager;
-    public MoneyManager moneyManager;
-    public ReputationManager reputationManager;
-
-    [Header("Day Controls")]
-    public Button endDayButton;
-
-    [Header("Money Controls")]
-    public Button addMoneyButton;
-    public Button removeMoneyButton;
-    [Tooltip("Amount added/removed per click.")]
-    public float moneyStep = 100f;
-
-    [Header("Time Speed Controls")]
-    public Button speedUpButton;
-    public Button speedDownButton;
-    public Button normalSpeedButton;
-    public TextMeshProUGUI speedLabel;
-
-    [Header("Spawn Controls")]
-    public Button toggleSpawnButton;
-    public TextMeshProUGUI spawnStatusLabel;
-
-    [Header("Status Display")]
-    public TextMeshProUGUI statusText;
-
-    // ── Runtime ──────────────────────────────────────────────────────────────
-
-    private float _baseSpeed;
-
-    private void Awake()
+    public class DebugPanel : MonoBehaviour
     {
-        if (panel != null)
-            panel.SetActive(false);
+        [Header("Panel")]
+        [Tooltip("The root panel GameObject (toggled on/off with F1).")]
+        public GameObject panel;
 
-        WireButtons();
-    }
+        [Header("Manager References")]
+        public GameManager gameManager;
+        public DayManager dayManager;
+        public OrderManager orderManager;
+        public MoneyManager moneyManager;
+        public ReputationManager reputationManager;
 
-    private void OnDestroy()
-    {
-        UnwireButtons();
-    }
+        [Header("Day Controls")]
+        public Button endDayButton;
 
-    private void Update()
-    {
-        if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
-            TogglePanel();
+        [Header("Money Controls")]
+        public Button addMoneyButton;
+        public Button removeMoneyButton;
+        [Tooltip("Amount added/removed per click.")]
+        public float moneyStep = 100f;
 
-        if (panel != null && panel.activeSelf)
-            RefreshStatus();
-    }
+        [Header("Time Speed Controls")]
+        public Button speedUpButton;
+        public Button speedDownButton;
+        public Button normalSpeedButton;
+        public TextMeshProUGUI speedLabel;
 
-    // ── Panel toggle ─────────────────────────────────────────────────────────
+        [Header("Spawn Controls")]
+        public Button toggleSpawnButton;
+        public TextMeshProUGUI spawnStatusLabel;
 
-    private void TogglePanel()
-    {
-        if (panel == null) return;
+        [Header("Status Display")]
+        public TextMeshProUGUI statusText;
 
-        bool show = !panel.activeSelf;
-        panel.SetActive(show);
+        // ── Runtime ──────────────────────────────────────────────────────────────
 
-        // Capture base speed on first open
-        if (show && dayManager != null && dayManager.clock != null)
-            _baseSpeed = dayManager.clock.GameMinutesPerRealSecond;
-    }
+        private float _baseSpeed;
 
-    // ── Button wiring ────────────────────────────────────────────────────────
-
-    private void WireButtons()
-    {
-        if (endDayButton != null)       endDayButton.onClick.AddListener(OnEndDay);
-        if (addMoneyButton != null)     addMoneyButton.onClick.AddListener(OnAddMoney);
-        if (removeMoneyButton != null)  removeMoneyButton.onClick.AddListener(OnRemoveMoney);
-        if (speedUpButton != null)      speedUpButton.onClick.AddListener(OnSpeedUp);
-        if (speedDownButton != null)    speedDownButton.onClick.AddListener(OnSpeedDown);
-        if (normalSpeedButton != null)  normalSpeedButton.onClick.AddListener(OnNormalSpeed);
-        if (toggleSpawnButton != null)  toggleSpawnButton.onClick.AddListener(OnToggleSpawn);
-    }
-
-    private void UnwireButtons()
-    {
-        if (endDayButton != null)       endDayButton.onClick.RemoveListener(OnEndDay);
-        if (addMoneyButton != null)     addMoneyButton.onClick.RemoveListener(OnAddMoney);
-        if (removeMoneyButton != null)  removeMoneyButton.onClick.RemoveListener(OnRemoveMoney);
-        if (speedUpButton != null)      speedUpButton.onClick.RemoveListener(OnSpeedUp);
-        if (speedDownButton != null)    speedDownButton.onClick.RemoveListener(OnSpeedDown);
-        if (normalSpeedButton != null)  normalSpeedButton.onClick.RemoveListener(OnNormalSpeed);
-        if (toggleSpawnButton != null)  toggleSpawnButton.onClick.RemoveListener(OnToggleSpawn);
-    }
-
-    // ── Button handlers ──────────────────────────────────────────────────────
-
-    private void OnEndDay()
-    {
-        if (dayManager != null)
+        private void Awake()
         {
-            dayManager.ForceEndDay();
-            Debug.Log("[Debug] Forced day end.");
+            if (panel != null)
+                panel.SetActive(false);
+
+            WireButtons();
+        }
+
+        private void OnDestroy()
+        {
+            UnwireButtons();
+        }
+
+        private void Update()
+        {
+            if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
+                TogglePanel();
+
+            if (panel != null && panel.activeSelf)
+                RefreshStatus();
+        }
+
+        // ── Panel toggle ─────────────────────────────────────────────────────────
+
+        private void TogglePanel()
+        {
+            if (panel == null) return;
+
+            bool show = !panel.activeSelf;
+            panel.SetActive(show);
+
+            // Capture base speed on first open
+            if (show && dayManager != null && dayManager.clock != null)
+                _baseSpeed = dayManager.clock.GameMinutesPerRealSecond;
+        }
+
+        // ── Button wiring ────────────────────────────────────────────────────────
+
+        private void WireButtons()
+        {
+            if (endDayButton != null)       endDayButton.onClick.AddListener(OnEndDay);
+            if (addMoneyButton != null)     addMoneyButton.onClick.AddListener(OnAddMoney);
+            if (removeMoneyButton != null)  removeMoneyButton.onClick.AddListener(OnRemoveMoney);
+            if (speedUpButton != null)      speedUpButton.onClick.AddListener(OnSpeedUp);
+            if (speedDownButton != null)    speedDownButton.onClick.AddListener(OnSpeedDown);
+            if (normalSpeedButton != null)  normalSpeedButton.onClick.AddListener(OnNormalSpeed);
+            if (toggleSpawnButton != null)  toggleSpawnButton.onClick.AddListener(OnToggleSpawn);
+        }
+
+        private void UnwireButtons()
+        {
+            if (endDayButton != null)       endDayButton.onClick.RemoveListener(OnEndDay);
+            if (addMoneyButton != null)     addMoneyButton.onClick.RemoveListener(OnAddMoney);
+            if (removeMoneyButton != null)  removeMoneyButton.onClick.RemoveListener(OnRemoveMoney);
+            if (speedUpButton != null)      speedUpButton.onClick.RemoveListener(OnSpeedUp);
+            if (speedDownButton != null)    speedDownButton.onClick.RemoveListener(OnSpeedDown);
+            if (normalSpeedButton != null)  normalSpeedButton.onClick.RemoveListener(OnNormalSpeed);
+            if (toggleSpawnButton != null)  toggleSpawnButton.onClick.RemoveListener(OnToggleSpawn);
+        }
+
+        // ── Button handlers ──────────────────────────────────────────────────────
+
+        private void OnEndDay()
+        {
+            if (dayManager != null)
+            {
+                dayManager.ForceEndDay();
+                Debug.Log("[Debug] Forced day end.");
+            }
+        }
+
+        private void OnAddMoney()
+        {
+            if (moneyManager != null)
+            {
+                moneyManager.AddIncome(moneyStep);
+                Debug.Log($"[Debug] Added ${moneyStep}.");
+            }
+        }
+
+        private void OnRemoveMoney()
+        {
+            if (moneyManager != null)
+            {
+                moneyManager.DeductExpense(moneyStep, "debug");
+                Debug.Log($"[Debug] Removed ${moneyStep}.");
+            }
+        }
+
+        private void OnSpeedUp()
+        {
+            if (dayManager == null || dayManager.clock == null) return;
+
+            float current = dayManager.clock.GameMinutesPerRealSecond;
+            dayManager.clock.SetSpeed(current * 2f);
+            RefreshSpeedLabel();
+        }
+
+        private void OnSpeedDown()
+        {
+            if (dayManager == null || dayManager.clock == null) return;
+
+            float current = dayManager.clock.GameMinutesPerRealSecond;
+            dayManager.clock.SetSpeed(Mathf.Max(0.5f, current * 0.5f));
+            RefreshSpeedLabel();
+        }
+
+        private void OnNormalSpeed()
+        {
+            if (dayManager == null || dayManager.clock == null) return;
+
+            if (_baseSpeed <= 0f) _baseSpeed = 2f; // sensible fallback
+            dayManager.clock.SetSpeed(_baseSpeed);
+            RefreshSpeedLabel();
+        }
+
+        private void OnToggleSpawn()
+        {
+            if (orderManager == null) return;
+
+            orderManager.SetSpawningPaused(!orderManager.SpawningPaused);
+            RefreshSpawnLabel();
+        }
+
+        // ── Status display ───────────────────────────────────────────────────────
+
+        private void RefreshStatus()
+        {
+            RefreshSpeedLabel();
+            RefreshSpawnLabel();
+
+            if (statusText == null) return;
+
+            string day   = dayManager != null ? $"Day {dayManager.CurrentDay}" : "?";
+            string phase = dayManager != null ? dayManager.CurrentPhase.ToString() : "?";
+            string money = moneyManager != null ? $"${moneyManager.Balance:F0}" : "?";
+            string rep   = reputationManager != null
+                ? $"{reputationManager.Reputation}/{reputationManager.MaxReputation}"
+                : "?";
+            string time  = dayManager != null && dayManager.clock != null
+                ? $"{dayManager.clock.CurrentHour:D2}:{dayManager.clock.CurrentMinute:D2}"
+                : "?";
+
+            statusText.text = $"{day} | {phase} | {time} | Money: {money} | Rep: {rep}";
+        }
+
+        private void RefreshSpeedLabel()
+        {
+            if (speedLabel == null || dayManager == null || dayManager.clock == null) return;
+            float speed = dayManager.clock.GameMinutesPerRealSecond;
+            float multiplier = _baseSpeed > 0f ? speed / _baseSpeed : 1f;
+            speedLabel.text = $"Speed: {multiplier:F1}x";
+        }
+
+        private void RefreshSpawnLabel()
+        {
+            if (spawnStatusLabel == null || orderManager == null) return;
+            spawnStatusLabel.text = orderManager.SpawningPaused ? "Spawning: OFF" : "Spawning: ON";
         }
     }
 
-    private void OnAddMoney()
-    {
-        if (moneyManager != null)
-        {
-            moneyManager.AddIncome(moneyStep);
-            Debug.Log($"[Debug] Added ${moneyStep}.");
-        }
-    }
-
-    private void OnRemoveMoney()
-    {
-        if (moneyManager != null)
-        {
-            moneyManager.DeductExpense(moneyStep, "debug");
-            Debug.Log($"[Debug] Removed ${moneyStep}.");
-        }
-    }
-
-    private void OnSpeedUp()
-    {
-        if (dayManager == null || dayManager.clock == null) return;
-
-        float current = dayManager.clock.GameMinutesPerRealSecond;
-        dayManager.clock.SetSpeed(current * 2f);
-        RefreshSpeedLabel();
-    }
-
-    private void OnSpeedDown()
-    {
-        if (dayManager == null || dayManager.clock == null) return;
-
-        float current = dayManager.clock.GameMinutesPerRealSecond;
-        dayManager.clock.SetSpeed(Mathf.Max(0.5f, current * 0.5f));
-        RefreshSpeedLabel();
-    }
-
-    private void OnNormalSpeed()
-    {
-        if (dayManager == null || dayManager.clock == null) return;
-
-        if (_baseSpeed <= 0f) _baseSpeed = 2f; // sensible fallback
-        dayManager.clock.SetSpeed(_baseSpeed);
-        RefreshSpeedLabel();
-    }
-
-    private void OnToggleSpawn()
-    {
-        if (orderManager == null) return;
-
-        orderManager.SetSpawningPaused(!orderManager.SpawningPaused);
-        RefreshSpawnLabel();
-    }
-
-    // ── Status display ───────────────────────────────────────────────────────
-
-    private void RefreshStatus()
-    {
-        RefreshSpeedLabel();
-        RefreshSpawnLabel();
-
-        if (statusText == null) return;
-
-        string day   = dayManager != null ? $"Day {dayManager.CurrentDay}" : "?";
-        string phase = dayManager != null ? dayManager.CurrentPhase.ToString() : "?";
-        string money = moneyManager != null ? $"${moneyManager.Balance:F0}" : "?";
-        string rep   = reputationManager != null
-            ? $"{reputationManager.Reputation}/{reputationManager.MaxReputation}"
-            : "?";
-        string time  = dayManager != null && dayManager.clock != null
-            ? $"{dayManager.clock.CurrentHour:D2}:{dayManager.clock.CurrentMinute:D2}"
-            : "?";
-
-        statusText.text = $"{day} | {phase} | {time} | Money: {money} | Rep: {rep}";
-    }
-
-    private void RefreshSpeedLabel()
-    {
-        if (speedLabel == null || dayManager == null || dayManager.clock == null) return;
-        float speed = dayManager.clock.GameMinutesPerRealSecond;
-        float multiplier = _baseSpeed > 0f ? speed / _baseSpeed : 1f;
-        speedLabel.text = $"Speed: {multiplier:F1}x";
-    }
-
-    private void RefreshSpawnLabel()
-    {
-        if (spawnStatusLabel == null || orderManager == null) return;
-        spawnStatusLabel.text = orderManager.SpawningPaused ? "Spawning: OFF" : "Spawning: ON";
-    }
 }

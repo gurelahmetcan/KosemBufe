@@ -23,9 +23,5 @@ MonoBehaviour:
   modifierPhrases:
   - Oh and {0}.
   - Make sure there's {0}.
-  positiveExitLines:
-  - Thanks, this is great!
-  negativeExitLines:
-  - This isn't right...
-  timeoutExitLines:
-  - I can't wait any longer.
+  exitLines:
+  - Thanks!

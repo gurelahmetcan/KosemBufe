@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Bufe;
 using TMPro;
 using UnityEngine;
 
@@ -50,18 +51,18 @@ public class HolderItem : MonoBehaviour, IInteractable
     /// Returns a list of Ingredient enums from all stored items.
     /// Used by the toaster flow to transfer ingredients to the result item.
     /// </summary>
-    public List<IngredientType> GetIngredients()
+    public List<Constants.IngredientType> GetIngredients()
     {
-        var list = new List<IngredientType>();
+        var list = new List<Constants.IngredientType>();
 
         // Include the holder's own ingredient (e.g. bread = Ekmek)
-        IngredientType own = GetComponent<HoldableItem>().ingredient;
-        if (own != IngredientType.None)
+        Constants.IngredientType own = GetComponent<HoldableItem>().ingredient;
+        if (own != Constants.IngredientType.None)
             list.Add(own);
 
         foreach (HoldableItem item in _storedItems)
         {
-            if (item.ingredient != IngredientType.None)
+            if (item.ingredient != Constants.IngredientType.None)
                 list.Add(item.ingredient);
         }
 

@@ -7699,9 +7699,8 @@ MonoBehaviour:
   orderDuration: 30
   timeBetweenCustomers: 3
   recipes:
-  - {fileID: 11400000, guid: 5f56d302007c6458fbd2277c14b29e1c, type: 2}
+  - {fileID: 11400000, guid: ff2ac51cfbb3f440e98fb3810432d066, type: 2}
   - {fileID: 11400000, guid: ef14b2399791c48e990445448271ab50, type: 2}
-  - {fileID: 11400000, guid: 4fec2dc7e9d9543eb924909faf92c539, type: 2}
   pickUpKey: 16
 --- !u!4 &1885800789
 Transform:

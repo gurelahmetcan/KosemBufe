@@ -17,7 +17,10 @@ using UnityEngine;
 ///   3. Optionally create a child Transform at the bread resting point and assign
 ///      it to 'breadSlot'. If left empty the bread centres on the toaster root.
 /// </summary>
-public class Toaster : MonoBehaviour, IAssemblyInteractable
+
+namespace Bufe
+{
+    public class Toaster : MonoBehaviour, IAssemblyInteractable
 {
     [Header("Timing")]
     [Tooltip("Seconds from lid-close to toast ready.")]
@@ -156,4 +159,5 @@ public class Toaster : MonoBehaviour, IAssemblyInteractable
         if (_state != ToasterState.Done) return;
         Debug.Log("[Toaster] Lid open. Pick up your toast!");
     }
+}
 }

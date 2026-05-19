@@ -8,43 +8,46 @@ using UnityEngine;
 /// the same world position. The player must put the knife down first to
 /// pick up slices one by one.
 /// </summary>
-[RequireComponent(typeof(Ingredient))]
-public class SucukItem : MonoBehaviour, IAssemblyInteractable
+namespace Bufe
 {
-    [Tooltip("Prefab spawned for each slice. Must have an Ingredient component.")]
-    public GameObject sucukSlicePrefab;
-
-    [Tooltip("How many slices are produced when the sucuk is cut.")]
-    public int sliceCount = 4;
-
-    [Tooltip("Vertical offset between stacked slice objects after spawning.")]
-    public float sliceStackOffset = 0.015f;
-
-    // ── IAssemblyInteractable ─────────────────────────────────────────────────
-
-    public bool CanInteract(PlayerHand hand)
+    [RequireComponent(typeof(Ingredient))]
+    public class SucukItem : MonoBehaviour, IAssemblyInteractable
     {
-        return hand.HeldItem is KnifeItem;
-    }
+        [Tooltip("Prefab spawned for each slice. Must have an Ingredient component.")]
+        public GameObject sucukSlicePrefab;
 
-    public void Interact(PlayerHand hand)
-    {
-        if (sucukSlicePrefab == null)
+        [Tooltip("How many slices are produced when the sucuk is cut.")]
+        public int sliceCount = 4;
+
+        [Tooltip("Vertical offset between stacked slice objects after spawning.")]
+        public float sliceStackOffset = 0.015f;
+
+        // ── IAssemblyInteractable ─────────────────────────────────────────────────
+
+        public bool CanInteract(PlayerHand hand)
         {
-            Debug.LogWarning("[SucukItem] sucukSlicePrefab is not assigned.");
-            return;
+            return hand.HeldItem is KnifeItem;
         }
 
-        Vector3    spawnPos = transform.position;
-        Quaternion spawnRot = transform.rotation;
-
-        for (int i = 0; i < sliceCount; i++)
+        public void Interact(PlayerHand hand)
         {
-            Vector3 pos = spawnPos + Vector3.up * (sliceStackOffset * i);
-            Instantiate(sucukSlicePrefab, pos, spawnRot);
-        }
+            if (sucukSlicePrefab == null)
+            {
+                Debug.LogWarning("[SucukItem] sucukSlicePrefab is not assigned.");
+                return;
+            }
 
-        Debug.Log($"[SucukItem] Sliced into {sliceCount} pieces.");
-        Destroy(gameObject);
+            Vector3    spawnPos = transform.position;
+            Quaternion spawnRot = transform.rotation;
+
+            for (int i = 0; i < sliceCount; i++)
+            {
+                Vector3 pos = spawnPos + Vector3.up * (sliceStackOffset * i);
+                Instantiate(sucukSlicePrefab, pos, spawnRot);
+            }
+
+            Debug.Log($"[SucukItem] Sliced into {sliceCount} pieces.");
+            Destroy(gameObject);
+        }
     }
 }

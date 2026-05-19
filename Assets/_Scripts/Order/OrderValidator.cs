@@ -1,78 +1,52 @@
 using System.Collections.Generic;
+using Bufe;
 using UnityEngine;
 
-/// <summary>
-/// Static helper that compares a prepared order against a recipe,
-/// optionally modified by an OrderModifier (e.g. "extra cheese").
-///
-/// Validation rules (checked in order):
-///   1. Ingredient match — preparedIngredients must contain exactly the same
-///      items as the (possibly modified) recipe (order-insensitive, duplicates count).
-///   2. Cooking state — if the recipe requires cooking:
-///        • CookState.Cooked → Perfect
-///        • CookState.Raw    → Raw (fail)
-///        • CookState.Burnt  → Burnt (fail)
-/// </summary>
 public static class OrderValidator
 {
-    /// <summary>
-    /// Validate a prepared order against the target recipe (no modifier).
-    /// </summary>
-    public static OrderResult Validate(RecipeData recipe, List<IngredientType> preparedIngredients, CookState cookState)
-    {
-        return Validate(recipe, null, preparedIngredients, cookState);
-    }
-
+    
     /// <summary>
     /// Validate a prepared order against the target recipe + optional modifier.
     /// The modifier adds extra ingredients to the expected list before comparison.
     /// </summary>
-    public static OrderResult Validate(RecipeData recipe, OrderModifier modifier, List<IngredientType> preparedIngredients, CookState cookState)
+    public static bool Validate(OrderItem recipe, List<Constants.IngredientType> preparedIngredients, Constants.CookState cookState)
     {
         // Build the expected ingredient list (base recipe + modifier)
-        List<IngredientType> expected = BuildExpectedIngredients(recipe, modifier);
+        List<Constants.IngredientType> expected = BuildExpectedIngredients(recipe);
 
-        Debug.Log($"[OrderValidator] Recipe='{recipe.recipeName}'" +
-                  (modifier != null ? $" + modifier '{modifier.modifierName}' ({modifier.quantity}× {modifier.ingredient})" : "") +
+        Debug.Log($"[OrderValidator] Recipe='{recipe.itemName}'" +
                   $", expected=[{string.Join(", ", expected)}]" +
                   $", prepared=[{string.Join(", ", preparedIngredients)}]" +
                   $", cookState={cookState}");
 
         // ── 1. Ingredient check ──────────────────────────────────────────────
         if (!IngredientsMatch(expected, preparedIngredients))
-            return OrderResult.WrongIngredients;
+            return false;
 
         // ── 2. Cooking check ─────────────────────────────────────────────────
         if (recipe.requiresCooking)
         {
             switch (cookState)
             {
-                case CookState.Raw:   return OrderResult.Raw;
-                case CookState.Burnt: return OrderResult.Burnt;
+                case Constants.CookState.Raw:   return false;
             }
         }
 
-        return OrderResult.Perfect;
+        return true;
     }
 
     /// <summary>
     /// Builds the full expected ingredient list by combining the base recipe
     /// with any modifier additions.
     /// </summary>
-    private static List<IngredientType> BuildExpectedIngredients(RecipeData recipe, OrderModifier modifier)
+    private static List<Constants.IngredientType> BuildExpectedIngredients(OrderItem recipe)
     {
-        var expected = new List<IngredientType>();
+        var expected = new List<Constants.IngredientType>();
 
         if (recipe.ingredients != null)
         {
             for (int i = 0; i < recipe.ingredients.Length; i++)
                 expected.Add(recipe.ingredients[i]);
-        }
-
-        if (modifier != null)
-        {
-            for (int i = 0; i < modifier.quantity; i++)
-                expected.Add(modifier.ingredient);
         }
 
         return expected;
@@ -82,15 +56,15 @@ public static class OrderValidator
     /// Order-insensitive comparison. Both lists must contain
     /// the same elements with the same counts.
     /// </summary>
-    private static bool IngredientsMatch(List<IngredientType> required, List<IngredientType> prepared)
+    private static bool IngredientsMatch(List<Constants.IngredientType> required, List<Constants.IngredientType> prepared)
     {
         if (required == null || prepared == null) return false;
         if (required.Count != prepared.Count) return false;
 
         // Build a frequency map of the required ingredients
-        var counts = new Dictionary<IngredientType, int>();
+        var counts = new Dictionary<Constants.IngredientType, int>();
 
-        foreach (IngredientType ing in required)
+        foreach (Constants.IngredientType ing in required)
         {
             if (counts.ContainsKey(ing))
                 counts[ing]++;
@@ -99,7 +73,7 @@ public static class OrderValidator
         }
 
         // Subtract prepared ingredients
-        foreach (IngredientType ing in prepared)
+        foreach (Constants.IngredientType ing in prepared)
         {
             if (!counts.ContainsKey(ing))
                 return false;

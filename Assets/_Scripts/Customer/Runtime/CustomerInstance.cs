@@ -5,27 +5,25 @@ using UnityEngine;
 /// Created by CustomerFactory from a CustomerArchetype.
 /// This is a plain C# class — lightweight, no MonoBehaviour overhead.
 /// </summary>
-public class CustomerInstance
+namespace Bufe
 {
-    public CustomerArchetype Archetype   { get; }
-    public CustomerMood      Mood        { get; }
-    public RecipeData        Order       { get; }
-    public OrderModifier     Modifier    { get; }  // Can be null
-    public Sprite            Sprite      { get; }
-
-    public CustomerInstance(
-        CustomerArchetype archetype,
-        CustomerMood mood,
-        RecipeData order,
-        OrderModifier modifier,
-        Sprite sprite)
+    public class CustomerInstance
     {
-        Archetype = archetype;
-        Mood      = mood;
-        Order     = order;
-        Modifier  = modifier;
-        Sprite    = sprite;
-    }
+        public CustomerArchetype Archetype   { get; }
+        public CustomerMood      Mood        { get; }
+        public OrderItem        Order       { get; }
+        public Sprite            Sprite      { get; }
 
-    public bool HasModifier => Modifier != null;
+        public CustomerInstance(
+            CustomerArchetype archetype,
+            CustomerMood mood,
+            OrderItem order,
+            Sprite sprite)
+        {
+            Archetype = archetype;
+            Mood      = mood;
+            Order     = order;
+            Sprite    = sprite;
+        }
+    }
 }

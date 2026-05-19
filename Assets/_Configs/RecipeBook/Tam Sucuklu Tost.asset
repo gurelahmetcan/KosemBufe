@@ -10,8 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 53abfc8e007ce4c6ea2f8b92b7a08a32, type: 3}
-  m_Name: SucukluTost
+  m_Name: Tam Sucuklu Tost
   m_EditorClassIdentifier: 
-  recipeName: SucukluTost
-  ingredients: 0100000002000000
+  recipeName: Tam Sucuklu Tost
+  price: 10
+  ingredients: 0100000003000000030000000300000003000000
   requiresCooking: 1
+  possibleModifiers: []
+  modifierChance: 0.3

@@ -4,11 +4,14 @@
 ///
 /// Uses PlayerHand instead of the legacy InHandController.
 /// </summary>
-public interface IAssemblyInteractable
+namespace Bufe
 {
-    /// <summary>Can the player interact right now given the current hand state?</summary>
-    bool CanInteract(PlayerHand hand);
+    public interface IAssemblyInteractable
+    {
+        /// <summary>Can the player interact right now given the current hand state?</summary>
+        bool CanInteract(PlayerHand hand);
 
-    /// <summary>Execute the interaction.</summary>
-    void Interact(PlayerHand hand);
+        /// <summary>Execute the interaction.</summary>
+        void Interact(PlayerHand hand);
+    }
 }

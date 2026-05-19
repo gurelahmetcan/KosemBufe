@@ -4,6 +4,9 @@
 /// TostBread and SucukItem check for this type in the player's hand
 /// to decide whether knife-specific interactions are available.
 /// </summary>
-public class KnifeItem : InteractableItem
+namespace Bufe
 {
+    public class KnifeItem : InteractableItem
+    {
+    }
 }

@@ -1,3 +1,4 @@
+using Bufe;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
@@ -66,20 +67,6 @@ public class InHandController : MonoBehaviour
                     heldHolder.ClearItems();
 
                 DropItem();
-            }
-            return;
-        }
-
-        // F key → flip (grill items)
-        if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
-        {
-            GameObject flipHit = RaycastTarget();
-            if (flipHit != null)
-            {
-                IFlippable flippable = flipHit.GetComponent<IFlippable>()
-                                    ?? flipHit.GetComponentInParent<IFlippable>();
-                if (flippable != null && flippable.CanFlip())
-                    flippable.Flip();
             }
             return;
         }
@@ -176,7 +163,7 @@ public class InHandController : MonoBehaviour
                 // Scene holder (e.g. Bread): reset to empty state instead of destroying
                 holder.ClearItems();
                 _heldItem.preparedIngredients.Clear();
-                _heldItem.cookState = CookState.Raw;
+                _heldItem.cookState = Constants.CookState.Raw;
             }
             else
             {

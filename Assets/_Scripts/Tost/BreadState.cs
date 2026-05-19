@@ -4,8 +4,8 @@
 /// </summary>
 public enum BreadState
 {
-    Whole,
-    Cut,
+    Full,
+    Half,
     Open,
     Closed,
     Toasting,

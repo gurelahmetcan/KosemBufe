@@ -13,24 +13,25 @@ using UnityEngine;
 /// CookState (set by the Grill). The ToastState on this object is set
 /// by the Toaster and applies to the whole stack.
 /// </summary>
-public class FinalizedStack : InteractableItem
+
+namespace Bufe
 {
-    [Tooltip("Toasting state of the whole stack. Set by the Toaster appliance.")]
-    public ToastState toastState = ToastState.None;
-
-    /// <summary>
-    /// Quick-access list of ingredient types in this stack (bottom to top).
-    /// Populated by PrepStation during finalization. Used for order validation.
-    /// </summary>
-    [HideInInspector]
-    public List<IngredientType> ingredientTypes = new List<IngredientType>();
-
-    /// <summary>
-    /// Returns all Ingredient components in this stack (child objects).
-    /// Use this to inspect individual cook states for validation.
-    /// </summary>
-    public Ingredient[] GetIngredients()
+    public class FinalizedStack : InteractableItem
     {
-        return GetComponentsInChildren<Ingredient>();
+        /// <summary>
+        /// Quick-access list of ingredient types in this stack (bottom to top).
+        /// Populated by PrepStation during finalization. Used for order validation.
+        /// </summary>
+        [HideInInspector]
+        public List<Constants.IngredientType> ingredientTypes = new List<Constants.IngredientType>();
+
+        /// <summary>
+        /// Returns all Ingredient components in this stack (child objects).
+        /// Use this to inspect individual cook states for validation.
+        /// </summary>
+        public Ingredient[] GetIngredients()
+        {
+            return GetComponentsInChildren<Ingredient>();
+        }
     }
 }
