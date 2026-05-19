@@ -1,7 +1,6 @@
 using Bufe.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 namespace Bufe
 {
@@ -26,9 +25,8 @@ namespace Bufe
         [SerializeField] private Transform exitPoint;
 
         [Header("UI & Systems")]
-        [FormerlySerializedAs("slicingController")]
-        [Tooltip("Player's InHandController — used to read the item in hand for validation.")]
-        [SerializeField] private InHandController ınHandController;
+        [Tooltip("Player's hand controller — used to read the item in hand for validation.")]
+        [SerializeField] private PlayerHand playerHand;
 
         [Tooltip("Unified customer UI — dialogue bubbles + accept/reject/close prompt.")]
         [SerializeField] private CustomerOrderUI customerUI;
@@ -310,7 +308,7 @@ namespace Bufe
         private void TryDeliver()
         {
             // Check if the player is holding anything (real item or B-key shortcut)
-            HoldableItem heldItem = ınHandController != null ? ınHandController.HeldItem : null;
+            InteractableItem heldItem = playerHand != null ? playerHand.HeldItem : null;
             bool hasItem = heldItem != null || _isHoldingOrder;
 
             if (!hasItem)
@@ -349,7 +347,7 @@ namespace Bufe
                 ShowResultExit();
 
                 // Always destroy the delivered item and clear the hand
-                ınHandController.DestroyHeldItem();
+                playerHand.DestroyHeldItem();
                 _isHoldingOrder = false;
                 EndOrder();
             }

@@ -1,8 +1,6 @@
 /// <summary>
-/// Contract for any object in the new assembly system that the player
-/// can interact with (PrepStation, new Grill, new Toaster, etc.).
-///
-/// Uses PlayerHand instead of the legacy InHandController.
+/// Contract for any object the player can interact with via PlayerHand.
+/// Implemented by stations, appliances, holders, and scene objects (door, shutter).
 /// </summary>
 namespace Bufe
 {

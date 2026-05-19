@@ -1,3 +1,4 @@
+using Bufe;
 using UnityEngine;
 
 /// <summary>
@@ -5,8 +6,8 @@ using UnityEngine;
 /// Each station implements its own interaction rules and logic.
 /// Attach a Collider alongside any Station subclass for raycast detection.
 /// </summary>
-public abstract class Station : MonoBehaviour, IInteractable
+public abstract class Station : MonoBehaviour, IAssemblyInteractable
 {
-    public abstract bool CanInteract(InHandController hand);
-    public abstract void Interact(InHandController hand);
+    public abstract bool CanInteract(PlayerHand hand);
+    public abstract void Interact(PlayerHand hand);
 }

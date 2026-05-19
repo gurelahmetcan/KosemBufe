@@ -1,3 +1,4 @@
+using Bufe;
 using UnityEngine;
 
 /// <summary>
@@ -6,14 +7,14 @@ using UnityEngine;
 /// </summary>
 public class CuttingBoard : Station
 {
-    public override bool CanInteract(InHandController hand)
+    public override bool CanInteract(PlayerHand hand)
     {
         if (hand.HeldItem == null) return false;
         if (hand.IsSliced) return false;
         return hand.HeldItem.GetComponent<SliceableItem>() != null;
     }
 
-    public override void Interact(InHandController hand)
+    public override void Interact(PlayerHand hand)
     {
         hand.SliceHeldItem();
     }
