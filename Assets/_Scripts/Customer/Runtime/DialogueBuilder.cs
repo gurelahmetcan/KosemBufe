@@ -37,7 +37,7 @@ namespace Bufe
             var mood = instance.Mood;
 
             string orderPhrase = mood.GetOrderPhrase();
-            orderPhrase = orderPhrase.Replace("{0}", instance.Order.itemName);
+            //orderPhrase = orderPhrase.Replace("{0}", instance.Order.itemName);
 
             return new OrderDialogue
             {

@@ -10,8 +10,7 @@ using UnityEngine;
 /// </summary>
 namespace Bufe
 {
-    [RequireComponent(typeof(Ingredient))]
-    public class SucukItem : MonoBehaviour, IAssemblyInteractable
+    public class SucukItem : InteractableItem, IAssemblyInteractable
     {
         [Tooltip("Prefab spawned for each slice. Must have an Ingredient component.")]
         public GameObject sucukSlicePrefab;
@@ -20,7 +19,7 @@ namespace Bufe
         public int sliceCount = 4;
 
         [Tooltip("Vertical offset between stacked slice objects after spawning.")]
-        public float sliceStackOffset = 0.015f;
+        public float sliceStackOffset = 0.1f;
 
         // ── IAssemblyInteractable ─────────────────────────────────────────────────
 
@@ -38,12 +37,13 @@ namespace Bufe
             }
 
             Vector3    spawnPos = transform.position;
-            Quaternion spawnRot = transform.rotation;
+            //Quaternion spawnRot = transform.rotation;
 
             for (int i = 0; i < sliceCount; i++)
             {
-                Vector3 pos = spawnPos + Vector3.up * (sliceStackOffset * i);
-                Instantiate(sucukSlicePrefab, pos, spawnRot);
+                Vector3 pos = spawnPos + Vector3.right * (sliceStackOffset * i);
+                GameObject obj = Instantiate(sucukSlicePrefab);
+                obj.transform.position = pos;
             }
 
             Debug.Log($"[SucukItem] Sliced into {sliceCount} pieces.");

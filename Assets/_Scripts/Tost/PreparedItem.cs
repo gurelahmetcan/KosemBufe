@@ -1,41 +1,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Core state machine for the toast preparation pipeline.
-///
-/// State flow:
-///   Whole ──(knife click)──► Cut  ──(empty hand on station)──► Open
-///   Whole ──(empty hand on station, Full size)──────────────► Open
-///   Open  ──(ingredient in hand)──► ingredient added (stays Open)
-///   Open  ──(empty hand)──────────► Closed
-///   Closed ──(toaster)────────────► Toasting ──► Toasted
-///
-/// Interactions are routed here via IAssemblyInteractable.
-/// PlayerHand picks this up as an InteractableItem when in Closed/Toasted state
-/// and the player has an empty hand.
-/// </summary>
-
 namespace Bufe
 {
     [RequireComponent(typeof(Collider))]
-    public class TostBread : InteractableItem, IAssemblyInteractable
+    public class PreparedItem : Ingredient, IAssemblyInteractable
     {
+        #region Serialized Fields
+        
         [Header("Placeholder Visuals")]
         [Tooltip("Active when bread is Whole (uncut).")]
-        public GameObject wholeBreadVisual;
+        [SerializeField] private GameObject wholeBreadVisual;
 
         [Tooltip("Active when bread has been cut in half.")]
-        public GameObject halfBreadVisual;
+        [SerializeField] private GameObject halfBreadVisual;
 
         [Tooltip("Active when bread is open and ready for filling.")]
-        public GameObject openBreadVisual;
+        [SerializeField] private GameObject openBreadVisual;
+        
+        public List<GameObject> physicalIngredients = new();
+        public Constants.CookState cookState = Constants.CookState.Raw;
+
+        #endregion
 
         // ── Runtime state ─────────────────────────────────────────────────────────
 
         public BreadState State    { get; private set; } = BreadState.Full;
-        public BreadSize  Size     { get; private set; } = BreadSize.Full;
-        public List<Constants.IngredientType> Ingredients { get; } = new List<Constants.IngredientType>();
+        
+        private List<Constants.IngredientType> Ingredients { get; } = new ();
 
         private PrepStation _station;
         private Toaster     _toaster;
@@ -117,25 +109,23 @@ namespace Bufe
             _toaster = toaster;
         }
 
-        // ── InteractableItem override ─────────────────────────────────────────────
-
         /// <summary>Notifies the station or toaster that this bread has been picked up.</summary>
         public override void OnPickedUp()
         {
             if (_station != null)
             {
-                _station.OnTostBreadPickedUp();
+                _station.OnPreparedItemPickedUp();
                 _station = null;
             }
 
             if (_toaster != null)
             {
-                _toaster.OnTostBreadPickedUp();
+                _toaster.OnPreparedItemPickedUp();
                 _toaster = null;
             }
         }
 
-        // ── Called by Toaster ────────────────────────────────────────────────────
+        #region Toaster Functions
 
         public void StartToasting()
         {
@@ -146,28 +136,38 @@ namespace Bufe
         public void FinishToasting()
         {
             State = BreadState.Toasted;
+            cookState = Constants.CookState.Cooked;
             RefreshVisuals();
-            Debug.Log("[TostBread] Toasted!");
+            Debug.Log("[PreparedItem] Toasted!");
         }
 
-        // ── Private state transitions ─────────────────────────────────────────────
+        #endregion
+
+        #region State Transitions
 
         private void Cut()
         {
-            Size  = BreadSize.Half;
             State = BreadState.Half;
+            ingredientType = Constants.IngredientType.Bread_Half;
             RefreshVisuals();
-            Debug.Log("[TostBread] Cut to half.");
+            Debug.Log("[PreparedItem] Cut to half.");
         }
 
         private void Open()
         {
             State = BreadState.Open;
             RefreshVisuals();
-            Debug.Log($"[TostBread] Opened ({Size}).");
+            Debug.Log($"[PreparedItem] Opened ({ingredientType}).");
         }
 
-        private void AddIngredient(Constants.IngredientType type, PlayerHand hand)
+        public void AddIngredient(Constants.IngredientType type)
+        {
+            Ingredients.Add(type);
+            
+            Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
+        }
+
+        public void AddIngredient(Constants.IngredientType type, PlayerHand hand)
         {
             Ingredients.Add(type);
 
@@ -179,10 +179,11 @@ namespace Bufe
                     ? openBreadVisual.transform
                     : transform;
 
+                physicalIngredients.Add(item.gameObject);
                 item.transform.SetParent(anchor);
                 // Stack each ingredient slightly above the previous one so they don't z-fight
-                item.transform.localPosition = new Vector3(0f, 0.02f * (Ingredients.Count - 1), 0f);
-                item.transform.localRotation = Quaternion.identity;
+                item.transform.localPosition = new Vector3(0f, 0f, 0.02f * (Ingredients.Count - 1));
+                //item.transform.localRotation = Quaternion.identity;
 
                 // Disable colliders — ingredient is now part of the bread, not independently pickable
                 foreach (Collider col in item.GetComponentsInChildren<Collider>())
@@ -193,27 +194,30 @@ namespace Bufe
                 if (rb != null) Destroy(rb);
             }
 
-            Debug.Log($"[TostBread] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
+            Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
         }
 
         private void Close()
         {
             State = BreadState.Closed;
+            AddIngredient(ingredientType);
             RefreshVisuals();
-            Debug.Log("[TostBread] Closed and ready for toaster.");
+            Debug.Log("[PreparedItem] Closed.");
         }
 
-        // ── Visuals ───────────────────────────────────────────────────────────────
+        #endregion
+        
+        #region Visuals
 
         private void RefreshVisuals()
         {
             bool isWhole  = State == BreadState.Full
-                         || (State == BreadState.Closed  && Size == BreadSize.Full)
-                         || (State == BreadState.Toasted && Size == BreadSize.Full);
+                            || (State == BreadState.Closed  && ingredientType == Constants.IngredientType.Bread_Full)
+                            || (State == BreadState.Toasted && ingredientType == Constants.IngredientType.Bread_Full);
 
             bool isHalf   = State == BreadState.Half
-                         || (State == BreadState.Closed  && Size == BreadSize.Half)
-                         || (State == BreadState.Toasted && Size == BreadSize.Half);
+                            || (State == BreadState.Closed  && ingredientType == Constants.IngredientType.Bread_Half)
+                            || (State == BreadState.Toasted && ingredientType == Constants.IngredientType.Bread_Half);
 
             bool isOpen   = State == BreadState.Open;
 
@@ -222,5 +226,7 @@ namespace Bufe
             if (openBreadVisual  != null) openBreadVisual.SetActive(isOpen);
             // Toasting state: all visuals off — bread is hidden inside the toaster
         }
+
+        #endregion
     }
 }

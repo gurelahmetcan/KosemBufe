@@ -22,7 +22,7 @@ namespace Bufe
         /// <summary>
         /// Selects a random weighted recipe from possibleOrders.
         /// </summary>
-        public OrderItem PickOrder()
+        public Order PickOrder()
         {
             if (possibleOrders == null || possibleOrders.Length == 0) return null;
 

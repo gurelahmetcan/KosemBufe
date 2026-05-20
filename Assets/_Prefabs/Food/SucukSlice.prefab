@@ -461,6 +461,7 @@ GameObject:
   - component: {fileID: 6909673740274136695}
   - component: {fileID: 4318487441635102569}
   - component: {fileID: 6486121493584658907}
+  - component: {fileID: 6685821309061786112}
   m_Layer: 0
   m_Name: Cylinder.003
   m_TagString: Untagged
@@ -540,6 +541,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &6685821309061786112
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6746549127166084146}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 6239881831769578202, guid: aa4b7a554f69a4ef1bc0ac5221d95c08, type: 3}
 --- !u!1 &7078193256821094703
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,7 +573,6 @@ GameObject:
   m_Component:
   - component: {fileID: 223654368416708660}
   - component: {fileID: 6774907533183763529}
-  - component: {fileID: 8892571885401633150}
   - component: {fileID: 6702744545471385858}
   m_Layer: 0
   m_Name: SucukSlice
@@ -567,7 +589,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7078193256821094703}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -580,7 +602,7 @@ Transform:
   - {fileID: 1762147420802082311}
   - {fileID: 3784991602070832081}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!114 &6774907533183763529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -594,33 +616,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ingredient
   itemName: Sucuk Slice
-  supportedProcesses: 0
-  ingredientType: 2
-  isClosingBread: 0
+  preparedIngredients: 
   cookState: 0
---- !u!136 &8892571885401633150
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7078193256821094703}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.15
-  m_Height: 0.3
-  m_Direction: 1
-  m_Center: {x: -0.05, y: 0, z: 0}
+  ingredientType: 3
 --- !u!54 &6702744545471385858
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -40,7 +40,7 @@ namespace Bufe
         // ── Public state ─────────────────────────────────────────────────────────
 
         public State            CurrentState { get; private set; } = State.Arriving;
-        public OrderItem       Recipe       { get; private set; }
+        public Order       Recipe       { get; private set; }
         public CustomerInstance Instance     { get; private set; }
 
         // ── Movement runtime ─────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ namespace Bufe
         /// Shows the order prompt — the recipe is stored but the timer has not started yet.
         /// Called by OrderManager when the player first clicks this customer.
         /// </summary>
-        public void ShowOrder(OrderItem recipe)
+        public void ShowOrder(Order recipe)
         {
             Recipe       = recipe;
             CurrentState = State.ShowingOrder;
@@ -100,7 +100,10 @@ namespace Bufe
 
             if (orderLabel != null && Recipe != null)
             {
-                orderLabel.text = Recipe.itemName;
+                foreach (var order in Recipe.slots)
+                {
+                    orderLabel.text += $" {order.target.itemName}";
+                }
                 orderLabel.gameObject.SetActive(true);
             }
         }
@@ -108,7 +111,7 @@ namespace Bufe
         /// <summary>
         /// Assigns a recipe to the customer and transitions to WaitingForFood.
         /// </summary>
-        public void AssignOrder(OrderItem recipe)
+        public void AssignOrder(Order recipe)
         {
             Recipe       = recipe;
             CurrentState = State.WaitingForFood;
@@ -116,7 +119,10 @@ namespace Bufe
 
             if (orderLabel != null)
             {
-                orderLabel.text = recipe.itemName;
+                foreach (var order in Recipe.slots)
+                {
+                    orderLabel.text += $" {order.target.itemName}";
+                }
                 orderLabel.gameObject.SetActive(true);
             }
         }

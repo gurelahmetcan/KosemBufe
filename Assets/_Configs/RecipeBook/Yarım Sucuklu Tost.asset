@@ -9,12 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53abfc8e007ce4c6ea2f8b92b7a08a32, type: 3}
+  m_Script: {fileID: 11500000, guid: c408c4625093d49ff936416465a26b10, type: 3}
   m_Name: "Yar\u0131m Sucuklu Tost"
-  m_EditorClassIdentifier: 
-  recipeName: "Yar\u0131m Sucuklu Tost"
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
+  itemName: "Yar\u0131m Sucuklu Tost"
   price: 10
+  icon: {fileID: 0}
+  category: 1
   ingredients: 020000000300000003000000
   requiresCooking: 1
-  possibleModifiers: []
-  modifierChance: 0.3

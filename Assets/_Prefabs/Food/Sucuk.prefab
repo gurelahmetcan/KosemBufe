@@ -280,7 +280,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7712496450471011780}
   - component: {fileID: 6113821158031742828}
-  - component: {fileID: 7188912680458708982}
   - component: {fileID: 4524180022938210956}
   m_Layer: 0
   m_Name: Sucuk
@@ -330,23 +329,6 @@ CapsuleCollider:
   m_Height: 0.9
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: -0.2}
---- !u!114 &7188912680458708982
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6997515067872796856}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb53304f86eab46069cf9a6d281a7e6e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Ingredient
-  itemName: Sucuk
-  supportedProcesses: 0
-  ingredientType: 2
-  isClosingBread: 0
-  cookState: 0
 --- !u!114 &4524180022938210956
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -359,6 +341,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70b7b33e66fca41a89ff579620652e02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SucukItem
+  itemName: Sucuk
+  preparedIngredients: 
+  cookState: 0
   sucukSlicePrefab: {fileID: 7078193256821094703, guid: b60a2021721dfb64caf1b030d20414bc, type: 3}
   sliceCount: 4
-  sliceStackOffset: 0.015
+  sliceStackOffset: 0.3

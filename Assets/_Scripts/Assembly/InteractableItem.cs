@@ -7,13 +7,7 @@ namespace Bufe
     {
         [Tooltip("Display name shown in the hand UI (e.g. 'Sucuk', 'Ekmek').")]
         public string itemName = "Item";
-
-        [Tooltip("Which ingredient this item represents (used for recipe validation).")]
-        public Constants.IngredientType ingredient = Constants.IngredientType.None;
-
-        [HideInInspector] public List<Constants.IngredientType> preparedIngredients = new();
-        [HideInInspector] public Constants.CookState cookState = Constants.CookState.Raw;
-
+        
         public Quaternion OriginalLocalRotation { get; private set; }
         public Vector3    OriginalLocalScale    { get; private set; }
 

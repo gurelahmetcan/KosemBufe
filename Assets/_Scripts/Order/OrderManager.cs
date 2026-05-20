@@ -56,10 +56,7 @@ namespace Bufe
 
         [Tooltip("Fallback delay if GameManager/GameConfig is not present.")]
         [SerializeField] private float timeBetweenCustomers = 3f;
-
-        [Tooltip("Fallback recipes — used only if CustomerFactory is not assigned.")]
-        [SerializeField] private OrderItem[] recipes;
-
+        
         [Header("Input")]
         [Tooltip("Key to simulate picking up the prepared item (dev shortcut).")]
         [SerializeField] private Key pickUpKey = Key.B;
@@ -188,16 +185,12 @@ namespace Bufe
 
         private void ShowOrderPrompt()
         {
-            OrderItem recipe;
+            Order recipe;
 
             // Use the factory-assigned recipe if available, else fallback to random
             if (_activeCustomer.Instance != null)
             {
                 recipe = _activeCustomer.Instance.Order;
-            }
-            else if (recipes != null && recipes.Length > 0)
-            {
-                recipe = recipes[Random.Range(0, recipes.Length)];
             }
             else
             {
@@ -208,7 +201,8 @@ namespace Bufe
             _activeCustomer.ShowOrder(recipe);
 
             // Build the prompt text from dialogue phrases
-            string promptText = recipe.itemName;
+            // todo(Ahmetcan): Fix here
+            string promptText = "TODO ";
             if (_activeCustomer.Instance != null)
             {
                 var dialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
@@ -232,7 +226,7 @@ namespace Bufe
             _activeCustomer.AcceptOrder();
             _orderActive = true;
 
-            Debug.Log($"Order accepted: {_activeCustomer.Recipe.itemName}");
+            Debug.Log($"Order accepted: TODO");
         }
 
         private void OnPromptReject()
@@ -316,20 +310,13 @@ namespace Bufe
                 Debug.Log("Cannot deliver — not holding anything!");
                 return;
             }
-
-            OrderItem recipe = _activeCustomer.Recipe;
-
-            // If using B-key shortcut (no real item), auto-succeed for testing
-            if (heldItem == null && _isHoldingOrder)
+            else
             {
-                Debug.Log("Order Delivered: SUCCESS (B-key shortcut)");
-                if (moneyManager != null)
-                    moneyManager.AddIncome(recipe.price);
-                ShowResultExit();
-                _isHoldingOrder = false;
-                EndOrder();
-                return;
+                Debug.Log($"Handed item - {heldItem.itemName}");
             }
+
+            /*
+            OrderItem recipe = _activeCustomer.Recipe;
 
             // Validate the held item against the recipe + modifier
             bool result = OrderValidator.Validate(
@@ -356,6 +343,7 @@ namespace Bufe
                 Debug.Log($"Order Delivered: Wrong Item");
                 return;
             }
+            */
         }
 
         private void EndOrder()

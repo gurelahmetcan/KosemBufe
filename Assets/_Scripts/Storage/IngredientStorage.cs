@@ -1,24 +1,6 @@
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// A world-placed storage container (e.g. a bag of potatoes, a block of cheese)
-/// that spawns one individual ingredient per player interaction.
-///
-/// Implements IAssemblyInteractable so PlayerHand detects and drives it via
-/// the standard left-click interaction flow — no changes to PlayerHand required.
-///
-/// The storage is infinite: it never runs out.
-/// The spawned prefab is placed in the player's hand immediately.
-///
-/// Setup:
-///   1. Add this component to the world GameObject representing the container.
-///   2. Assign an IngredientStorageData asset to the 'data' field.
-///   3. Optionally assign 'spawnPoint' — a child Transform from which the
-///      ingredient will be spawned (defaults to this object's position).
-///   4. Optionally assign 'label' for a world-space TextMeshPro name tag.
-///   5. Ensure a Collider is present on this GameObject for raycast detection.
-/// </summary>
 namespace Bufe
 {
     [RequireComponent(typeof(Collider))]

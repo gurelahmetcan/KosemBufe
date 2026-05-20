@@ -35,7 +35,7 @@ namespace Bufe
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
-    private TostBread     _bread;
+    private PreparedItem     _bread;
     private float         _timer;
     private ToasterState  _state = ToasterState.Empty;
 
@@ -74,7 +74,7 @@ namespace Bufe
     public bool CanInteract(PlayerHand hand)
     {
         // Insert: holding a closed TostBread + toaster is empty + lid is open
-        if (!hand.IsHandEmpty && hand.HeldItem is TostBread bread)
+        if (!hand.IsHandEmpty && hand.HeldItem is PreparedItem bread)
             return _state == ToasterState.Empty && bread.State == BreadState.Closed && lid.IsOpen;
 
         // Collect: empty hand + lid open + bread is ready or can be cancelled
@@ -86,7 +86,7 @@ namespace Bufe
 
     public void Interact(PlayerHand hand)
     {
-        if (!hand.IsHandEmpty && hand.HeldItem is TostBread)
+        if (!hand.IsHandEmpty && hand.HeldItem is PreparedItem)
         {
             InsertBread(hand);
             return;
@@ -105,7 +105,7 @@ namespace Bufe
     /// Notifies the toaster that the bread has been taken out, resetting state.
     /// Called via TostBread.OnPickedUp().
     /// </summary>
-    public void OnTostBreadPickedUp()
+    public void OnPreparedItemPickedUp()
     {
         _bread = null;
         _state = ToasterState.Empty;
@@ -116,7 +116,7 @@ namespace Bufe
 
     private void InsertBread(PlayerHand hand)
     {
-        _bread = hand.Release() as TostBread;
+        _bread = hand.Release() as PreparedItem;
 
         Transform anchor = breadSlot != null ? breadSlot : transform;
         _bread.transform.SetParent(anchor);
@@ -137,7 +137,6 @@ namespace Bufe
         // PlayerHand.PickUp finds disabled colliders via GetComponentsInChildren,
         // so no pre-enabling needed.
         hand.PickUp(_bread);
-        // TostBread.OnPickedUp fires → OnTostBreadPickedUp resets state.
     }
 
     private void HandleLidClosed()

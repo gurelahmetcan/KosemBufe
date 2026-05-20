@@ -27,7 +27,6 @@ namespace Bufe
         private Rigidbody        _heldRb;
         private Collider[]       _heldColliders;
         private string           _hoverLabel;
-        private HolderItem       _hoveredHolder;
 
         // ── Public API ───────────────────────────────────────────────────────────
 
@@ -96,17 +95,6 @@ namespace Bufe
 
             GameObject hit = RaycastTarget();
 
-            // World-space holder label (slot count display)
-            HolderItem newHolder = hit != null
-                ? (hit.GetComponent<HolderItem>() ?? hit.GetComponentInParent<HolderItem>())
-                : null;
-            if (newHolder != _hoveredHolder)
-            {
-                if (_hoveredHolder != null) _hoveredHolder.HideLabel();
-                _hoveredHolder = newHolder;
-                if (_hoveredHolder != null) _hoveredHolder.ShowLabel();
-            }
-
             // Status text label
             string label = hit != null ? GetHoverLabel(hit) : null;
             if (label == _hoverLabel) return;
@@ -116,11 +104,6 @@ namespace Bufe
 
         private void ClearHover()
         {
-            if (_hoveredHolder != null)
-            {
-                _hoveredHolder.HideLabel();
-                _hoveredHolder = null;
-            }
             if (_hoverLabel == null) return;
             _hoverLabel = null;
             RefreshUI();
@@ -186,10 +169,6 @@ namespace Bufe
             if (_heldColliders != null)
                 foreach (Collider col in _heldColliders)
                     if (col != null) col.enabled = true;
-
-            // Clear stored items if the dropped object is a holder
-            HolderItem holder = item.GetComponent<HolderItem>();
-            if (holder != null) holder.ClearItems();
 
             Camera cam = Camera.main;
             if (cam != null)

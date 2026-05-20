@@ -52,7 +52,7 @@ namespace Bufe
                 return null;
             }
 
-            OrderItem order = archetype.PickOrder();
+            Order order = archetype.PickOrder();
             if (order == null)
             {
                 Debug.LogError($"[CustomerFactory] Archetype '{archetype.archetypeName}' has no orders!");
