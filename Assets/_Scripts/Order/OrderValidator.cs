@@ -13,7 +13,8 @@ namespace Bufe
         {
             if (slot.target.category == Constants.ItemCategory.Premade)
             {
-                return heldItem is PremadeItem premade && premade.definition == slot.target;
+                PremadeItem premade = heldItem.GetComponent<PremadeItem>();
+                return premade != null && premade.definition == slot.target;
             }
             else
             {
