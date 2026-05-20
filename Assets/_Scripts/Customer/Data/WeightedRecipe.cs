@@ -13,7 +13,7 @@ namespace Bufe
     public struct WeightedRecipe
     {
         [Tooltip("The recipe this customer might order.")]
-        public Order recipe;
+        public RecipeData recipe;
 
         [Tooltip("Relative weight for random selection (e.g. 3 = three times as likely as weight 1).")]
         [Min(1)]

@@ -37,10 +37,10 @@ namespace Bufe
             {
                 cumulative += possibleOrders[i].weight;
                 if (roll < cumulative)
-                    return possibleOrders[i].recipe;
+                    return Order.FromRecipe(possibleOrders[i].recipe);
             }
 
-            return possibleOrders[0].recipe;
+            return Order.FromRecipe(possibleOrders[0].recipe);
         }
 
         /// <summary>

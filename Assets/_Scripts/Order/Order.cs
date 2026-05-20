@@ -8,5 +8,12 @@ namespace Bufe
         public List<OrderSlot> slots;
         public bool IsComplete => slots.All(s => s.isFulfilled);
         public float TotalPrice => slots.Sum(s => s.target.price);
+
+        public static Order FromRecipe(RecipeData data)
+        {
+            var order = new Order();
+            order.slots = data.items.Select(item => new OrderSlot { target = item }).ToList();
+            return order;
+        }
     }
 }

@@ -1,19 +1,15 @@
-using Bufe;
+using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewRecipe", menuName = "KosemBufe/Recipe Data")]
-public class RecipeData : ScriptableObject
+namespace Bufe
 {
-    [Tooltip("Display name shown above the customer (e.g. 'Tost').")]
-    public string recipeName = "Tost";
+    [CreateAssetMenu(fileName = "NewRecipe", menuName = "KosemBufe/Recipe")]
+    public class RecipeData : ScriptableObject
+    {
+        [Tooltip("Display name for this recipe (e.g. 'Tost + Ayran').")]
+        public string recipeName;
 
-    [Tooltip("How much the player earns for delivering this recipe.")]
-    [Min(0f)]
-    public float price = 10f;
-
-    [Tooltip("Exact ingredients required. Order doesn't matter.")]
-    public Constants.IngredientType[] ingredients;
-
-    [Tooltip("If true, the order must be toasted (CookState.Cooked) to succeed.")]
-    public bool requiresCooking = true;
+        [Tooltip("Items that make up this order. Each item becomes one slot the player must fulfill.")]
+        public List<OrderItem> items;
+    }
 }
