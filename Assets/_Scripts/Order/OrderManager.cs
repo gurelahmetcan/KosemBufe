@@ -301,49 +301,46 @@ namespace Bufe
 
         private void TryDeliver()
         {
-            // Check if the player is holding anything (real item or B-key shortcut)
             InteractableItem heldItem = playerHand != null ? playerHand.HeldItem : null;
-            bool hasItem = heldItem != null || _isHoldingOrder;
-
-            if (!hasItem)
+            if (heldItem == null)
             {
-                Debug.Log("Cannot deliver — not holding anything!");
+                Debug.Log("[OrderManager] Cannot deliver — not holding anything!");
                 return;
             }
-            else
+
+            Order order = _activeCustomer?.Instance?.Order;
+            if (order == null) return;
+
+            // Find the first unfulfilled slot that matches the held item
+            OrderSlot matched = null;
+            foreach (OrderSlot slot in order.slots)
             {
-                Debug.Log($"Handed item - {heldItem.itemName}");
+                if (!slot.isFulfilled && OrderValidator.ValidateSlot(slot, heldItem))
+                {
+                    matched = slot;
+                    break;
+                }
             }
 
-            /*
-            OrderItem recipe = _activeCustomer.Recipe;
-
-            // Validate the held item against the recipe + modifier
-            bool result = OrderValidator.Validate(
-                recipe,
-                heldItem.preparedIngredients,
-                heldItem.cookState
-            );
-
-            if (result)
+            if (matched == null)
             {
-                Debug.Log($"Order Delivered: ({recipe.itemName})");
+                Debug.Log($"[OrderManager] Wrong item: {heldItem.itemName}");
+                return;
+            }
+
+            matched.isFulfilled = true;
+            playerHand.DestroyHeldItem();
+            _isHoldingOrder = false;
+            Debug.Log($"[OrderManager] Slot fulfilled: {matched.target.itemName}");
+
+            if (order.IsComplete)
+            {
+                Debug.Log("[OrderManager] Order complete!");
                 if (reputationManager != null) reputationManager.ChangeReputation(+5);
-                if (moneyManager != null) moneyManager.AddIncome(recipe.price);
-
+                if (moneyManager != null) moneyManager.AddIncome(order.TotalPrice);
                 ShowResultExit();
-
-                // Always destroy the delivered item and clear the hand
-                playerHand.DestroyHeldItem();
-                _isHoldingOrder = false;
                 EndOrder();
             }
-            else
-            {
-                Debug.Log($"Order Delivered: Wrong Item");
-                return;
-            }
-            */
         }
 
         private void EndOrder()

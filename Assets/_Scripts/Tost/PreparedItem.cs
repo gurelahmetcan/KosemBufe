@@ -26,8 +26,9 @@ namespace Bufe
         // ── Runtime state ─────────────────────────────────────────────────────────
 
         public BreadState State    { get; private set; } = BreadState.Full;
-        
-        private List<Constants.IngredientType> Ingredients { get; } = new ();
+
+        private readonly List<Constants.IngredientType> _ingredients = new();
+        public IReadOnlyList<Constants.IngredientType> Ingredients => _ingredients;
 
         private PrepStation _station;
         private Toaster     _toaster;
@@ -162,14 +163,14 @@ namespace Bufe
 
         public void AddIngredient(Constants.IngredientType type)
         {
-            Ingredients.Add(type);
+            _ingredients.Add(type);
             
             Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
         }
 
         public void AddIngredient(Constants.IngredientType type, PlayerHand hand)
         {
-            Ingredients.Add(type);
+            _ingredients.Add(type);
 
             // Keep the ingredient visible inside the open bread rather than destroying it.
             InteractableItem item = hand.Release();
