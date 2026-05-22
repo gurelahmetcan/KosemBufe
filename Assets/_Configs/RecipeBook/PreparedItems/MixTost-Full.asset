@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c408c4625093d49ff936416465a26b10, type: 3}
-  m_Name: Tam Sucuklu Tost
+  m_Name: MixTost-Full
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
-  itemName: Tam Sucuklu Tost
-  price: 10
+  itemName: Full Mix Tost
+  price: 18
   icon: {fileID: 0}
   category: 1
-  ingredients: 0100000003000000030000000300000003000000
+  ingredients: 01000000030000000300000003000000030000000400000004000000
   requiresCooking: 1

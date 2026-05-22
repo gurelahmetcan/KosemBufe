@@ -21,5 +21,13 @@ MonoBehaviour:
   - recipe:
       items:
       - {fileID: 11400000, guid: 03de16249e094430ebabc784edd86f17, type: 2}
-      - {fileID: 11400000, guid: f90661b46ad4344ed8d6ad7cda5d9cf1, type: 2}
+      - {fileID: 11400000, guid: a19417e32884c4875b4c709cb8c59163, type: 2}
+    weight: 1
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: 4108eb36e0cad46878aea761a79be495, type: 2}
+    weight: 1
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: d4ffeefc565fc477891c00d5da17c9af, type: 2}
     weight: 1

@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using UnityEngine;
 using TMPro;
 
@@ -200,6 +202,18 @@ namespace Bufe
         private void SetAnimWaving(bool waving)
         {
             if (animator != null) animator.SetBool(AnimIsWaving, waving);
+        }
+
+        public void UpdateOrderText(OrderSlot matched)
+        {
+            if (orderLabel != null && Recipe != null)
+            {
+                orderLabel.text = String.Empty;
+                foreach (var order in Recipe.slots.Where(order => order != matched))
+                {
+                    orderLabel.text += $" {order.target.itemName}";
+                }
+            }
         }
     }
 

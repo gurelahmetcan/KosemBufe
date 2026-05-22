@@ -57,16 +57,11 @@ namespace Bufe
         [Tooltip("Fallback delay if GameManager/GameConfig is not present.")]
         [SerializeField] private float timeBetweenCustomers = 3f;
         
-        [Header("Input")]
-        [Tooltip("Key to simulate picking up the prepared item (dev shortcut).")]
-        [SerializeField] private Key pickUpKey = Key.B;
-
         #endregion
 
         #region Private Variables
 
         private Customer _activeCustomer;
-        private bool     _isHoldingOrder;
         private bool     _orderActive;
         private bool     _spawnScheduled;
         private bool     _spawningPaused;
@@ -128,23 +123,12 @@ namespace Bufe
 
         private void Update()
         {
-            HandlePickUpInput();
             HandleClickInput();
         }
 
         #endregion
 
         #region Input Handling
-
-        private void HandlePickUpInput()
-        {
-            Keyboard kb = Keyboard.current;
-            if (kb != null && kb[pickUpKey].wasPressedThisFrame)
-            {
-                _isHoldingOrder = true;
-                Debug.Log("Order picked up. isHoldingOrder = true");
-            }
-        }
 
         private void HandleClickInput()
         {
@@ -329,8 +313,8 @@ namespace Bufe
             }
 
             matched.isFulfilled = true;
+            _activeCustomer.UpdateOrderText(matched);
             playerHand.DestroyHeldItem();
-            _isHoldingOrder = false;
             Debug.Log($"[OrderManager] Slot fulfilled: {matched.target.itemName}");
 
             if (order.IsComplete)
@@ -425,7 +409,6 @@ namespace Bufe
 
             _activeCustomer = null;
             _orderActive    = false;
-            _isHoldingOrder = false;
             _spawnScheduled = false;
 
             HideUI();
@@ -458,7 +441,6 @@ namespace Bufe
             }
 
             _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
-            _isHoldingOrder = false;
 
             // Notify day manager that we have an active customer
             if (dayManager != null)
