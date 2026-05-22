@@ -150,8 +150,8 @@ namespace Bufe
             }
 
             item.transform.SetParent(holdPoint);
-            item.transform.localPosition = Vector3.zero;
-            item.transform.localRotation = Quaternion.identity;
+            item.transform.localPosition = item.InHandLocalPos;
+            item.transform.localRotation = item.InHandLocalRotation;
 
             item.OnPickedUp();
             RefreshUI();

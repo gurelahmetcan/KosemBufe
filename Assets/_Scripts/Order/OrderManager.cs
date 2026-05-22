@@ -310,7 +310,7 @@ namespace Bufe
 
             Order order = _activeCustomer?.Instance?.Order;
             if (order == null) return;
-
+            
             // Find the first unfulfilled slot that matches the held item
             OrderSlot matched = null;
             foreach (OrderSlot slot in order.slots)

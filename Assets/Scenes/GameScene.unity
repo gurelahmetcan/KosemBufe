@@ -3446,7 +3446,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrepStation
   stackAnchor: {fileID: 1230550389}
-  stackOffset: 0.05
 --- !u!1 &894727276
 GameObject:
   m_ObjectHideFlags: 0
@@ -7638,9 +7637,6 @@ MonoBehaviour:
   moneyManager: {fileID: 1927997798}
   orderDuration: 30
   timeBetweenCustomers: 3
-  recipes:
-  - {fileID: 11400000, guid: f90661b46ad4344ed8d6ad7cda5d9cf1, type: 2}
-  - {fileID: 11400000, guid: 03de16249e094430ebabc784edd86f17, type: 2}
   pickUpKey: 16
 --- !u!4 &1885800789
 Transform:
@@ -8209,6 +8205,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2472528519977882432, guid: 2def543d094014b28a55f1ed8934adb9, type: 3}
+      propertyPath: InHandLocalRotation.w
+      value: 0.65328145
+      objectReference: {fileID: 0}
+    - target: {fileID: 2472528519977882432, guid: 2def543d094014b28a55f1ed8934adb9, type: 3}
+      propertyPath: InHandLocalRotation.x
+      value: 0.65328145
+      objectReference: {fileID: 0}
+    - target: {fileID: 2472528519977882432, guid: 2def543d094014b28a55f1ed8934adb9, type: 3}
+      propertyPath: InHandLocalRotation.y
+      value: 0.27059805
+      objectReference: {fileID: 0}
+    - target: {fileID: 2472528519977882432, guid: 2def543d094014b28a55f1ed8934adb9, type: 3}
+      propertyPath: InHandLocalRotation.z
+      value: -0.27059805
+      objectReference: {fileID: 0}
     - target: {fileID: 3859906518469922953, guid: 2def543d094014b28a55f1ed8934adb9, type: 3}
       propertyPath: m_Name
       value: Knife

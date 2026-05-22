@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Bufe
 {
-    public class PremadeItem : MonoBehaviour
+    public class PremadeItem : Ingredient
     {
         public OrderItem definition;
     }
