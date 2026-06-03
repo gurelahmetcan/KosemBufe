@@ -186,24 +186,23 @@ public class DayManager : MonoBehaviour
     // ── Debug API ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Forces the day to end immediately, regardless of current phase.
-    /// Stops the clock, fires closing + end-of-day events, and starts next day.
+    /// Forces the day to end immediately from any phase.
+    /// Stops the clock, fires closing/end-of-day events, then opens the day-end screen
+    /// (same path as clicking the door — DayEndScreen drives BeginNextDay on Sleep).
     /// </summary>
+#if UNITY_EDITOR
+    [ContextMenu("Debug: Finish Day Now")]
+#endif
     public void ForceEndDay()
     {
         if (clock != null) clock.StopTicking();
 
-        // If we were Open, fire closing so OrderManager cleans up
         if (_currentPhase == DayPhase.Open || _currentPhase == DayPhase.PreOpen)
             OnClosingTimeReached?.Invoke();
 
-        int dayThatEnded = _currentDay;
-        _currentDay++;
-
-        Debug.Log($"[DayManager] DEBUG — forced end of day {dayThatEnded}.");
-        OnDayEnded?.Invoke(dayThatEnded);
-
-        BeginNewDay();
+        // Force phase so EndDay()'s guard doesn't block us
+        SetPhase(DayPhase.EndOfDay);
+        EndDay();
     }
 
     // ── Internal ─────────────────────────────────────────────────────────────
