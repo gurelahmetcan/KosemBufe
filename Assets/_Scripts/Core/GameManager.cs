@@ -163,15 +163,11 @@ namespace Bufe
         }
 
         /// <summary>
-        /// Coordinates day-end: expenses are already deducted by MoneyManager
-        /// (it listens to DayManager.OnDayEnded directly). We check if the
-        /// player survived and notify listeners.
+        /// Notifies listeners that the day has ended.
+        /// Expenses are deducted later — after the player clicks Sleep on the day-end screen.
         /// </summary>
         private void OnDayEnded(int dayNumber)
         {
-            // MoneyManager and OrderManager handle their own DayEnded logic.
-            // GameManager fires a "settled" event after all handlers have run,
-            // so UI or analytics can react to the final post-expense state.
             OnDaySettled?.Invoke(dayNumber);
 
             Debug.Log($"[GameManager] Day {dayNumber} settled. " +

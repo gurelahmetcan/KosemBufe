@@ -160,7 +160,7 @@ public class DayManager : MonoBehaviour
 
     /// <summary>
     /// Called when the player clicks the door to end the day.
-    /// Transitions from EndOfDay → PreOpen (next day).
+    /// Fires OnDayEnded and waits — DayEndScreen calls BeginNextDay() after the player sleeps.
     /// </summary>
     public void EndDay()
     {
@@ -169,9 +169,17 @@ public class DayManager : MonoBehaviour
         int dayThatEnded = _currentDay;
         _currentDay++;
 
-        Debug.Log($"[DayManager] Day {dayThatEnded} ended. Starting day {_currentDay}.");
+        Debug.Log($"[DayManager] Day {dayThatEnded} ended. Waiting for day-end screen.");
         OnDayEnded?.Invoke(dayThatEnded);
+    }
 
+    /// <summary>
+    /// Called by DayEndScreen when the player clicks Sleep.
+    /// Begins the next day (PreOpen phase).
+    /// </summary>
+    public void BeginNextDay()
+    {
+        Debug.Log($"[DayManager] Starting day {_currentDay}.");
         BeginNewDay();
     }
 

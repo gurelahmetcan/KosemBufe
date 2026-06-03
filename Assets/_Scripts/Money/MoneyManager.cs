@@ -2,9 +2,8 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Tracks the player's money balance.
-/// Other systems call AddIncome() and DeductExpense() to change the balance.
-/// Fires events so UI and game-over logic can react.
+/// Tracks the player's money balance and today's earnings.
+/// Expense deduction is driven by DayEndScreen — this class only provides AddIncome / DeductExpense primitives.
 /// </summary>
 public class MoneyManager : MonoBehaviour
 {
@@ -12,22 +11,10 @@ public class MoneyManager : MonoBehaviour
     [Tooltip("Fallback starting money if GameManager/GameConfig is not present.")]
     public float startingMoney = 500f;
 
-    [Tooltip("Expense configuration (rent, food, electricity costs).")]
-    public ExpenseConfig expenseConfig;
-
-    [Tooltip("Reference to the DayManager for daily/weekly expense deductions.")]
-    public DayManager dayManager;
-
     // ── Events ───────────────────────────────────────────────────────────────
 
     /// <summary>Fired whenever the balance changes. Passes (currentBalance, delta).</summary>
     public event Action<float, float> OnBalanceChanged;
-
-    /// <summary>Fired when daily expenses are deducted. Passes (foodCost, electricityCost).</summary>
-    public event Action<float, float> OnDailyExpensesDeducted;
-
-    /// <summary>Fired when weekly rent is deducted. Passes (rentCost).</summary>
-    public event Action<float> OnRentDeducted;
 
     /// <summary>Fired once when the balance reaches 0 or below.</summary>
     public event Action OnBankrupt;
@@ -37,36 +24,30 @@ public class MoneyManager : MonoBehaviour
     /// <summary>Current money balance.</summary>
     public float Balance { get; private set; }
 
+    /// <summary>Total income earned from orders since the last ResetDailyIncome call.</summary>
+    public float DailyIncome { get; private set; }
+
     /// <summary>True after the player has gone bankrupt.</summary>
     public bool IsBankrupt { get; private set; }
 
-    // ── Debug (Inspector buttons) ────────────────────────────────────────────
+    // ── Debug ────────────────────────────────────────────────────────────────
 
     [Header("Debug")]
-    [Tooltip("Amount used by the debug Add/Subtract buttons.")]
     public float debugAmount = 50f;
 
 #if UNITY_EDITOR
     [ContextMenu("Debug: Add Money")]
-    private void DebugAddMoney()
-    {
-        AddIncome(debugAmount);
-    }
+    private void DebugAddMoney() => AddIncome(debugAmount);
 
     [ContextMenu("Debug: Subtract Money")]
-    private void DebugSubtractMoney()
-    {
-        DeductExpense(debugAmount, "debug");
-    }
+    private void DebugSubtractMoney() => DeductExpense(debugAmount, "debug");
 #endif
 
-    // ── Init (called by GameManager) ────────────────────────────────────────
+    // ── Init (called by GameManager) ─────────────────────────────────────────
 
     private bool _initialized;
 
-    /// <summary>
-    /// Called by GameManager.ApplyConfig() to override the starting balance.
-    /// </summary>
+    /// <summary>Called by GameManager.ApplyConfig() to set the starting balance.</summary>
     public void Init(float starting)
     {
         Balance = starting;
@@ -77,40 +58,24 @@ public class MoneyManager : MonoBehaviour
 
     private void Awake()
     {
-        // Only use the inspector fallback if GameManager hasn't called Init()
         if (!_initialized)
             Balance = startingMoney;
     }
 
-    private void OnEnable()
-    {
-        if (dayManager != null)
-            dayManager.OnDayEnded += OnDayEnded;
-    }
-
-    private void OnDisable()
-    {
-        if (dayManager != null)
-            dayManager.OnDayEnded -= OnDayEnded;
-    }
-
     // ── Public API ───────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Add income (e.g. from a completed order).
-    /// </summary>
+    /// <summary>Add income (e.g. from a completed order). Also accumulates DailyIncome.</summary>
     public void AddIncome(float amount)
     {
         if (amount <= 0f) return;
 
         Balance += amount;
+        DailyIncome += amount;
         Debug.Log($"[Money] +{amount:F2} (order income) → Balance: {Balance:F2}");
         OnBalanceChanged?.Invoke(Balance, amount);
     }
 
-    /// <summary>
-    /// Deduct an expense from the balance. Triggers bankrupt if balance hits 0.
-    /// </summary>
+    /// <summary>Deduct an expense from the balance. Triggers bankruptcy if balance hits 0.</summary>
     public void DeductExpense(float amount, string reason = "")
     {
         if (amount <= 0f) return;
@@ -121,50 +86,17 @@ public class MoneyManager : MonoBehaviour
         CheckBankrupt();
     }
 
-    // ── Day-end expense logic ────────────────────────────────────────────────
-
-    private void OnDayEnded(int dayNumber)
+    /// <summary>Resets the daily income counter. Called by DayEndScreen after the player sleeps.</summary>
+    public void ResetDailyIncome()
     {
-        if (expenseConfig == null) return;
-
-        DeductDailyExpenses();
-
-        // Rent is weekly — deduct every 7 days
-        if (dayNumber % 7 == 0)
-            DeductRent();
+        DailyIncome = 0f;
     }
 
-    private void DeductDailyExpenses()
-    {
-        float food = expenseConfig.dailyFoodCost;
-        float electricity = expenseConfig.dailyElectricityCost;
-        float total = food + electricity;
-
-        if (total <= 0f) return;
-
-        Balance -= total;
-        Debug.Log($"[Money] Daily expenses: Food -{food:F2}, Electricity -{electricity:F2} → Balance: {Balance:F2}");
-        OnBalanceChanged?.Invoke(Balance, -total);
-        OnDailyExpensesDeducted?.Invoke(food, electricity);
-        CheckBankrupt();
-    }
-
-    private void DeductRent()
-    {
-        float rent = expenseConfig.weeklyRent;
-        if (rent <= 0f) return;
-
-        Balance -= rent;
-        Debug.Log($"[Money] Weekly rent: -{rent:F2} → Balance: {Balance:F2}");
-        OnBalanceChanged?.Invoke(Balance, -rent);
-        OnRentDeducted?.Invoke(rent);
-        CheckBankrupt();
-    }
+    // ── Internal ─────────────────────────────────────────────────────────────
 
     private void CheckBankrupt()
     {
-        if (IsBankrupt) return;
-        if (Balance > 0f) return;
+        if (IsBankrupt || Balance > 0f) return;
 
         IsBankrupt = true;
         Debug.Log("[Money] BANKRUPT — balance reached 0!");
