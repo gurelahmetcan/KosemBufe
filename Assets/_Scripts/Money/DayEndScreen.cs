@@ -56,6 +56,7 @@ namespace Bufe
         private void Start()
         {
             if (screenRoot != null) screenRoot.SetActive(false);
+            if (sleepButton != null) sleepButton.onClick.AddListener(HandleSleep);
         }
 
         private void OnEnable()
