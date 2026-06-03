@@ -281,6 +281,7 @@ GameObject:
   - component: {fileID: 7712496450471011780}
   - component: {fileID: 6113821158031742828}
   - component: {fileID: 4524180022938210956}
+  - component: {fileID: 2942637777396364312}
   m_Layer: 0
   m_Name: Sucuk
   m_TagString: Untagged
@@ -342,8 +343,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SucukItem
   itemName: Sucuk
-  preparedIngredients: 
-  cookState: 0
+  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  InHandLocalPos: {x: 0, y: 0, z: 0}
   sucukSlicePrefab: {fileID: 7078193256821094703, guid: b60a2021721dfb64caf1b030d20414bc, type: 3}
   sliceCount: 4
   sliceStackOffset: 0.3
+--- !u!54 &2942637777396364312
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6997515067872796856}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
