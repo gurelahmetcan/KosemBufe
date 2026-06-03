@@ -6,14 +6,13 @@ using TMPro;
 /// <summary>
 /// A single row in the day-end screen expense list.
 /// Mandatory rows show the amount in red and have no toggle.
-/// Preference rows have a toggle button; toggling off grays the row and skips the deduction.
+/// Preference rows have a Toggle component on toggleRoot; toggling off grays the row and skips deduction.
 ///
 /// Prefab structure:
 ///   ExpenseRow (this component)
-///     ├─ LabelText      (TextMeshProUGUI)
-///     ├─ AmountText     (TextMeshProUGUI)
-///     └─ ToggleRoot     (GameObject — only visible for preference expenses)
-///            └─ Button  (Button component — calls Toggle())
+///     ├─ LabelText   (TextMeshProUGUI)
+///     ├─ AmountText  (TextMeshProUGUI)
+///     └─ ToggleRoot  (GameObject with a Toggle component — hidden for mandatory expenses)
 /// </summary>
 public class ExpenseRowUI : MonoBehaviour
 {
@@ -21,7 +20,7 @@ public class ExpenseRowUI : MonoBehaviour
     public TextMeshProUGUI labelText;
     public TextMeshProUGUI amountText;
 
-    [Tooltip("Parent object for the toggle button. Hidden for mandatory expenses.")]
+    [Tooltip("GameObject with a Toggle component. Hidden for mandatory expenses.")]
     public GameObject toggleRoot;
 
     [Header("Colors")]
@@ -31,7 +30,7 @@ public class ExpenseRowUI : MonoBehaviour
     /// <summary>Whether this expense is currently set to be deducted.</summary>
     public bool IsEnabled { get; private set; } = true;
 
-    /// <summary>Fired when the player toggles this row. Passes the new enabled state.</summary>
+    /// <summary>Fired when the player changes the toggle. Passes the new enabled state.</summary>
     public event Action<bool> OnToggled;
 
     private float _amount;
@@ -44,30 +43,31 @@ public class ExpenseRowUI : MonoBehaviour
         _amount   = amount;
         IsEnabled = true;
 
-        if (labelText  != null) labelText.text = label;
+        if (labelText != null) labelText.text = label;
 
         if (toggleRoot != null)
         {
             toggleRoot.SetActive(!isMandatory);
 
-            var btn = toggleRoot.GetComponentInChildren<Button>();
-            if (btn != null) btn.onClick.AddListener(Toggle);
+            var toggle = toggleRoot.GetComponent<Toggle>();
+            if (toggle != null)
+            {
+                toggle.isOn = true;
+                toggle.onValueChanged.AddListener(OnToggleValueChanged);
+            }
         }
 
         Refresh();
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
+    // ── Internal ──────────────────────────────────────────────────────────────
 
-    /// <summary>Toggle enabled state. Wired to the row's Button via Setup().</summary>
-    public void Toggle()
+    private void OnToggleValueChanged(bool value)
     {
-        IsEnabled = !IsEnabled;
+        IsEnabled = value;
         Refresh();
         OnToggled?.Invoke(IsEnabled);
     }
-
-    // ── Internal ──────────────────────────────────────────────────────────────
 
     private void Refresh()
     {
