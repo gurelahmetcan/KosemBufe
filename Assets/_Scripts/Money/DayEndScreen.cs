@@ -11,6 +11,7 @@ namespace Bufe
         public MoneyManager moneyManager;
         public DayManager   dayManager;
         public ExpenseConfig expenseConfig;
+        public PlayerLook   playerLook;
 
         [Header("Screen Root")]
         [Tooltip("The panel GameObject to show/hide. Can be this GameObject or a child.")]
@@ -84,6 +85,7 @@ namespace Bufe
 
         private void Show()
         {
+            if (playerLook != null) playerLook.UIMode = true;
             if (screenRoot != null) screenRoot.SetActive(true);
 
             if (dayLabel    != null) dayLabel.text    = $"END OF DAY {_dayNumber}";
@@ -156,6 +158,7 @@ namespace Bufe
                 dayManager.BeginNextDay();
 
             if (screenRoot != null) screenRoot.SetActive(false);
+            if (playerLook != null) playerLook.UIMode = false;
         }
     }
 }
