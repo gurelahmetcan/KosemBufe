@@ -12,6 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39b64a47453814559aa3c02538c1c54d, type: 3}
   m_Name: ExpenseConfig
   m_EditorClassIdentifier: Assembly-CSharp::ExpenseConfig
-  weeklyRent: 200
-  dailyFoodCost: 30
-  dailyElectricityCost: 20
+  expenses:
+  - displayName: Bufe Expense
+    amount: 15
+    frequency: 0
+    isMandatory: 1
+  - displayName: Food
+    amount: 10
+    frequency: 0
+    isMandatory: 0
+  - displayName: Heat
+    amount: 5
+    frequency: 0
+    isMandatory: 0
+  - displayName: Rent
+    amount: 20
+    frequency: 1
+    isMandatory: 1

@@ -3,17 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// A single row in the day-end screen expense list.
-/// Mandatory rows show the amount in red and have no toggle.
-/// Preference rows have a Toggle component on toggleRoot; toggling off grays the row and skips deduction.
-///
-/// Prefab structure:
-///   ExpenseRow (this component)
-///     ├─ LabelText   (TextMeshProUGUI)
-///     ├─ AmountText  (TextMeshProUGUI)
-///     └─ ToggleRoot  (GameObject with a Toggle component — hidden for mandatory expenses)
-/// </summary>
 public class ExpenseRowUI : MonoBehaviour
 {
     [Header("UI References")]
