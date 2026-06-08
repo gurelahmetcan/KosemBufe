@@ -17,15 +17,19 @@ MonoBehaviour:
     amount: 15
     frequency: 0
     isMandatory: 1
+    needType: 0
   - displayName: Food
     amount: 10
     frequency: 0
     isMandatory: 0
+    needType: 1
   - displayName: Heat
     amount: 5
     frequency: 0
     isMandatory: 0
+    needType: 2
   - displayName: Rent
     amount: 20
     frequency: 1
     isMandatory: 1
+    needType: 0
