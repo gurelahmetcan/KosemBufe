@@ -3,7 +3,12 @@ guid: 9bb24e212db4c4c03bbbd8eb579e0992
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: yarimekmek
+    second: {fileID: 2100000, guid: 853fab4ccd09447798f4167de3bc781a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
