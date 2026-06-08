@@ -17,6 +17,13 @@ namespace Bufe
 
         [Tooltip("Active when bread is open and ready for filling.")]
         [SerializeField] private GameObject openBreadVisual;
+
+        [Header("Cutting")]
+        [Tooltip("Prefab spawned twice when the full bread is cut. Must have a PreparedItem component.")]
+        [SerializeField] private GameObject halfBreadPrefab;
+
+        [Tooltip("Half the gap between the two spawned halves (world units).")]
+        [SerializeField] private float halfSpawnOffset = 0.15f;
         
         public List<GameObject> physicalIngredients = new();
         public Constants.CookState cookState = Constants.CookState.Raw;
@@ -146,12 +153,45 @@ namespace Bufe
 
         #region State Transitions
 
-        private void Cut()
+        /// <summary>Sets this instance to the Half state. Call on freshly spawned half-bread objects.</summary>
+        public void InitAsHalf()
         {
             State = BreadState.Half;
             ingredientType = Constants.IngredientType.Bread_Half;
             RefreshVisuals();
-            Debug.Log("[PreparedItem] Cut to half.");
+        }
+
+        private void Cut()
+        {
+            if (halfBreadPrefab == null)
+            {
+                Debug.LogWarning("[PreparedItem] halfBreadPrefab is not assigned — cannot spawn two halves.");
+                return;
+            }
+
+            // Free the prep station slot before we destroy ourselves.
+            if (_station != null)
+            {
+                _station.OnPreparedItemPickedUp();
+                _station = null;
+            }
+
+            Vector3    spawnPos = transform.position;
+            Quaternion spawnRot = transform.rotation;
+            Vector3    right    = transform.right;
+
+            for (int i = 0; i < 2; i++)
+            {
+                float     sign   = i == 0 ? -1f : 1f;
+                Vector3   pos    = spawnPos + right * (halfSpawnOffset * sign);
+                GameObject obj   = Instantiate(halfBreadPrefab, pos, spawnRot);
+                PreparedItem half = obj.GetComponent<PreparedItem>();
+                if (half != null)
+                    half.InitAsHalf();
+            }
+
+            Debug.Log("[PreparedItem] Cut into two halves.");
+            Destroy(gameObject);
         }
 
         private void Open()
