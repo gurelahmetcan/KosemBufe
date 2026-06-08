@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Bufe.UI;
 
 namespace Bufe
 {
@@ -11,28 +12,29 @@ namespace Bufe
         public MoneyManager moneyManager;
         public DayManager   dayManager;
         public ExpenseConfig expenseConfig;
+        public FamilyManager familyManager;
         public PlayerLook   playerLook;
 
         [Header("Screen Root")]
-        [Tooltip("The panel GameObject to show/hide. Can be this GameObject or a child.")]
         public GameObject screenRoot;
 
         [Header("Header")]
         public TextMeshProUGUI dayLabel;
 
         [Header("Summary Rows")]
-        [Tooltip("Displays the carry-over balance from before today's earnings.")]
         public TextMeshProUGUI savingsText;
-
-        [Tooltip("Displays today's total order earnings.")]
         public TextMeshProUGUI earningsText;
 
-        [Header("Expense Rows")]
-        [Tooltip("Parent transform (e.g. VerticalLayoutGroup) where expense rows are spawned.")]
-        public Transform expenseContainer;
+        [Header("Shop Expense Rows")]
+        public Transform    expenseContainer;
+        public GameObject   expenseRowPrefab;
 
-        [Tooltip("Prefab with an ExpenseRowUI component.")]
-        public GameObject expenseRowPrefab;
+        [Header("Family Section")]
+        public Transform    familyContainer;
+        public GameObject   familyRowPrefab;
+
+        [Header("Surprise Event Row")]
+        public Transform    surpriseContainer;
 
         [Header("Footer")]
         public TextMeshProUGUI totalText;
@@ -51,24 +53,28 @@ namespace Bufe
         private readonly List<(ExpenseEntry entry, ExpenseRowUI row)> _expenseRows =
             new List<(ExpenseEntry, ExpenseRowUI)>();
 
+        private readonly List<(FamilyMemberState state, ExpenseRowUI medicineRow)> _medicineRows =
+            new List<(FamilyMemberState, ExpenseRowUI)>();
+
+        private SurpriseEvent _surpriseEvent;
+        private ExpenseRowUI  _surpriseRow;
+
         // ── Unity lifecycle ──────────────────────────────────────────────────────
 
         private void Start()
         {
-            if (screenRoot != null) screenRoot.SetActive(false);
+            if (screenRoot  != null) screenRoot.SetActive(false);
             if (sleepButton != null) sleepButton.onClick.AddListener(HandleSleep);
         }
 
         private void OnEnable()
         {
-            if (dayManager != null)
-                dayManager.OnDayEnded += HandleDayEnded;
+            if (dayManager != null) dayManager.OnDayEnded += HandleDayEnded;
         }
 
         private void OnDisable()
         {
-            if (dayManager != null)
-                dayManager.OnDayEnded -= HandleDayEnded;
+            if (dayManager != null) dayManager.OnDayEnded -= HandleDayEnded;
         }
 
         // ── Day-end entry point ───────────────────────────────────────────────────
@@ -86,80 +92,169 @@ namespace Bufe
 
         private void Show()
         {
-            if (playerLook != null) playerLook.UIMode = true;
-            if (screenRoot != null) screenRoot.SetActive(true);
+            if (playerLook  != null) playerLook.UIMode = true;
+            if (screenRoot  != null) screenRoot.SetActive(true);
 
-            if (dayLabel    != null) dayLabel.text    = $"END OF DAY {_dayNumber}";
-            if (savingsText != null) savingsText.text  = $"{_savings:F0}";
+            if (dayLabel     != null) dayLabel.text     = $"END OF DAY {_dayNumber}";
+            if (savingsText  != null) savingsText.text  = $"{_savings:F0}";
             if (earningsText != null) earningsText.text = $"+{_income:F0}";
 
             PopulateExpenseRows();
+            PopulateFamilyRows();
+            PopulateSurpriseRow();
             UpdateTotal();
         }
 
         private void PopulateExpenseRows()
         {
-            foreach (Transform child in expenseContainer)
-                Destroy(child.gameObject);
-
+            ClearContainer(expenseContainer);
             _expenseRows.Clear();
 
             if (expenseConfig == null || expenseRowPrefab == null || expenseContainer == null) return;
 
             foreach (var expense in expenseConfig.GetDueExpenses(_dayNumber))
             {
-                var go  = Instantiate(expenseRowPrefab, expenseContainer);
-                var row = go.GetComponent<ExpenseRowUI>();
+                var row = SpawnExpenseRow(expenseContainer, expense.displayName, expense.amount, expense.isMandatory);
                 if (row == null) continue;
 
-                row.Setup(expense.displayName, expense.amount, expense.isMandatory);
                 row.OnToggled += _ => UpdateTotal();
-
                 _expenseRows.Add((expense, row));
             }
         }
 
+        private void PopulateFamilyRows()
+        {
+            ClearContainer(familyContainer);
+            _medicineRows.Clear();
+
+            if (familyManager == null || familyRowPrefab == null || familyContainer == null) return;
+
+            foreach (var state in familyManager.States)
+            {
+                if (state.IsGone) continue;
+
+                var go  = Instantiate(familyRowPrefab, familyContainer);
+                var row = go.GetComponent<FamilyRowUI>();
+                if (row == null) continue;
+
+                row.Setup(state);
+
+                if (state.NeedsMedicine)
+                {
+                    var medRow = row.SpawnMedicineRow(expenseRowPrefab, state.Data.medicineCost);
+                    if (medRow != null)
+                    {
+                        medRow.OnToggled += _ => UpdateTotal();
+                        _medicineRows.Add((state, medRow));
+                    }
+                }
+            }
+        }
+
+        private void PopulateSurpriseRow()
+        {
+            ClearContainer(surpriseContainer);
+            _surpriseRow   = null;
+            _surpriseEvent = null;
+
+            if (familyManager == null || expenseRowPrefab == null || surpriseContainer == null) return;
+
+            _surpriseEvent = familyManager.GetTodaysSurpriseEvent(_dayNumber);
+            if (_surpriseEvent == null) return;
+
+            _surpriseRow = SpawnExpenseRow(surpriseContainer, _surpriseEvent.description, _surpriseEvent.cost, isMandatory: true);
+            if (_surpriseRow != null) _surpriseRow.OnToggled += _ => UpdateTotal();
+        }
+
+        // ── Footer update ─────────────────────────────────────────────────────────
+
         private void UpdateTotal()
         {
-            float totalDeductions = 0f;
-            foreach (var (entry, row) in _expenseRows)
-            {
-                if (row.IsEnabled) totalDeductions += entry.amount;
-            }
+            float deductions = 0f;
 
-            float newBalance = _savings + _income - totalDeductions;
+            foreach (var (entry, row) in _expenseRows)
+                if (row.IsEnabled) deductions += entry.amount;
+
+            foreach (var (state, row) in _medicineRows)
+                if (row.IsEnabled) deductions += state.Data.medicineCost;
+
+            if (_surpriseRow != null && _surpriseEvent != null && _surpriseRow.IsEnabled)
+                deductions += _surpriseEvent.cost;
+
+            float newBalance = _savings + _income - deductions;
 
             if (totalText != null)
             {
-                totalText.text  = $"${newBalance:F0}";
+                totalText.text  = $"{newBalance:F0}";
                 totalText.color = newBalance >= 0f ? positiveColor : negativeColor;
             }
         }
 
         // ── Sleep button ──────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Called by the Sleep button's OnClick.
-        /// Deducts all active expenses, resets daily income, and starts the next day.
-        /// </summary>
         public void HandleSleep()
         {
+            bool foodPaid = false;
+            bool heatPaid = false;
+
             if (moneyManager != null)
             {
+                // Pay shop expenses and detect food/heat state
                 foreach (var (entry, row) in _expenseRows)
                 {
-                    if (row.IsEnabled)
-                        moneyManager.DeductExpense(entry.amount, entry.displayName);
+                    if (!row.IsEnabled) continue;
+                    moneyManager.DeductExpense(entry.amount, entry.displayName);
+
+                    if (entry.needType == ExpenseNeedType.Food) foodPaid = true;
+                    if (entry.needType == ExpenseNeedType.Heat) heatPaid = true;
                 }
+
+                // Pay medicine per member
+                foreach (var (state, row) in _medicineRows)
+                {
+                    if (row.IsEnabled)
+                        moneyManager.DeductExpense(state.Data.medicineCost, "medicine");
+                }
+
+                // Pay surprise event if it exists (mandatory, auto-deducted)
+                if (_surpriseEvent != null)
+                    moneyManager.DeductExpense(_surpriseEvent.cost, _surpriseEvent.description);
 
                 moneyManager.ResetDailyIncome();
             }
 
+            // Build the set of members who received medicine
+            var medicated = new HashSet<FamilyMemberState>();
+            foreach (var (state, row) in _medicineRows)
+                if (row.IsEnabled) medicated.Add(state);
+
+            if (familyManager != null)
+                familyManager.ProcessDayEnd(foodPaid, heatPaid, medicated);
+
             if (dayManager != null)
                 dayManager.BeginNextDay();
 
-            if (screenRoot != null) screenRoot.SetActive(false);
-            if (playerLook != null) playerLook.UIMode = false;
+            if (screenRoot  != null) screenRoot.SetActive(false);
+            if (playerLook  != null) playerLook.UIMode = false;
         }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+
+        private ExpenseRowUI SpawnExpenseRow(Transform container, string label, float amount, bool isMandatory)
+        {
+            if (expenseRowPrefab == null || container == null) return null;
+            var go  = Instantiate(expenseRowPrefab, container);
+            var row = go.GetComponent<ExpenseRowUI>();
+            row?.Setup(label, amount, isMandatory);
+            return row;
+        }
+
+        private static void ClearContainer(Transform container)
+        {
+            if (container == null) return;
+            foreach (Transform child in container)
+                Destroy(child.gameObject);
+        }
+
     }
 }
