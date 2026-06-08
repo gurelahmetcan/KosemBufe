@@ -1,60 +1,55 @@
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// Displays the current money balance on the HUD.
-///
-/// Scene Setup:
-///   Canvas (Screen Space – Overlay)
-///     └─ MoneyPanel
-///         └─ BalanceText (TextMeshProUGUI, e.g. "₺ 500.00")
-/// </summary>
-public class MoneyUI : MonoBehaviour
+namespace Bufe.UI
 {
-    [Header("References")]
-    public MoneyManager moneyManager;
-
-    [Tooltip("Text showing the current balance.")]
-    public TextMeshProUGUI balanceText;
-
-    [Header("Format")]
-    [Tooltip("Prefix shown before the amount (e.g. currency symbol).")]
-    public string currencyPrefix = "₺";
-
-    [Header("Colors")]
-    public Color positiveColor = new Color(0.2f, 0.8f, 0.2f, 1f);
-    public Color negativeColor = new Color(0.9f, 0.2f, 0.2f, 1f);
-
-    private void Start()
+    public class MoneyUI : MonoBehaviour
     {
-        Refresh();
-    }
+        [Header("References")]
+        public MoneyManager moneyManager;
 
-    private void OnEnable()
-    {
-        if (moneyManager != null)
-            moneyManager.OnBalanceChanged += OnBalanceChanged;
+        [Tooltip("Text showing the current balance.")]
+        public TextMeshProUGUI balanceText;
 
-        Refresh();
-    }
+        [Header("Format")]
+        [Tooltip("Prefix shown before the amount (e.g. currency symbol).")]
+        public string currencyPrefix = "₺";
 
-    private void OnDisable()
-    {
-        if (moneyManager != null)
-            moneyManager.OnBalanceChanged -= OnBalanceChanged;
-    }
+        [Header("Colors")]
+        public Color positiveColor = new Color(0.2f, 0.8f, 0.2f, 1f);
+        public Color negativeColor = new Color(0.9f, 0.2f, 0.2f, 1f);
 
-    private void OnBalanceChanged(float current, float delta)
-    {
-        Refresh();
-    }
+        private void Start()
+        {
+            Refresh();
+        }
 
-    private void Refresh()
-    {
-        if (moneyManager == null || balanceText == null) return;
+        private void OnEnable()
+        {
+            if (moneyManager != null)
+                moneyManager.OnBalanceChanged += OnBalanceChanged;
 
-        float balance = moneyManager.Balance;
-        balanceText.text = $"{currencyPrefix} {balance:F2}";
-        balanceText.color = balance >= 0f ? positiveColor : negativeColor;
+            Refresh();
+        }
+
+        private void OnDisable()
+        {
+            if (moneyManager != null)
+                moneyManager.OnBalanceChanged -= OnBalanceChanged;
+        }
+
+        private void OnBalanceChanged(float current, float delta)
+        {
+            Refresh();
+        }
+
+        private void Refresh()
+        {
+            if (moneyManager == null || balanceText == null) return;
+
+            float balance = moneyManager.Balance;
+            balanceText.text = $"{currencyPrefix} {balance:F2}";
+            balanceText.color = balance >= 0f ? positiveColor : negativeColor;
+        }
     }
 }

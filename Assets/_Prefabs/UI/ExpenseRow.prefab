@@ -277,7 +277,7 @@ MonoBehaviour:
   amountText: {fileID: 2228318048894792537}
   toggleRoot: {fileID: 8000375403130894485}
   activeColor: {r: 0.85, g: 0.15, b: 0.15, a: 1}
-  inactiveColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+  inactiveColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2550867070203350953
 GameObject:
   m_ObjectHideFlags: 0

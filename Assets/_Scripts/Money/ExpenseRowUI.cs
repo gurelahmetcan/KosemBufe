@@ -3,71 +3,74 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class ExpenseRowUI : MonoBehaviour
+namespace Bufe
 {
-    [Header("UI References")]
-    public TextMeshProUGUI labelText;
-    public TextMeshProUGUI amountText;
-
-    [Tooltip("GameObject with a Toggle component. Hidden for mandatory expenses.")]
-    public GameObject toggleRoot;
-
-    [Header("Colors")]
-    public Color activeColor   = new Color(0.85f, 0.15f, 0.15f, 1f);
-    public Color inactiveColor = new Color(0.40f, 0.40f, 0.40f, 1f);
-
-    /// <summary>Whether this expense is currently set to be deducted.</summary>
-    public bool IsEnabled { get; private set; } = true;
-
-    /// <summary>Fired when the player changes the toggle. Passes the new enabled state.</summary>
-    public event Action<bool> OnToggled;
-
-    private float _amount;
-
-    // ── Setup ─────────────────────────────────────────────────────────────────
-
-    /// <summary>Initialize the row. Call once after Instantiate.</summary>
-    public void Setup(string label, float amount, bool isMandatory)
+    public class ExpenseRowUI : MonoBehaviour
     {
-        _amount   = amount;
-        IsEnabled = true;
+        [Header("UI References")]
+        public TextMeshProUGUI labelText;
+        public TextMeshProUGUI amountText;
 
-        if (labelText != null) labelText.text = label;
+        [Tooltip("GameObject with a Toggle component. Hidden for mandatory expenses.")]
+        public GameObject toggleRoot;
 
-        if (toggleRoot != null)
+        [Header("Colors")]
+        public Color activeColor   = new Color(0.85f, 0.15f, 0.15f, 1f);
+        public Color inactiveColor = Color.white;
+
+        /// <summary>Whether this expense is currently set to be deducted.</summary>
+        public bool IsEnabled { get; private set; } = true;
+
+        /// <summary>Fired when the player changes the toggle. Passes the new enabled state.</summary>
+        public event Action<bool> OnToggled;
+
+        private float _amount;
+
+        // ── Setup ─────────────────────────────────────────────────────────────────
+
+        /// <summary>Initialize the row. Call once after Instantiate.</summary>
+        public void Setup(string label, float amount, bool isMandatory)
         {
-            toggleRoot.SetActive(!isMandatory);
+            _amount   = amount;
+            IsEnabled = true;
 
-            var toggle = toggleRoot.GetComponent<Toggle>();
-            if (toggle != null)
+            if (labelText != null) labelText.text = label;
+
+            if (toggleRoot != null)
             {
-                toggle.isOn = true;
-                toggle.onValueChanged.AddListener(OnToggleValueChanged);
+                toggleRoot.SetActive(!isMandatory);
+
+                var toggle = toggleRoot.GetComponent<Toggle>();
+                if (toggle != null)
+                {
+                    toggle.isOn = true;
+                    toggle.onValueChanged.AddListener(OnToggleValueChanged);
+                }
             }
+
+            Refresh();
         }
 
-        Refresh();
-    }
+        // ── Internal ──────────────────────────────────────────────────────────────
 
-    // ── Internal ──────────────────────────────────────────────────────────────
+        private void OnToggleValueChanged(bool value)
+        {
+            IsEnabled = value;
+            Refresh();
+            OnToggled?.Invoke(IsEnabled);
+        }
 
-    private void OnToggleValueChanged(bool value)
-    {
-        IsEnabled = value;
-        Refresh();
-        OnToggled?.Invoke(IsEnabled);
-    }
+        private void Refresh()
+        {
+            if (amountText == null) return;
 
-    private void Refresh()
-    {
-        if (amountText == null) return;
+            Color c = IsEnabled ? activeColor : inactiveColor;
 
-        Color c = IsEnabled ? activeColor : inactiveColor;
+            amountText.text  = IsEnabled ? $"-{_amount:F0}" : "0";
+            amountText.color = c;
 
-        amountText.text  = IsEnabled ? $"-{_amount:F0}" : $"({_amount:F0})";
-        amountText.color = c;
-
-        if (labelText != null)
-            labelText.color = c;
+            if (labelText != null)
+                labelText.color = c;
+        }
     }
 }
