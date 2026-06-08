@@ -182,9 +182,10 @@ namespace Bufe
 
             for (int i = 0; i < 2; i++)
             {
-                float     sign   = i == 0 ? -1f : 1f;
-                Vector3   pos    = spawnPos + right * (halfSpawnOffset * sign);
-                GameObject obj   = Instantiate(halfBreadPrefab, pos, spawnRot);
+                float      sign = i == 0 ? -1f : 1f;
+                Vector3    pos  = spawnPos + right * (halfSpawnOffset * sign);
+                Quaternion rot  = i == 0 ? spawnRot : spawnRot * Quaternion.Euler(0f, 180f, 0f);
+                GameObject obj  = Instantiate(halfBreadPrefab, pos, rot);
                 PreparedItem half = obj.GetComponent<PreparedItem>();
                 if (half != null)
                     half.InitAsHalf();
