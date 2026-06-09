@@ -173,6 +173,8 @@ MonoBehaviour:
   wholeBreadVisual: {fileID: 7132364472039215450}
   halfBreadVisual: {fileID: 2865064122797191943}
   openBreadVisual: {fileID: 7014024678891208611}
+  halfBreadPrefab: {fileID: 7513634554787112371, guid: fccb055720cf144d3a6f42dbbe96ccec, type: 3}
+  halfSpawnOffset: 0
   physicalIngredients: []
   cookState: 0
 --- !u!54 &2906543850799357668
