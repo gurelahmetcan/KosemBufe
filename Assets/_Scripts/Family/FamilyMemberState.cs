@@ -25,40 +25,41 @@ namespace Bufe
         {
             if (IsGone) return;
 
-            // 1. Update hunger and cold counters (paying reduces them, not paying increases them)
+            // Snapshot before this day so new states set below don't self-increment.
+            bool wasSick     = SicknessDays > 0;
+            bool wasCritical = CriticalDays > 0;
+
+            // 1. Hunger / cold counters
             HungerDays = foodPaid ? Mathf.Max(0, HungerDays - 1) : HungerDays + 1;
             ColdDays   = heatPaid ? Mathf.Max(0, ColdDays   - 1) : ColdDays   + 1;
 
-            // 2. Crossing a threshold converts to sickness and resets the counter
-            if (HungerDays >= Data.hungerToSickDays)
+            // Crossing a threshold starts sickness. If already sick, don't restart the counter.
+            if (HungerDays >= Data.hungerToSickDays) { HungerDays = 0; if (!wasSick) SicknessDays = 1; }
+            if (ColdDays   >= Data.coldToSickDays)   { ColdDays   = 0; if (!wasSick) SicknessDays = 1; }
+
+            // 2. Medicine fully cures
+            if (medicinePaid) { SicknessDays = 0; CriticalDays = 0; return; }
+
+            // 3. Sickness auto-increments every day without medicine.
+            //    Only runs for members who were already sick at the start of this day
+            //    so the counter doesn't double-fire on the day sickness first starts.
+            if (wasSick)
             {
-                HungerDays = 0;
                 SicknessDays++;
+                if (SicknessDays >= Data.sickToCriticalDays)
+                {
+                    SicknessDays = 0;
+                    if (!wasCritical) CriticalDays = 1;
+                }
             }
 
-            if (ColdDays >= Data.coldToSickDays)
+            // 4. Critical auto-increments every day without medicine.
+            if (wasCritical)
             {
-                ColdDays = 0;
-                SicknessDays++;
-            }
-
-            // 3. Medicine fully cures sickness and critical (apply before threshold checks)
-            if (medicinePaid)
-            {
-                SicknessDays = 0;
-                CriticalDays = 0;
-            }
-
-            // 4. Sustained sickness becomes critical
-            if (SicknessDays >= Data.sickToCriticalDays)
-            {
-                SicknessDays = 0;
                 CriticalDays++;
+                if (CriticalDays >= Data.criticalToGoneDays)
+                    IsGone = true;
             }
-
-            // 5. Critical eventually means gone
-            if (CriticalDays >= Data.criticalToGoneDays)
-                IsGone = true;
         }
 
         private FamilyMemberStatus DeriveStatus()
