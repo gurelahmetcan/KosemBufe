@@ -17,6 +17,6 @@ MonoBehaviour:
   portrait: {fileID: 0}
   hungerToSickDays: 3
   coldToSickDays: 2
-  sickToCriticalDays: 3
+  sickToCriticalDays: 2
   criticalToGoneDays: 3
   medicineCost: 40
