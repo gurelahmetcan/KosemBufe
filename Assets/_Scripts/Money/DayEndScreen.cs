@@ -9,11 +9,12 @@ namespace Bufe
     public class DayEndScreen : MonoBehaviour
     {
         [Header("References")]
-        public MoneyManager moneyManager;
-        public DayManager   dayManager;
-        public ExpenseConfig expenseConfig;
-        public FamilyManager familyManager;
-        public PlayerLook   playerLook;
+        public MoneyManager        moneyManager;
+        public DayManager          dayManager;
+        public EventScreenManager  eventScreenManager;
+        public ExpenseConfig       expenseConfig;
+        public FamilyManager       familyManager;
+        public PlayerLook          playerLook;
 
         [Header("Screen Root")]
         public GameObject screenRoot;
@@ -69,17 +70,17 @@ namespace Bufe
 
         private void OnEnable()
         {
-            if (dayManager != null) dayManager.OnDayEnded += HandleDayEnded;
+            if (eventScreenManager != null) eventScreenManager.OnEventPhaseComplete += HandleEventPhaseComplete;
         }
 
         private void OnDisable()
         {
-            if (dayManager != null) dayManager.OnDayEnded -= HandleDayEnded;
+            if (eventScreenManager != null) eventScreenManager.OnEventPhaseComplete -= HandleEventPhaseComplete;
         }
 
         // ── Day-end entry point ───────────────────────────────────────────────────
 
-        private void HandleDayEnded(int dayNumber)
+        private void HandleEventPhaseComplete(int dayNumber)
         {
             _dayNumber = dayNumber;
             _income    = moneyManager != null ? moneyManager.DailyIncome : 0f;
