@@ -15,6 +15,7 @@ namespace Bufe
         public RelationshipManager relationshipManager;
         public FamilyManager       familyManager;
         public EventScreenUI       eventScreenUI;
+        public PlayerLook          playerLook;
 
         [Header("Event Pool")]
         [Tooltip("All authored events. Scheduled events (scheduledDay > 0) are handled automatically.")]
@@ -68,6 +69,7 @@ namespace Bufe
                 return;
             }
 
+            if (playerLook != null) playerLook.UIMode = true;
             ShowNext();
         }
 
@@ -107,6 +109,7 @@ namespace Bufe
             if (_todayQueue.Count == 0)
             {
                 eventScreenUI?.Hide();
+                if (playerLook != null) playerLook.UIMode = false;
                 OnEventPhaseComplete?.Invoke(_currentDay);
                 return;
             }
