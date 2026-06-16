@@ -3827,6 +3827,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 584012800}
   m_CullTransparentMesh: 1
+--- !u!1 &609390309
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 609390310}
+  m_Layer: 0
+  m_Name: OrderTicketTransform
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &609390310
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 609390309}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.549, y: 1.97, z: -0.168}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &619000379
 GameObject:
   m_ObjectHideFlags: 0
@@ -17722,6 +17753,8 @@ MonoBehaviour:
   customerFactory: {fileID: 3982511356272036155}
   dayManager: {fileID: 4959325853248670715}
   moneyManager: {fileID: 172574436740273684}
+  ticketPrefab: {fileID: 7856133579891206416, guid: 8910e55913c9844a196323a456b5c237, type: 3}
+  ticketSpawnPoint: {fileID: 609390310}
   orderDuration: 30
   timeBetweenCustomers: 3
 --- !u!224 &6776640461861741185
@@ -19194,3 +19227,4 @@ SceneRoots:
   - {fileID: 718685766}
   - {fileID: 1324444051}
   - {fileID: 2112226705}
+  - {fileID: 609390310}

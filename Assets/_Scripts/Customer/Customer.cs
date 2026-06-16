@@ -1,7 +1,4 @@
- using System;
-using System.Linq;
 using UnityEngine;
-using TMPro;
 
 /// <summary>
 /// 3D animated customer that walks to the counter, waves until the player
@@ -21,10 +18,6 @@ namespace Bufe
     public class Customer : MonoBehaviour
     {
         public enum State { Arriving, WaitingForOrder, ShowingOrder, WaitingForFood, Leaving }
-
-        [Header("UI")]
-        [Tooltip("World-space TextMeshPro label shown above the customer after ordering.")]
-        public TextMeshPro orderLabel;
 
         [Header("Animation")]
         [Tooltip("Animator on the 3D model child. Needs bool params: IsWalking, IsWaving.")]
@@ -99,15 +92,6 @@ namespace Bufe
         {
             CurrentState = State.WaitingForFood;
             SetAnimWaving(false); // → Idle
-
-            if (orderLabel != null && Recipe != null)
-            {
-                foreach (var order in Recipe.slots)
-                {
-                    orderLabel.text += $" {order.target.itemName}";
-                }
-                orderLabel.gameObject.SetActive(true);
-            }
         }
 
         /// <summary>
@@ -118,15 +102,6 @@ namespace Bufe
             Recipe       = recipe;
             CurrentState = State.WaitingForFood;
             SetAnimWaving(false); // → Idle
-
-            if (orderLabel != null)
-            {
-                foreach (var order in Recipe.slots)
-                {
-                    orderLabel.text += $" {order.target.itemName}";
-                }
-                orderLabel.gameObject.SetActive(true);
-            }
         }
 
         /// <summary>
@@ -137,9 +112,6 @@ namespace Bufe
             CurrentState = State.WaitingForOrder;
             Recipe       = null;
             SetAnimWaving(true);
-
-            if (orderLabel != null)
-                orderLabel.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -150,9 +122,6 @@ namespace Bufe
         {
             CurrentState = State.Leaving;
             SetAnimWaving(false);
-
-            if (orderLabel != null)
-                orderLabel.gameObject.SetActive(false);
 
             WalkTo(exitPos, () => Destroy(gameObject));
         }
@@ -202,18 +171,6 @@ namespace Bufe
         private void SetAnimWaving(bool waving)
         {
             if (animator != null) animator.SetBool(AnimIsWaving, waving);
-        }
-
-        public void UpdateOrderText(OrderSlot matched)
-        {
-            if (orderLabel != null && Recipe != null)
-            {
-                orderLabel.text = String.Empty;
-                foreach (var order in Recipe.slots.Where(order => order != matched))
-                {
-                    orderLabel.text += $" {order.target.itemName}";
-                }
-            }
         }
     }
 

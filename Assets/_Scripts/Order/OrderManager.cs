@@ -50,6 +50,13 @@ namespace Bufe
         [Tooltip("Money tracker — receives income from delivered orders.")]
         [SerializeField] private MoneyManager moneyManager;
 
+        [Header("Order Ticket")]
+        [Tooltip("Paper note prefab spawned on the counter to show the active order. Needs an OrderTicket component.")]
+        [SerializeField] private OrderTicket ticketPrefab;
+
+        [Tooltip("Where the order ticket is placed on the counter.")]
+        [SerializeField] private Transform ticketSpawnPoint;
+
         [Header("Settings")]
         [Tooltip("Fallback order duration if GameManager/GameConfig is not present.")]
         [SerializeField] private float orderDuration = 30f;
@@ -61,10 +68,11 @@ namespace Bufe
 
         #region Private Variables
 
-        private Customer _activeCustomer;
-        private bool     _orderActive;
-        private bool     _spawnScheduled;
-        private bool     _spawningPaused;
+        private Customer    _activeCustomer;
+        private bool        _orderActive;
+        private bool        _spawnScheduled;
+        private bool        _spawningPaused;
+        private OrderTicket _activeTicket;
 
         #endregion        
 
@@ -205,6 +213,8 @@ namespace Bufe
             _activeCustomer.AcceptOrder();
             _orderActive = true;
 
+            ShowOrderTicket(_activeCustomer.Recipe);
+
             Debug.Log($"Order accepted: TODO");
         }
 
@@ -273,7 +283,24 @@ namespace Bufe
             if (customerUI != null)
                 customerUI.Hide();
         }
-        
+
+        private void ShowOrderTicket(Order order)
+        {
+            if (ticketPrefab == null || ticketSpawnPoint == null) return;
+
+            HideOrderTicket();
+            _activeTicket = Instantiate(ticketPrefab, ticketSpawnPoint);
+            _activeTicket.SetOrder(order);
+        }
+
+        private void HideOrderTicket()
+        {
+            if (_activeTicket == null) return;
+
+            Destroy(_activeTicket.gameObject);
+            _activeTicket = null;
+        }
+
         #endregion
         
         #region Order Flow
@@ -308,7 +335,7 @@ namespace Bufe
             }
 
             matched.isFulfilled = true;
-            _activeCustomer.UpdateOrderText(matched);
+            _activeTicket?.SetOrder(order);
             playerHand.DestroyHeldItem();
             Debug.Log($"[OrderManager] Slot fulfilled: {matched.target.itemName}");
 
@@ -331,6 +358,8 @@ namespace Bufe
 
         private void SendCustomerAway()
         {
+            HideOrderTicket();
+
             if (_activeCustomer != null)
             {
                 if (exitPoint != null)
@@ -405,6 +434,7 @@ namespace Bufe
             _activeCustomer = null;
             _orderActive    = false;
             _spawnScheduled = false;
+            HideOrderTicket();
 
             HideUI();
         }
