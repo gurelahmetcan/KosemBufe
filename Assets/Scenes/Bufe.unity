@@ -8735,7 +8735,8 @@ MonoBehaviour:
   playerLook: {fileID: 1305962097448874051}
   eventPool:
   - {fileID: 11400000, guid: d0bfc4918f8124cfc9859395dfda709f, type: 2}
-  maxEventsPerDay: 3
+  - {fileID: 11400000, guid: 2d8df972b60684252a5056f281c41e16, type: 2}
+  maxEventsPerDay: 2
 --- !u!1001 &1399069649
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -185,13 +185,8 @@ namespace Bufe
             _activeCustomer.ShowOrder(recipe);
 
             // Build the prompt text from dialogue phrases
-            // todo(Ahmetcan): Fix here
-            string promptText = "TODO ";
-            if (_activeCustomer.Instance != null)
-            {
-                var dialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
-                promptText = dialogue.order;
-            }
+            var dialogue = DialogueBuilder.BuildOrderDialogue(_activeCustomer.Instance);
+            string promptText = dialogue.order;
 
             if (customerUI != null)
                 customerUI.ShowPrompt(promptText);

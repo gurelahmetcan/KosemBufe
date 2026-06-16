@@ -8,6 +8,9 @@
 ///   3. Exit line      → shown after delivery or timeout (positive / negative / timeout)
 /// </summary>
 
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Bufe
 {
     public static class DialogueBuilder
@@ -37,12 +40,23 @@ namespace Bufe
             var mood = instance.Mood;
 
             string orderPhrase = mood.GetOrderPhrase();
-            //orderPhrase = orderPhrase.Replace("{0}", instance.Order.itemName);
+            string foodName    = GetOrderFoodName(instance.Order);
+            orderPhrase = orderPhrase.Replace("{0}", foodName);
 
             return new OrderDialogue
             {
                 order    = orderPhrase,
             };
+        }
+
+        /// <summary>Joins the order's item names into a natural-language list, e.g. "A and B" or "A, B and C".</summary>
+        private static string GetOrderFoodName(Order order)
+        {
+            List<string> names = order?.slots?.Select(s => s.target.itemName).ToList();
+            if (names == null || names.Count == 0) return "something";
+            if (names.Count == 1) return names[0];
+
+            return string.Join(", ", names.Take(names.Count - 1)) + " and " + names[^1];
         }
 
         /// <summary>
