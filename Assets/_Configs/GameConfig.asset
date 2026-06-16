@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   maxReputation: 100
   startingReputation: 50
-  startingMoney: 400
+  startingMoney: 200
   orderDuration: 30
   timeBetweenCustomers: 3
   customerWalkSpeed: 2

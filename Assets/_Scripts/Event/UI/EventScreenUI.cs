@@ -215,8 +215,8 @@ namespace Bufe.UI
 
             if (effect.moneyDelta != 0f)
                 parts.Add(effect.moneyDelta > 0f
-                    ? $"+{effect.moneyDelta:F0}₺"
-                    : $"{effect.moneyDelta:F0}₺");
+                    ? $"+{effect.moneyDelta:F0}$"
+                    : $"{effect.moneyDelta:F0}$");
 
             if (effect.targetMember != null && effect.relationshipDelta != 0)
             {
