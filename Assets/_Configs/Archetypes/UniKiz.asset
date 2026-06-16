@@ -31,3 +31,7 @@ MonoBehaviour:
       items:
       - {fileID: 11400000, guid: d4ffeefc565fc477891c00d5da17c9af, type: 2}
     weight: 1
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: 376634102d91c4d79a788a1736704596, type: 2}
+    weight: 1

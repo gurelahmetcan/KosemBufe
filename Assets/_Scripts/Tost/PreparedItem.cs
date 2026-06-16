@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace Bufe
 {
+    [System.Serializable]
+    public class IngredientSocketGroup
+    {
+        public Constants.IngredientType ingredientType;
+        public List<Transform> sockets;
+    }
+
     [RequireComponent(typeof(Collider))]
     public class PreparedItem : Ingredient, IAssemblyInteractable
     {
@@ -27,6 +34,9 @@ namespace Bufe
         
         public List<GameObject> physicalIngredients = new();
         public Constants.CookState cookState = Constants.CookState.Raw;
+
+        [SerializeField] private List<IngredientSocketGroup> socketGroups;
+        private Dictionary<Constants.IngredientType, List<GameObject>> placedIngredients = new();
 
         #endregion
 
@@ -64,9 +74,9 @@ namespace Bufe
             if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half))
                 return true;
 
-            // Ingredient in hand + Open → add to filling
-            if (!hand.IsHandEmpty && hand.HeldItem is Ingredient && State == BreadState.Open)
-                return true;
+            // Ingredient in hand + Open → add to filling (only if a socket is free)
+            if (hand.HeldItem is Ingredient heldIngredient && State == BreadState.Open)
+                return HasFreeSocket(heldIngredient.ingredientType);
 
             // Empty hand + Open → close the bread
             if (hand.IsHandEmpty && State == BreadState.Open)
@@ -209,34 +219,62 @@ namespace Bufe
             Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
         }
 
-        public void AddIngredient(Constants.IngredientType type, PlayerHand hand)
+        /// <summary>True if this ingredient type has a defined socket group with at least one free socket.</summary>
+        public bool HasFreeSocket(Constants.IngredientType type)
         {
-            _ingredients.Add(type);
+            IngredientSocketGroup group = socketGroups?.Find(g => g.ingredientType == type);
+            if (group == null || group.sockets == null || group.sockets.Count == 0)
+                return false;
+
+            int placedCount = placedIngredients.TryGetValue(type, out List<GameObject> placed) ? placed.Count : 0;
+            return placedCount < group.sockets.Count;
+        }
+
+        public bool AddIngredient(Constants.IngredientType type, PlayerHand hand)
+        {
+            IngredientSocketGroup group = socketGroups?.Find(g => g.ingredientType == type);
+            if (group == null || group.sockets == null || group.sockets.Count == 0)
+            {
+                Debug.LogWarning($"[PreparedItem] No socket group defined for {type} — cannot place ingredient.");
+                return false;
+            }
+
+            if (!placedIngredients.TryGetValue(type, out List<GameObject> placedOfType))
+            {
+                placedOfType = new List<GameObject>();
+                placedIngredients[type] = placedOfType;
+            }
+
+            if (placedOfType.Count >= group.sockets.Count)
+            {
+                Debug.LogWarning($"[PreparedItem] All {type} sockets are full.");
+                return false;
+            }
+
+            Transform socket = group.sockets[placedOfType.Count];
 
             // Keep the ingredient visible inside the open bread rather than destroying it.
             InteractableItem item = hand.Release();
-            if (item != null)
-            {
-                Transform anchor = openBreadVisual != null
-                    ? openBreadVisual.transform
-                    : transform;
+            if (item == null) return false;
 
-                physicalIngredients.Add(item.gameObject);
-                item.transform.SetParent(anchor);
-                // Stack each ingredient slightly above the previous one so they don't z-fight
-                item.transform.localPosition = new Vector3(0f, 0f, 0.02f * (Ingredients.Count - 1));
-                //item.transform.localRotation = Quaternion.identity;
+            _ingredients.Add(type);
+            physicalIngredients.Add(item.gameObject);
+            placedOfType.Add(item.gameObject);
 
-                // Disable colliders — ingredient is now part of the bread, not independently pickable
-                foreach (Collider col in item.GetComponentsInChildren<Collider>())
-                    col.enabled = false;
+            item.transform.SetParent(socket);
+            item.transform.localPosition = Vector3.zero;
+            item.transform.localRotation = Quaternion.identity;
 
-                // Remove Rigidbody to prevent physics interference with the bread
-                Rigidbody rb = item.GetComponent<Rigidbody>();
-                if (rb != null) Destroy(rb);
-            }
+            // Disable colliders — ingredient is now part of the bread, not independently pickable
+            foreach (Collider col in item.GetComponentsInChildren<Collider>())
+                col.enabled = false;
+
+            // Remove Rigidbody to prevent physics interference with the bread
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null) Destroy(rb);
 
             Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
+            return true;
         }
 
         private void Close()

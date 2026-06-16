@@ -30,16 +30,8 @@ namespace Bufe
             return _preparedItem.CanInteract(hand);
         }
 
-        // ── Original stacking logic ──────────────────────────────────────────
-
-        // Holding an ingredient → can place (unless a finalized stack is waiting)
-        if (!hand.IsHandEmpty)
-        {
-            if (_preparedItem.State == BreadState.Closed) return false;
-            return hand.HeldItem is Ingredient;
-        }
-        
-        return _preparedItem.State == BreadState.Closed;
+        // No bread placed on the station yet — nothing to stack onto or pick up.
+        return false;
     }
 
     public void Interact(PlayerHand hand)
@@ -61,21 +53,8 @@ namespace Bufe
             return;
         }
 
-        // ── Holding an ingredient → place it on the stack ────────────────────
-        if (!hand.IsHandEmpty)
-        {
-            Ingredient ingredient = hand.HeldItem as Ingredient;
-            if (ingredient == null) return;
-
-            PlaceIngredient(ingredient, hand);
-            return;
-        }
-
-        // ── Empty hand interactions ──────────────────────────────────────────
-        if (_preparedItem.State == BreadState.Closed)
-        {
-            PickUpFinalizedStack(hand);
-        }
+        // No bread placed on the station yet — CanInteract already prevents
+        // reaching this point in that case, so there's nothing to do here.
     }
 
     // ── TostBread placement ──────────────────────────────────────────────────
@@ -85,7 +64,7 @@ namespace Bufe
         hand.Release();
 
         bread.transform.SetParent(stackAnchor, worldPositionStays: false);
-        bread.transform.localRotation = bread.OriginalLocalRotation;
+        bread.transform.localRotation = Quaternion.identity;
         bread.transform.localScale    = bread.OriginalLocalScale;
         bread.transform.localPosition = Vector3.zero;
 
@@ -111,26 +90,4 @@ namespace Bufe
         Debug.Log("[PrepStation] TostBread removed from station.");
     }
 
-    // ── Place an ingredient onto the stack ───────────────────────────────────
-
-    private void PlaceIngredient(Ingredient ingredient, PlayerHand hand)
-    {
-        _preparedItem.AddIngredient(ingredient.ingredientType, hand);
-        Debug.Log($"[PrepStation] Placed '{ingredient.itemName}' ({ingredient.ingredientType})");
-    }
-    
-
-    // ── Pick up the finalized stack ─────────────────────────────────────────
-
-    private void PickUpFinalizedStack(PlayerHand hand)
-    {
-        if (_preparedItem == null) return;
-
-        // hand.PickUp reparents to holdPoint and disables physics/colliders.
-        // The stack is already a child of stackAnchor with its collider
-        // enabled, so no manual unparenting or collider toggling is needed.
-        hand.PickUp(_preparedItem);
-
-        _preparedItem = null;
-    } }
-}
+} }
