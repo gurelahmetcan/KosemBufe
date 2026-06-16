@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KnifeItem
   itemName: Knife
-  InHandLocalRotation: {x: 0.65328145, y: 0.27059805, z: -0.27059805, w: 0.65328145}
+  InHandLocalRotation: {x: 0.3999728, y: 0.42346826, z: -0.5174457, w: 0.6268543}
   InHandLocalPos: {x: 0, y: 0, z: 0}
 --- !u!54 &862606024137412580
 Rigidbody:

@@ -4430,16 +4430,15 @@ PrefabInstance:
       propertyPath: m_Name
       value: professional_kitchen_fridge
       objectReference: {fileID: 0}
+    - target: {fileID: 2612671763540030576, guid: ec36fe752e0e640218c8a45319541e9e, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ec36fe752e0e640218c8a45319541e9e, type: 3}
---- !u!4 &627834030 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ec36fe752e0e640218c8a45319541e9e, type: 3}
-  m_PrefabInstance: {fileID: 627834029}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &655065612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8269,7 +8268,7 @@ Transform:
   - {fileID: 186273410}
   - {fileID: 1998663791}
   - {fileID: 1108578017}
-  - {fileID: 627834030}
+  - {fileID: 543450653114407750}
   - {fileID: 1627435163}
   - {fileID: 1570982002}
   - {fileID: 912351342}
@@ -12346,7 +12345,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.12, y: 0.1, z: 0.6}
+  m_Size: {x: 1, y: 0.1, z: 0.5}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &123426720119910040
 Transform:
@@ -12554,6 +12553,11 @@ MonoBehaviour:
   clockText: {fileID: 2479389927664376283}
   dayText: {fileID: 2113123491778118953}
   statusText: {fileID: 4812690837890920908}
+--- !u!4 &543450653114407750 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ec36fe752e0e640218c8a45319541e9e, type: 3}
+  m_PrefabInstance: {fileID: 627834029}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &561176872568553242
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12674,7 +12678,7 @@ Transform:
   m_GameObject: {fileID: 4702405306806872002}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0.548, y: 1.416, z: -2.572}
+  m_LocalPosition: {x: 0.548, y: 1.416, z: -2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -12835,8 +12839,8 @@ Transform:
   m_GameObject: {fileID: 6411494714478136887}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -6.3958626}
-  m_LocalScale: {x: 1, y: 1, z: 13.793104}
+  m_LocalPosition: {x: 0, y: 0, z: -5.53}
+  m_LocalScale: {x: 1, y: 1, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7567876349226117226}
@@ -17013,7 +17017,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHand
   holdPoint: {fileID: 8022421748961260019}
   interactRange: 10
-  throwForce: 5
+  throwForce: 10
+  throwHoldThreshold: 0.25
   handStatusText: {fileID: 5616473906547070961}
 --- !u!222 &6365854896481298652
 CanvasRenderer:
@@ -17503,7 +17508,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 0.1, z: 0.6}
+  m_LocalScale: {x: 1, y: 0.1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 633769805812357820}
@@ -17527,8 +17532,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 13.793198}
-  m_Center: {x: 0, y: 0, z: -6.3965993}
+  m_Size: {x: 1, y: 1, z: 11.159952}
+  m_Center: {x: 0, y: 0, z: -5.0799766}
 --- !u!114 &7104803813250682924
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17847,7 +17852,7 @@ Transform:
   m_GameObject: {fileID: 108644736662473504}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.307, z: 0.27821994}
+  m_LocalPosition: {x: 0, y: 0.307, z: 0.201}
   m_LocalScale: {x: 1, y: 0.05, z: 0.0435}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18020,7 +18025,7 @@ Transform:
   m_GameObject: {fileID: 8026987588016316248}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.35, y: -0.48, z: 0.584}
+  m_LocalPosition: {x: 0.329, y: -0.184, z: 0.642}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18038,7 +18043,7 @@ GameObject:
   m_Layer: 0
   m_Name: HandDisplayPoint
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1

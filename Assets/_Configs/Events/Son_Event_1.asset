@@ -22,7 +22,7 @@ MonoBehaviour:
       moneyDelta: -10
     followUpEvent: {fileID: 0}
     followUpDelay: 0
-  - label: I don't haev
+  - label: I don't have, sorry
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
       relationshipDelta: -1

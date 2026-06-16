@@ -14,8 +14,11 @@ namespace Bufe
         [Tooltip("Maximum raycast distance for clicking on items and stations.")]
         public float interactRange = 10f;
 
-        [Tooltip("Forward force applied to the item when dropped/thrown.")]
+        [Tooltip("Forward force applied to the item when thrown (right-click held).")]
         public float throwForce = 5f;
+
+        [Tooltip("How long the right mouse button must be held before it counts as a throw instead of a drop.")]
+        public float throwHoldThreshold = 0.25f;
 
         [Header("UI")]
         [Tooltip("Optional TextMeshProUGUI showing what the player is currently holding.")]
@@ -27,6 +30,7 @@ namespace Bufe
         private Rigidbody        _heldRb;
         private Collider[]       _heldColliders;
         private string           _hoverLabel;
+        private float            _rightPressTime = -1f;
 
         // ── Public API ───────────────────────────────────────────────────────────
 
@@ -56,10 +60,19 @@ namespace Bufe
 
             if (mouse.rightButton.wasPressedThisFrame)
             {
-                if (_heldItem != null)
-                    Drop();
-                return;
+                _rightPressTime = Time.time;
             }
+            else if (mouse.rightButton.wasReleasedThisFrame)
+            {
+                if (_heldItem != null)
+                {
+                    bool throwIt = _rightPressTime >= 0f && Time.time - _rightPressTime >= throwHoldThreshold;
+                    Drop(throwIt);
+                }
+                _rightPressTime = -1f;
+            }
+
+            if (mouse.rightButton.isPressed) return;
 
             if (!mouse.leftButton.wasPressedThisFrame) return;
 
@@ -157,7 +170,7 @@ namespace Bufe
             RefreshUI();
         }
 
-        public void Drop()
+        public void Drop(bool throwIt = true)
         {
             if (_heldItem == null) return;
 
@@ -171,15 +184,10 @@ namespace Bufe
                     if (col != null) col.enabled = true;
 
             Camera cam = Camera.main;
-            if (cam != null)
+            if (_heldRb != null)
             {
-                item.transform.position = cam.transform.position + cam.transform.forward * 1.5f;
-
-                if (_heldRb != null)
-                {
-                    _heldRb.isKinematic    = false;
-                    _heldRb.linearVelocity = cam.transform.forward * throwForce;
-                }
+                _heldRb.isKinematic    = false;
+                _heldRb.linearVelocity = (throwIt && cam != null) ? cam.transform.forward * throwForce : Vector3.zero;
             }
 
             item.OnDropped();
