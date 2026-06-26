@@ -165,25 +165,9 @@ namespace Bufe
         {
             var choice = evt.choices[choiceIndex];
 
-            foreach (var effect in choice.effects)
-            {
-                // Money
-                if (effect.moneyDelta != 0f && moneyManager != null)
-                {
-                    if (effect.moneyDelta < 0f)
-                        moneyManager.DeductExpense(-effect.moneyDelta, evt.name);
-                    else
-                        moneyManager.AddIncome(effect.moneyDelta);
-                }
-
-                // Relationship (family)
-                if (effect.targetMember != null && effect.relationshipDelta != 0)
-                    relationshipManager?.Modify(effect.targetMember, effect.relationshipDelta);
-
-                // Relationship (faction)
-                if (effect.targetFaction != null && effect.factionDelta != 0)
-                    FactionManager.Instance?.Modify(effect.targetFaction, effect.factionDelta);
-            }
+            // Night has no counter to place items on, so no grant point is passed.
+            EffectResolver.Apply(choice.effects, moneyManager, relationshipManager,
+                                 FactionManager.Instance, itemGrantPoint: null, moneyReason: evt.name);
 
             // Schedule follow-up for a future day
             if (choice.followUpEvent != null)

@@ -371,42 +371,12 @@ namespace Bufe
             SendCustomerAway();
         }
 
-        /// <summary>Applies a list of authored effects: money / faction / family / item grant.</summary>
+        /// <summary>Applies authored effects via the shared resolver, granting items at the counter.</summary>
         private void ApplyEffects(List<EventEffect> effects)
         {
-            if (effects == null) return;
-
-            foreach (EventEffect effect in effects)
-            {
-                if (effect.moneyDelta != 0f && moneyManager != null)
-                {
-                    if (effect.moneyDelta < 0f) moneyManager.DeductExpense(-effect.moneyDelta, "Faction");
-                    else                        moneyManager.AddIncome(effect.moneyDelta);
-                }
-
-                if (effect.targetFaction != null && effect.factionDelta != 0)
-                    FactionManager.Instance?.Modify(effect.targetFaction, effect.factionDelta);
-
-                if (effect.targetMember != null && effect.relationshipDelta != 0)
-                    RelationshipManager.Instance?.Modify(effect.targetMember, effect.relationshipDelta);
-
-                if (effect.grantedItemPrefab != null)
-                    GrantItem(effect.grantedItemPrefab);
-            }
-        }
-
-        /// <summary>Spawns a granted item on the counter for the player to pick up.</summary>
-        private void GrantItem(InteractableItem prefab)
-        {
-            Transform point = itemGrantPoint != null ? itemGrantPoint : ticketSpawnPoint;
-            if (point == null)
-            {
-                Debug.LogWarning("[OrderManager] No itemGrantPoint/ticketSpawnPoint set — cannot grant item.", this);
-                return;
-            }
-
-            Instantiate(prefab, point.position, point.rotation);
-            Debug.Log($"[OrderManager] Granted item '{prefab.itemName}' at {point.name}.");
+            Transform grantPoint = itemGrantPoint != null ? itemGrantPoint : ticketSpawnPoint;
+            EffectResolver.Apply(effects, moneyManager, RelationshipManager.Instance,
+                                 FactionManager.Instance, grantPoint, "Faction");
         }
 
         private void SetCameraLocked(bool locked)
