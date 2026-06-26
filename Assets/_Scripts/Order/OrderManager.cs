@@ -105,6 +105,9 @@ namespace Bufe
         private OrderTicket _activeTicket;
         private int         _normalCustomersToday;
 
+        // Day-büfe events scheduled as follow-ups (from any event's choice), due today.
+        private readonly List<FactionInteraction> _followUpDaySpawns = new List<FactionInteraction>();
+
         #endregion        
 
         /// <summary>When true, no new customers will spawn until resumed.</summary>
@@ -133,6 +136,7 @@ namespace Bufe
 
             if (dayManager != null)
             {
+                dayManager.OnDayStarted += OnDayStarted;
                 dayManager.OnCustomerSpawnTick += OnSpawnTick;
                 dayManager.OnClosingTimeReached += OnClosingTime;
                 dayManager.OnDayEnded += OnDayEnded;
@@ -156,6 +160,7 @@ namespace Bufe
 
             if (dayManager != null)
             {
+                dayManager.OnDayStarted -= OnDayStarted;
                 dayManager.OnCustomerSpawnTick -= OnSpawnTick;
                 dayManager.OnClosingTimeReached -= OnClosingTime;
                 dayManager.OnDayEnded -= OnDayEnded;
@@ -532,7 +537,7 @@ namespace Bufe
                 // Shop closed: still honor any scripted faction member that hasn't appeared yet.
                 if (!dayManager.IsOpenForCustomers)
                 {
-                    FactionSpawnEntry pending = GetPendingFactionSpawnToday();
+                    FactionInteraction pending = GetPendingFactionInteractionToday();
                     if (pending != null)
                     {
                         SpawnFactionMember(pending);   // re-occupies the customer slot
@@ -567,6 +572,13 @@ namespace Bufe
 
         #region Day System Controls
 
+        /// <summary>Called when the shutter opens. Pull any day-büfe events scheduled for today.</summary>
+        private void OnDayStarted()
+        {
+            if (EventScreenManager.Instance != null && dayManager != null)
+                _followUpDaySpawns.AddRange(EventScreenManager.Instance.ConsumeDueDayEvents(dayManager.CurrentDay));
+        }
+
         /// <summary>Called by DayManager on each spawn-interval tick while the shop is open.</summary>
         private void OnSpawnTick()
         {
@@ -583,7 +595,7 @@ namespace Bufe
             if (_activeCustomer != null || dayManager == null) return;
 
             // Honor any scripted faction member that hasn't appeared yet today.
-            FactionSpawnEntry pending = GetPendingFactionSpawnToday();
+            FactionInteraction pending = GetPendingFactionInteractionToday();
             if (pending != null)
                 SpawnFactionMember(pending);
             else
@@ -604,6 +616,7 @@ namespace Bufe
             _orderActive          = false;
             _spawnScheduled       = false;
             _normalCustomersToday = 0;
+            _followUpDaySpawns.Clear();
             HideOrderTicket();
 
             HideUI();
@@ -636,10 +649,10 @@ namespace Bufe
             }
 
             // Scripted faction member takes priority as today's spawn.
-            FactionSpawnEntry due = GetDueFactionSpawn();
-            if (due != null)
+            FactionInteraction dueInteraction = GetDueFactionInteraction();
+            if (dueInteraction != null)
             {
-                SpawnFactionMember(due);
+                SpawnFactionMember(dueInteraction);
                 return;
             }
 
@@ -726,26 +739,60 @@ namespace Bufe
             return null;
         }
 
-        /// <summary>Spawns a scripted faction member: walks to the counter and waits until clicked.</summary>
-        private void SpawnFactionMember(FactionSpawnEntry entry)
+        /// <summary>
+        /// The day-büfe interaction due now: a count-gated seed entry, else a follow-up day
+        /// event scheduled for today. Returns null if none is ready.
+        /// </summary>
+        private FactionInteraction GetDueFactionInteraction()
         {
-            entry.spawned = true;
+            FactionSpawnEntry seed = GetDueFactionSpawn();
+            if (seed != null) { seed.spawned = true; return seed.interaction; }
 
+            if (_followUpDaySpawns.Count > 0)
+            {
+                FactionInteraction fi = _followUpDaySpawns[0];
+                _followUpDaySpawns.RemoveAt(0);
+                return fi;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Any day-büfe interaction still owed today (seed or follow-up), ignoring the
+        /// customer-count gate. Used to force it to appear before the day ends.
+        /// </summary>
+        private FactionInteraction GetPendingFactionInteractionToday()
+        {
+            FactionSpawnEntry seed = GetPendingFactionSpawnToday();
+            if (seed != null) { seed.spawned = true; return seed.interaction; }
+
+            if (_followUpDaySpawns.Count > 0)
+            {
+                FactionInteraction fi = _followUpDaySpawns[0];
+                _followUpDaySpawns.RemoveAt(0);
+                return fi;
+            }
+            return null;
+        }
+
+        /// <summary>Spawns a faction member: walks to the counter and waits until clicked.</summary>
+        private void SpawnFactionMember(FactionInteraction interaction)
+        {
             _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
-            _activeCustomer.InitialiseFaction(entry.interaction);
+            _activeCustomer.InitialiseFaction(interaction);
 
             if (dayManager != null)
                 dayManager.SetActiveCustomer(true);
 
             // Collect members announce what they want on arrival; offer members wait silently.
             System.Action onArrived = null;
-            if (entry.interaction.kind == InteractionKind.Collect)
-                onArrived = () => { if (customerUI != null) customerUI.ShowLine(entry.interaction.dialogue); };
+            if (interaction.kind == InteractionKind.Collect)
+                onArrived = () => { if (customerUI != null) customerUI.ShowLine(interaction.dialogue); };
 
             if (counterPoint != null)
                 _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation, onArrived);
 
-            Debug.Log($"[OrderManager] Faction member spawned: {entry.interaction.memberName} (Day {entry.day}, {entry.interaction.kind}).");
+            Debug.Log($"[OrderManager] Faction member spawned: {interaction.memberName} ({interaction.kind}).");
         }
 
         #endregion

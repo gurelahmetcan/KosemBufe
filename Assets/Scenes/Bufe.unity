@@ -18303,9 +18303,6 @@ MonoBehaviour:
   - day: 1
     spawnAfterCustomers: 0
     interaction: {fileID: 11400000, guid: 991e5df78942d411aadc21bbdfb76757, type: 2}
-  - day: 2
-    spawnAfterCustomers: 0
-    interaction: {fileID: 11400000, guid: 0106e489e30454a37857c7aeb5138a2f, type: 2}
   factionReactionDuration: 1.2
   itemGrantPoint: {fileID: 566407492}
 --- !u!224 &6776640461861741185

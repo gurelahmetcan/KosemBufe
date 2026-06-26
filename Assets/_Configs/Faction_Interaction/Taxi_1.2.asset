@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Taxi_1.2
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.FactionInteraction
   faction: {fileID: 11400000, guid: af8f0ec2e86c74671ae951fa6ce12284, type: 2}
-  memberName: "Z\u0131b\u0131r To\xE7"
+  memberName: "Z\u0131p\u0131r To\xE7"
   portrait: {fileID: 0}
   kind: 1
   dialogue: I'm here for the package, boss!

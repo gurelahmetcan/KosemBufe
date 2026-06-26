@@ -21,8 +21,10 @@ namespace Bufe
     /// Create via: Assets → Create → Kosem Bufe → Faction Interaction
     /// </summary>
     [CreateAssetMenu(fileName = "FactionInteraction", menuName = "Kosem Bufe/Faction Interaction")]
-    public class FactionInteraction : ScriptableObject
+    public class FactionInteraction : GameEvent
     {
+        public override EventSurface Surface => EventSurface.DayBufe;
+
         [Header("Member")]
         [Tooltip("Which faction this member belongs to — drives the inline relationship bar.")]
         public FactionData faction;

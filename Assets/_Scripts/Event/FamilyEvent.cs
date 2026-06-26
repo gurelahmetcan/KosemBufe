@@ -37,16 +37,19 @@ namespace Bufe
         [Tooltip("All effects that fire when this choice is selected.")]
         public List<EventEffect> effects = new List<EventEffect>();
 
-        [Tooltip("Optional event to schedule after this choice. Fires on a future day, not immediately.")]
-        public FamilyEvent followUpEvent;
+        [Tooltip("Optional event to schedule after this choice. Fires on a future day, not " +
+                 "immediately. Can be a night event OR a day büfe interaction — the scheduler routes it.")]
+        public GameEvent followUpEvent;
 
         [Tooltip("How many days until the follow-up event fires (minimum 1 = next day).")]
         [Min(1)] public int followUpDelay = 1;
     }
 
     [CreateAssetMenu(fileName = "FamilyEvent", menuName = "Kosem Bufe/Family Event")]
-    public class FamilyEvent : ScriptableObject
+    public class FamilyEvent : GameEvent
     {
+        public override EventSurface Surface => EventSurface.Night;
+
         [Header("Dialogue")]
         [Tooltip("Who is speaking. Null = narrator (no portrait shown).")]
         public FamilyMemberData speaker;

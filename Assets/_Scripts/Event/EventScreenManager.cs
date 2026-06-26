@@ -33,7 +33,7 @@ namespace Bufe
         // ── Runtime ──────────────────────────────────────────────────────────────
 
         private readonly List<FamilyEvent>                    _todayQueue      = new List<FamilyEvent>();
-        private readonly List<(FamilyEvent evt, int targetDay)> _scheduledEvents = new List<(FamilyEvent, int)>();
+        private readonly List<(GameEvent evt, int targetDay)> _scheduledEvents = new List<(GameEvent, int)>();
         private int _currentDay;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────────
@@ -59,11 +59,11 @@ namespace Bufe
         // ── Public API ─────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Schedules an event to fire on a future day. Called from outside the night flow
-        /// (e.g. a büfe faction choice scheduling its consequence). delayDays is relative to
-        /// the current in-game day; minimum 1 = next day.
+        /// Schedules any event (night or day) for a future day, relative to the current in-game
+        /// day. Called from the büfe day flow (OrderManager). Night events are processed at the
+        /// next matching day end; day events are consumed by OrderManager on the matching day.
         /// </summary>
-        public void ScheduleEvent(FamilyEvent evt, int delayDays)
+        public void ScheduleEvent(GameEvent evt, int delayDays)
         {
             if (evt == null) return;
 
@@ -71,7 +71,25 @@ namespace Bufe
             int targetDay = baseDay + Mathf.Max(1, delayDays);
 
             _scheduledEvents.Add((evt, targetDay));
-            Debug.Log($"[Event] Scheduled '{evt.name}' for day {targetDay}.");
+            Debug.Log($"[Event] Scheduled '{evt.name}' ({evt.Surface}) for day {targetDay}.");
+        }
+
+        /// <summary>
+        /// Removes and returns the day-büfe events scheduled for the given day, for OrderManager
+        /// to spawn at the counter. Night events are left in place for the day-end queue.
+        /// </summary>
+        public List<FactionInteraction> ConsumeDueDayEvents(int day)
+        {
+            var result = new List<FactionInteraction>();
+            for (int i = _scheduledEvents.Count - 1; i >= 0; i--)
+            {
+                if (_scheduledEvents[i].targetDay != day) continue;
+                if (_scheduledEvents[i].evt is not FactionInteraction dayEvt) continue;
+
+                result.Add(dayEvt);
+                _scheduledEvents.RemoveAt(i);
+            }
+            return result;
         }
 
         // ── Day flow ─────────────────────────────────────────────────────────────
@@ -95,14 +113,16 @@ namespace Bufe
         {
             _todayQueue.Clear();
 
-            // 1. Scheduled events whose target day is today
+            // 1. Scheduled NIGHT events whose target day is today (day-büfe events are
+            //    consumed separately by OrderManager via ConsumeDueDayEvents).
             for (int i = _scheduledEvents.Count - 1; i >= 0; i--)
             {
                 var (evt, targetDay) = _scheduledEvents[i];
                 if (targetDay != dayNumber) continue;
-                if (!IsSpeakerAvailable(evt)) continue;
+                if (evt is not FamilyEvent night) continue;
+                if (!IsSpeakerAvailable(night)) continue;
 
-                _todayQueue.Add(evt);
+                _todayQueue.Add(night);
                 _scheduledEvents.RemoveAt(i);
 
                 if (_todayQueue.Count >= maxEventsPerDay) return;
