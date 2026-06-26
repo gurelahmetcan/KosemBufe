@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// Unified UI that handles both customer dialogue bubbles and the order
@@ -39,6 +40,16 @@ namespace Bufe.UI
         [Tooltip("Button to close the prompt without deciding.")]
         public Button closeButton;
 
+        [Header("Faction Choice Mode")]
+        [Tooltip("Parent container where dynamic faction choice buttons are instantiated.")]
+        public Transform choicesContainer;
+
+        [Tooltip("Choice button prefab (Button + TMP label). Reuse the night-event ChoiceButtonPrefab.")]
+        public GameObject choiceButtonPrefab;
+
+        [Tooltip("Inline relationship bar shown during a faction interaction. Optional.")]
+        public FactionBarUI factionBar;
+
         [Header("Timing")]
         [Tooltip("Seconds each dialogue line stays visible before auto-hiding.")]
         public float lineDisplayDuration = 2f;
@@ -55,14 +66,19 @@ namespace Bufe.UI
         /// <summary>Fired when the player clicks Close.</summary>
         public event Action OnClose;
 
-        /// <summary>True while the prompt buttons are visible.</summary>
-        public bool IsPromptVisible => panel != null && panel.activeSelf && _buttonsVisible;
+        /// <summary>Fired when the player picks a faction interaction choice. Passes the choice index.</summary>
+        public event Action<int> OnChoicePicked;
+
+        /// <summary>True while the prompt buttons (order or faction choices) are visible.</summary>
+        public bool IsPromptVisible => panel != null && panel.activeSelf && (_buttonsVisible || _choiceActive);
 
         /// <summary>True while dialogue text is being displayed (timed).</summary>
         public bool IsPlaying { get; private set; }
 
         private Coroutine _activeSequence;
         private bool _buttonsVisible;
+        private bool _choiceActive;
+        private readonly List<GameObject> _choiceButtons = new List<GameObject>();
 
         private void Awake()
         {
@@ -136,7 +152,79 @@ namespace Bufe.UI
         public void HidePrompt()
         {
             SetButtonsVisible(false);
+            ClearChoices();
             HidePanel();
+        }
+
+        // ── Faction choice prompt (dialogue + dynamic choices) ────────────────
+
+        /// <summary>
+        /// Shows a faction member's line plus dynamic choice buttons, keeping the 3D member
+        /// visible in-scene. Replaces the Accept/Reject/Close buttons for this interaction.
+        /// The player's pick is reported via OnChoicePicked; the caller applies effects.
+        /// </summary>
+        public void ShowChoicePrompt(string line, IReadOnlyList<EventChoice> choices, FactionData faction)
+        {
+            StopActive();
+            SetButtonsVisible(false);
+            ClearChoices();
+
+            SetText(line);
+            BuildChoices(choices);
+
+            if (factionBar != null)
+            {
+                factionBar.gameObject.SetActive(faction != null);
+                if (faction != null) factionBar.SetFaction(faction);
+            }
+
+            _choiceActive = true;
+            ShowPanel();
+        }
+
+        private void BuildChoices(IReadOnlyList<EventChoice> choices)
+        {
+            if (choicesContainer == null || choiceButtonPrefab == null || choices == null) return;
+
+            for (int i = 0; i < choices.Count; i++)
+            {
+                int index = i; // capture for lambda
+                var go  = Instantiate(choiceButtonPrefab, choicesContainer);
+                var btn = go.GetComponent<Button>();
+                var lbl = go.GetComponentInChildren<TextMeshProUGUI>();
+
+                if (lbl != null) lbl.text = choices[i].label;
+                if (btn != null) btn.onClick.AddListener(() => HandleChoicePicked(index));
+
+                _choiceButtons.Add(go);
+            }
+        }
+
+        private void HandleChoicePicked(int index)
+        {
+            // Lock buttons against double-clicks; the caller drives what happens next.
+            SetChoiceButtonsInteractable(false);
+            OnChoicePicked?.Invoke(index);
+        }
+
+        private void ClearChoices()
+        {
+            for (int i = 0; i < _choiceButtons.Count; i++)
+                if (_choiceButtons[i] != null) Destroy(_choiceButtons[i]);
+            _choiceButtons.Clear();
+            _choiceActive = false;
+
+            if (factionBar != null) factionBar.gameObject.SetActive(false);
+        }
+
+        private void SetChoiceButtonsInteractable(bool value)
+        {
+            foreach (var go in _choiceButtons)
+            {
+                if (go == null) continue;
+                var btn = go.GetComponent<Button>();
+                if (btn != null) btn.interactable = value;
+            }
         }
 
         // ── Shared ───────────────────────────────────────────────────────────
@@ -149,6 +237,7 @@ namespace Bufe.UI
             StopActive();
             IsPlaying = false;
             SetButtonsVisible(false);
+            ClearChoices();
             HidePanel();
         }
 

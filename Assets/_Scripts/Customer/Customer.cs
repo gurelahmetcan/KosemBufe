@@ -38,6 +38,12 @@ namespace Bufe
         public Order       Recipe       { get; private set; }
         public CustomerInstance Instance     { get; private set; }
 
+        /// <summary>Non-null when this customer is a scripted faction member (demo: dialogue/choice, no cooking).</summary>
+        public FactionInteraction FactionInteraction { get; private set; }
+
+        /// <summary>True when this customer is a faction member rather than a normal order customer.</summary>
+        public bool IsFactionMember => FactionInteraction != null;
+
         // ── Movement runtime ─────────────────────────────────────────────────────
 
         private Vector3       _moveTarget;
@@ -54,6 +60,24 @@ namespace Bufe
         {
             Instance = instance;
             Recipe   = instance.Order;
+        }
+
+        /// <summary>
+        /// Initialises this customer as a scripted faction member. No CustomerInstance/recipe —
+        /// the visit is dialogue/choice only (demo scope).
+        /// </summary>
+        public void InitialiseFaction(FactionInteraction interaction)
+        {
+            FactionInteraction = interaction;
+        }
+
+        /// <summary>
+        /// Enters the showing state for a faction interaction (keeps waving while the
+        /// choice prompt is open). Faction members never transition to WaitingForFood.
+        /// </summary>
+        public void ShowFactionInteraction()
+        {
+            CurrentState = State.ShowingOrder;
         }
 
         /// <summary>

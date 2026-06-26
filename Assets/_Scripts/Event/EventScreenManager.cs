@@ -56,6 +56,24 @@ namespace Bufe
             if (eventScreenUI   != null) eventScreenUI.OnChoiceSelected  -= HandleChoiceSelected;
         }
 
+        // ── Public API ─────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Schedules an event to fire on a future day. Called from outside the night flow
+        /// (e.g. a büfe faction choice scheduling its consequence). delayDays is relative to
+        /// the current in-game day; minimum 1 = next day.
+        /// </summary>
+        public void ScheduleEvent(FamilyEvent evt, int delayDays)
+        {
+            if (evt == null) return;
+
+            int baseDay   = dayManager != null ? dayManager.CurrentDay : _currentDay;
+            int targetDay = baseDay + Mathf.Max(1, delayDays);
+
+            _scheduledEvents.Add((evt, targetDay));
+            Debug.Log($"[Event] Scheduled '{evt.name}' for day {targetDay}.");
+        }
+
         // ── Day flow ─────────────────────────────────────────────────────────────
 
         private void HandleDayEnded(int dayNumber)
@@ -138,9 +156,13 @@ namespace Bufe
                         moneyManager.AddIncome(effect.moneyDelta);
                 }
 
-                // Relationship
+                // Relationship (family)
                 if (effect.targetMember != null && effect.relationshipDelta != 0)
                     relationshipManager?.Modify(effect.targetMember, effect.relationshipDelta);
+
+                // Relationship (faction)
+                if (effect.targetFaction != null && effect.factionDelta != 0)
+                    FactionManager.Instance?.Modify(effect.targetFaction, effect.factionDelta);
             }
 
             // Schedule follow-up for a future day

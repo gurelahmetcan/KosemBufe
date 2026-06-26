@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using Bufe.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -63,7 +65,35 @@ namespace Bufe
 
         [Tooltip("Fallback delay if GameManager/GameConfig is not present.")]
         [SerializeField] private float timeBetweenCustomers = 3f;
-        
+
+        [Header("Faction Members (scripted spawns)")]
+        [Tooltip("Scripted faction-member visits.")]
+        [SerializeField] private List<FactionSpawnEntry> factionSpawns = new List<FactionSpawnEntry>();
+
+        [Tooltip("Seconds the faction relationship bar lingers after a choice before the member leaves.")]
+        [SerializeField] private float factionReactionDuration = 1.2f;
+
+        [Tooltip("Where granted items spawn on the counter for the player to pick up. " +
+                 "Falls back to the order ticket point if unset.")]
+        [SerializeField] private Transform itemGrantPoint;
+
+        [System.Serializable]
+        public class FactionSpawnEntry
+        {
+            [Tooltip("In-game day this faction member appears on.")]
+            public int day = 1;
+
+            [Tooltip("Normal customers served before this member appears (0 = first customer). " +
+                     "If the day ends before reaching this count, the member is force-spawned as the last customer.")]
+            [Min(0)] public int spawnAfterCustomers = 0;
+
+            [Tooltip("The interaction this member presents.")]
+            public FactionInteraction interaction;
+
+            // Runtime only — resets each Play session (booth resets via scene reload).
+            [System.NonSerialized] public bool spawned;
+        }
+
         #endregion
 
         #region Private Variables
@@ -73,6 +103,7 @@ namespace Bufe
         private bool        _spawnScheduled;
         private bool        _spawningPaused;
         private OrderTicket _activeTicket;
+        private int         _normalCustomersToday;
 
         #endregion        
 
@@ -97,6 +128,7 @@ namespace Bufe
                 customerUI.OnAccept += OnPromptAccept;
                 customerUI.OnReject += OnPromptReject;
                 customerUI.OnClose  += OnPromptClose;
+                customerUI.OnChoicePicked += OnFactionChoicePicked;
             }
 
             if (dayManager != null)
@@ -119,6 +151,7 @@ namespace Bufe
                 customerUI.OnAccept -= OnPromptAccept;
                 customerUI.OnReject -= OnPromptReject;
                 customerUI.OnClose  -= OnPromptClose;
+                customerUI.OnChoicePicked -= OnFactionChoicePicked;
             }
 
             if (dayManager != null)
@@ -162,7 +195,10 @@ namespace Bufe
             switch (_activeCustomer.CurrentState)
             {
                 case Customer.State.WaitingForOrder:
-                    ShowOrderPrompt();
+                    if (_activeCustomer.IsFactionMember)
+                        HandleFactionClick();
+                    else
+                        ShowOrderPrompt();
                     break;
 
                 case Customer.State.WaitingForFood:
@@ -250,6 +286,122 @@ namespace Bufe
 
             HideUI();
             Debug.Log("Order prompt closed — customer still waiting.");
+        }
+
+        // ── Faction interaction (scripted member at the counter) ─────────────
+
+        private void HandleFactionClick()
+        {
+            FactionInteraction interaction = _activeCustomer.FactionInteraction;
+            if (interaction == null) return;
+
+            if (interaction.kind == InteractionKind.Collect)
+                TryCollect(interaction);
+            else
+                ShowFactionPrompt(interaction);
+        }
+
+        private void ShowFactionPrompt(FactionInteraction interaction)
+        {
+            if (customerUI == null) return;
+
+            _activeCustomer.ShowFactionInteraction();
+            customerUI.ShowChoicePrompt(interaction.dialogue, interaction.choices, interaction.faction);
+            SetCameraLocked(true);
+
+            Debug.Log($"[OrderManager] Faction offer: {interaction.memberName} ({interaction.faction?.displayName}).");
+        }
+
+        private void OnFactionChoicePicked(int index)
+        {
+            if (_activeCustomer == null || !_activeCustomer.IsFactionMember) return;
+
+            FactionInteraction interaction = _activeCustomer.FactionInteraction;
+            if (interaction == null || index < 0 || index >= interaction.choices.Count) return;
+
+            EventChoice choice = interaction.choices[index];
+            ApplyEffects(choice.effects);
+
+            // Schedule the consequence (e.g. a night event a few days later).
+            if (choice.followUpEvent != null)
+                EventScreenManager.Instance?.ScheduleEvent(choice.followUpEvent, choice.followUpDelay);
+
+            SetCameraLocked(false);
+
+            // Let the inline relationship bar animate before the member walks off.
+            StartCoroutine(FinishFactionInteraction());
+        }
+
+        /// <summary>
+        /// Collect interaction: if the player is holding the required item, hand it over
+        /// (consumed like an order delivery) and apply the collect effects. Otherwise show the
+        /// reminder line — the member keeps waiting so the player can fetch the item.
+        /// </summary>
+        private void TryCollect(FactionInteraction interaction)
+        {
+            InteractableItem held = playerHand != null ? playerHand.HeldItem : null;
+
+            bool match = held != null && interaction.requiredItem != null &&
+                         OrderValidator.ValidateSlot(new OrderSlot { target = interaction.requiredItem }, held);
+
+            if (match)
+            {
+                playerHand.DestroyHeldItem();
+                ApplyEffects(interaction.onCollectedEffects);
+
+                Debug.Log($"[OrderManager] Collected '{interaction.requiredItem.itemName}' for {interaction.faction?.displayName}.");
+                StartCoroutine(FinishFactionInteraction());
+            }
+            else if (customerUI != null)
+            {
+                // Not holding the item yet — remind and keep waiting.
+                customerUI.ShowLine(interaction.dialogue);
+            }
+        }
+
+        private IEnumerator FinishFactionInteraction()
+        {
+            yield return new WaitForSeconds(factionReactionDuration);
+            HideUI();
+            SendCustomerAway();
+        }
+
+        /// <summary>Applies a list of authored effects: money / faction / family / item grant.</summary>
+        private void ApplyEffects(List<EventEffect> effects)
+        {
+            if (effects == null) return;
+
+            foreach (EventEffect effect in effects)
+            {
+                if (effect.moneyDelta != 0f && moneyManager != null)
+                {
+                    if (effect.moneyDelta < 0f) moneyManager.DeductExpense(-effect.moneyDelta, "Faction");
+                    else                        moneyManager.AddIncome(effect.moneyDelta);
+                }
+
+                if (effect.targetFaction != null && effect.factionDelta != 0)
+                    FactionManager.Instance?.Modify(effect.targetFaction, effect.factionDelta);
+
+                if (effect.targetMember != null && effect.relationshipDelta != 0)
+                    RelationshipManager.Instance?.Modify(effect.targetMember, effect.relationshipDelta);
+
+                if (effect.grantedItemPrefab != null)
+                    GrantItem(effect.grantedItemPrefab);
+            }
+        }
+
+        /// <summary>Spawns a granted item on the counter for the player to pick up.</summary>
+        private void GrantItem(InteractableItem prefab)
+        {
+            Transform point = itemGrantPoint != null ? itemGrantPoint : ticketSpawnPoint;
+            if (point == null)
+            {
+                Debug.LogWarning("[OrderManager] No itemGrantPoint/ticketSpawnPoint set — cannot grant item.", this);
+                return;
+            }
+
+            Instantiate(prefab, point.position, point.rotation);
+            Debug.Log($"[OrderManager] Granted item '{prefab.itemName}' at {point.name}.");
         }
 
         private void SetCameraLocked(bool locked)
@@ -377,10 +529,21 @@ namespace Bufe
             // Notify day manager that the customer slot is free
             if (dayManager != null)
             {
-                dayManager.SetActiveCustomer(false);
+                // Shop closed: still honor any scripted faction member that hasn't appeared yet.
+                if (!dayManager.IsOpenForCustomers)
+                {
+                    FactionSpawnEntry pending = GetPendingFactionSpawnToday();
+                    if (pending != null)
+                    {
+                        SpawnFactionMember(pending);   // re-occupies the customer slot
+                        return;
+                    }
 
-                // Don't spawn new customers if the shop is no longer open
-                if (!dayManager.IsOpenForCustomers) return;
+                    dayManager.SetActiveCustomer(false);
+                    return;
+                }
+
+                dayManager.SetActiveCustomer(false);
             }
 
             // Schedule the next customer spawn (guard against double-spawn)
@@ -416,8 +579,14 @@ namespace Bufe
         private void OnClosingTime()
         {
             Debug.Log("[OrderManager] Closing time — no more customers after the current one.");
-            // If there is no active customer, tell DayManager immediately
-            if (_activeCustomer == null && dayManager != null)
+
+            if (_activeCustomer != null || dayManager == null) return;
+
+            // Honor any scripted faction member that hasn't appeared yet today.
+            FactionSpawnEntry pending = GetPendingFactionSpawnToday();
+            if (pending != null)
+                SpawnFactionMember(pending);
+            else
                 dayManager.SetActiveCustomer(false);
         }
 
@@ -431,9 +600,10 @@ namespace Bufe
             foreach (Customer c in FindObjectsByType<Customer>(FindObjectsSortMode.None))
                 Destroy(c.gameObject);
 
-            _activeCustomer = null;
-            _orderActive    = false;
-            _spawnScheduled = false;
+            _activeCustomer       = null;
+            _orderActive          = false;
+            _spawnScheduled       = false;
+            _normalCustomersToday = 0;
             HideOrderTicket();
 
             HideUI();
@@ -465,7 +635,16 @@ namespace Bufe
                 return;
             }
 
+            // Scripted faction member takes priority as today's spawn.
+            FactionSpawnEntry due = GetDueFactionSpawn();
+            if (due != null)
+            {
+                SpawnFactionMember(due);
+                return;
+            }
+
             _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
+            _normalCustomersToday++;
 
             // Notify day manager that we have an active customer
             if (dayManager != null)
@@ -510,6 +689,63 @@ namespace Bufe
 
             string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
             customerUI.ShowOpeningLine(opening);
+        }
+
+        /// <summary>
+        /// Returns the scripted faction member due now (right day, not yet spawned, and enough
+        /// normal customers have already been served), or null.
+        /// </summary>
+        private FactionSpawnEntry GetDueFactionSpawn()
+        {
+            if (dayManager == null) return null;
+
+            int day = dayManager.CurrentDay;
+            foreach (FactionSpawnEntry entry in factionSpawns)
+            {
+                if (entry != null && !entry.spawned && entry.interaction != null
+                    && entry.day == day && _normalCustomersToday >= entry.spawnAfterCustomers)
+                    return entry;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns any scripted faction member for today that hasn't spawned yet, ignoring the
+        /// customer-count gate. Used to force the member to appear before the day ends.
+        /// </summary>
+        private FactionSpawnEntry GetPendingFactionSpawnToday()
+        {
+            if (dayManager == null) return null;
+
+            int day = dayManager.CurrentDay;
+            foreach (FactionSpawnEntry entry in factionSpawns)
+            {
+                if (entry != null && !entry.spawned && entry.interaction != null && entry.day == day)
+                    return entry;
+            }
+            return null;
+        }
+
+        /// <summary>Spawns a scripted faction member: walks to the counter and waits until clicked.</summary>
+        private void SpawnFactionMember(FactionSpawnEntry entry)
+        {
+            entry.spawned = true;
+
+            _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
+            _activeCustomer.InitialiseFaction(entry.interaction);
+
+            if (dayManager != null)
+                dayManager.SetActiveCustomer(true);
+
+            // Collect members announce what they want on arrival; offer members wait silently.
+            System.Action onArrived = null;
+            if (entry.interaction.kind == InteractionKind.Collect)
+                onArrived = () => { if (customerUI != null) customerUI.ShowLine(entry.interaction.dialogue); };
+
+            if (counterPoint != null)
+                _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation, onArrived);
+
+            Debug.Log($"[OrderManager] Faction member spawned: {entry.interaction.memberName} (Day {entry.day}, {entry.interaction.kind}).");
         }
 
         #endregion

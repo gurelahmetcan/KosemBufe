@@ -7,14 +7,25 @@ namespace Bufe
     [Serializable]
     public class EventEffect
     {
-        [Tooltip("Which member is affected. Null = money-only effect.")]
+        [Tooltip("Which family member is affected. Null = no family effect.")]
         public FamilyMemberData targetMember;
 
-        [Tooltip("Relationship change (0–10 scale). Positive = gain, negative = loss.")]
+        [Tooltip("Family relationship change (0–10 scale). Positive = gain, negative = loss.")]
         public int relationshipDelta;
+
+        [Header("Faction (demo)")]
+        [Tooltip("Which faction is affected. Null = no faction effect.")]
+        public FactionData targetFaction;
+
+        [Tooltip("Faction relationship change (0–10 scale). Positive = gain, negative = loss.")]
+        public int factionDelta;
 
         [Tooltip("Money change. Negative = costs player money, positive = gives money.")]
         public float moneyDelta;
+
+        [Tooltip("Item handed to the player. Spawned at OrderManager's item grant point (büfe " +
+                 "interactions only). Null = no item. The player picks it up like any item.")]
+        public InteractableItem grantedItemPrefab;
     }
 
     [Serializable]
