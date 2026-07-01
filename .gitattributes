@@ -1,0 +1,2 @@
+*.sbsar filter=lfs diff=lfs merge=lfs -text
+*.tga filter=lfs diff=lfs merge=lfs -text
