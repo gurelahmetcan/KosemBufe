@@ -41,6 +41,10 @@ namespace Bufe
         public TextMeshProUGUI totalText;
         public Button sleepButton;
 
+        [Header("Restock")]
+        public PhoneOrderScreen phoneOrderScreen;
+        public Button           orderStockButton;
+
         [Header("Colors")]
         public Color positiveColor = new Color(0.20f, 0.85f, 0.20f, 1f);
         public Color negativeColor = new Color(0.85f, 0.20f, 0.20f, 1f);
@@ -60,22 +64,39 @@ namespace Bufe
         private SurpriseEvent _surpriseEvent;
         private ExpenseRowUI  _surpriseRow;
 
+        private float                      _restockCost;
+        private readonly List<RestockLine> _pendingOrder = new List<RestockLine>();
+        private ExpenseRowUI               _restockRow;
+
         // ── Unity lifecycle ──────────────────────────────────────────────────────
 
         private void Start()
         {
-            if (screenRoot  != null) screenRoot.SetActive(false);
-            if (sleepButton != null) sleepButton.onClick.AddListener(HandleSleep);
+            if (screenRoot       != null) screenRoot.SetActive(false);
+            if (sleepButton      != null) sleepButton.onClick.AddListener(HandleSleep);
+            if (orderStockButton != null) orderStockButton.onClick.AddListener(OpenPhoneOrder);
         }
 
         private void OnEnable()
         {
             if (eventScreenManager != null) eventScreenManager.OnEventPhaseComplete += HandleEventPhaseComplete;
+
+            if (phoneOrderScreen != null)
+            {
+                phoneOrderScreen.OnOrderConfirmed += HandleOrderConfirmed;
+                phoneOrderScreen.OnCancelled      += HandleOrderCancelled;
+            }
         }
 
         private void OnDisable()
         {
             if (eventScreenManager != null) eventScreenManager.OnEventPhaseComplete -= HandleEventPhaseComplete;
+
+            if (phoneOrderScreen != null)
+            {
+                phoneOrderScreen.OnOrderConfirmed -= HandleOrderConfirmed;
+                phoneOrderScreen.OnCancelled      -= HandleOrderCancelled;
+            }
         }
 
         // ── Day-end entry point ───────────────────────────────────────────────────
@@ -99,6 +120,11 @@ namespace Bufe
             if (dayLabel     != null) dayLabel.text     = $"END OF DAY {_dayNumber}";
             if (savingsText  != null) savingsText.text  = $"{_savings:F0}";
             if (earningsText != null) earningsText.text = $"+{_income:F0}";
+
+            // Restock resets each day-end open; the row (if any) is cleared with the container below.
+            _restockCost = 0f;
+            _pendingOrder.Clear();
+            _restockRow  = null;
 
             PopulateExpenseRows();
             PopulateFamilyRows();
@@ -167,6 +193,49 @@ namespace Bufe
             if (_surpriseRow != null) _surpriseRow.OnToggled += _ => UpdateTotal();
         }
 
+        // ── Phone order (restock) ──────────────────────────────────────────────────
+
+        private void OpenPhoneOrder()
+        {
+            if (phoneOrderScreen == null) return;
+
+            if (screenRoot != null) screenRoot.SetActive(false);   // hide day-end while ordering
+            phoneOrderScreen.Open(_pendingOrder);
+        }
+
+        private void HandleOrderConfirmed(List<RestockLine> lines, float total)
+        {
+            _pendingOrder.Clear();
+            _pendingOrder.AddRange(lines);
+            _restockCost = total;
+
+            RefreshRestockRow();
+
+            if (screenRoot != null) screenRoot.SetActive(true);    // back to day-end
+            UpdateTotal();
+        }
+
+        private void HandleOrderCancelled()
+        {
+            if (screenRoot != null) screenRoot.SetActive(true);    // back to day-end, no changes
+        }
+
+        private void RefreshRestockRow()
+        {
+            if (_restockCost > 0f)
+            {
+                if (_restockRow == null)
+                    _restockRow = SpawnExpenseRow(expenseContainer, "RESTOCKING", _restockCost, isMandatory: true);
+                else
+                    _restockRow.SetAmount(_restockCost);
+            }
+            else if (_restockRow != null)
+            {
+                Destroy(_restockRow.gameObject);
+                _restockRow = null;
+            }
+        }
+
         // ── Footer update ─────────────────────────────────────────────────────────
 
         private void UpdateTotal()
@@ -181,6 +250,8 @@ namespace Bufe
 
             if (_surpriseRow != null && _surpriseEvent != null && _surpriseRow.IsEnabled)
                 deductions += _surpriseEvent.cost;
+
+            deductions += _restockCost;
 
             float newBalance = _savings + _income - deductions;
 
@@ -222,6 +293,15 @@ namespace Bufe
                     moneyManager.DeductExpense(_surpriseEvent.cost, _surpriseEvent.description);
 
                 moneyManager.ResetDailyIncome();
+            }
+
+            // Apply the restock order: add stock now and pay for it.
+            if (_restockCost > 0f)
+            {
+                foreach (var line in _pendingOrder)
+                    line.target?.AddStock(line.amount);
+
+                moneyManager?.DeductExpense(_restockCost, "Restocking");
             }
 
             // Build the set of members who received medicine

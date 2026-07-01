@@ -1,0 +1,84 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \uc0\u9472 \u9472  STORAGE: INGREDIENTS \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+\
+1. Add to IngredientStorageData:\
+   - int defaultStock\
+   - float unitCost\
+\
+2. Modify IngredientStorage.cs:\
+   - int _stockCount (runtime)\
+   - Initialize _stockCount = data.defaultStock on Start\
+   - CanInteract returns false when _stockCount == 0\
+   - Interact decrements _stockCount by 1\
+   - Public property: int StockCount => _stockCount\
+   - Public method: void AddStock(int amount) \uc0\u8594  _stockCount += amount\
+   - Hover label: "StorageName \'97 N left"\
+\
+\uc0\u9472 \u9472  STORAGE: PREMADE ITEMS \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+\
+3. Create PremadeStorageData ScriptableObject:\
+   - string itemName\
+   - GameObject itemPrefab (existing premade pickup prefab)\
+   - int defaultStock\
+   - float unitCost\
+   - Sprite icon\
+   - CreateAssetMenu: "Kosem Bufe/Premade Storage"\
+\
+4. Create PremadeStorage.cs:\
+   - RequireComponent Collider\
+   - Implements IAssemblyInteractable\
+   - int _stockCount, initialized from data.defaultStock on Start\
+   - CanInteract: hand empty + _stockCount > 0\
+   - Interact: spawns data.itemPrefab, hands to PlayerHand, decrements _stockCount\
+   - Public StockCount property and AddStock(int amount) method\
+   - Hover label: "ItemName \'97 N left"\
+\
+5. Create PremadeStorageData assets for:\
+   - Chips, Ayran, Cola, Cigarettes\
+   (defaultStock and unitCost as placeholder values \'97 to be tuned later)\
+\
+\uc0\u9472 \u9472  PHONE ORDER SCREEN \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+\
+6. Create PhoneOrderScreen.cs:\
+   - Inspector refs: IngredientStorage[] and PremadeStorage[] \
+   - On Open: build one row per item showing:\
+       \'b7 Item name\
+       \'b7 Current stock (live StockCount)\
+       \'b7 +/- buttons for order amount (min 0, no upper cap)\
+       \'b7 Unit cost label\
+       \'b7 Row subtotal (orderedAmount \'d7 unitCost)\
+   - Running total at bottom\
+   - Confirm button:\
+       \'b7 Calls AddStock(orderedAmount) on each storage\
+       \'b7 Fires OnOrderConfirmed(float totalCost) event\
+       \'b7 Closes screen, returns to day-end screen\
+   - Cancel button:\
+       \'b7 Closes, returns to day-end screen, no changes\
+\
+\uc0\u9472 \u9472  DAY-END SCREEN INTEGRATION \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+\
+7. Modify DayEndScreen.cs:\
+   - Add inspector ref: PhoneOrderScreen phoneOrderScreen\
+   - Add "Order Stock" button that opens PhoneOrderScreen\
+   - Add float _restockCost = 0f, resets to 0 each time day-end screen opens\
+   - Subscribe to PhoneOrderScreen.OnOrderConfirmed:\
+       \'b7 Store total in _restockCost\
+       \'b7 If restock row doesn't exist yet, spawn one in expenseContainer\
+         labeled "Restocking" as mandatory\
+       \'b7 If it already exists (player ordered twice), update its amount\
+       \'b7 Call UpdateTotal()\
+   - HandleSleep: deduct _restockCost via\
+       moneyManager.DeductExpense(_restockCost, "Restocking")\
+       before BeginNextDay() \'97 only if _restockCost > 0\
+\
+\uc0\u9472 \u9472  EXPENSECONFIG CLEANUP \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+\
+8. Remove "Bufe Expense" entry from ExpenseConfig asset.\
+   Restocking row is now spawned dynamically by DayEndScreen\
+   only when the player confirms an order.}

@@ -22,4 +22,11 @@ public class IngredientStorageData : ScriptableObject
 
     [Tooltip("Optional icon used in any UI that references this storage (e.g. recipe guides, shop UI).")]
     public Sprite icon;
+
+    [Tooltip("Starting stock. Negative = infinite (never depletes, not orderable). " +
+             "Existing storages default to infinite so behaviour is unchanged until you set a value.")]
+    public int defaultStock = -1;
+
+    [Tooltip("Cost per unit when reordering from the phone.")]
+    [Min(0f)] public float unitCost = 0f;
 }

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f14b03596de254b0b95f0d5b2e9c36bc, type: 3}
+  m_Name: ChipsStorage
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeStorageData
+  itemName: Chips
+  itemPrefab: {fileID: 7092654054394100058, guid: 862bfe961ed174e65b146bd6a527870b, type: 3}
+  defaultStock: 10
+  unitCost: 2
+  icon: {fileID: 0}

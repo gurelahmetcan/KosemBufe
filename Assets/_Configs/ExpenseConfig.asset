@@ -13,11 +13,6 @@ MonoBehaviour:
   m_Name: ExpenseConfig
   m_EditorClassIdentifier: Assembly-CSharp::ExpenseConfig
   expenses:
-  - displayName: Bufe Expense
-    amount: 15
-    frequency: 0
-    isMandatory: 1
-    needType: 0
   - displayName: Food
     amount: 10
     frequency: 0

@@ -124,13 +124,14 @@ namespace Bufe
 
         private string GetHoverLabel(GameObject hit)
         {
+            // Custom labels first (e.g. storages showing "Name — N left").
+            IHoverLabel hoverLabel = hit.GetComponent<IHoverLabel>()
+                                   ?? hit.GetComponentInParent<IHoverLabel>();
+            if (hoverLabel != null) return hoverLabel.HoverLabel;
+
             InteractableItem item = hit.GetComponent<InteractableItem>()
                                   ?? hit.GetComponentInParent<InteractableItem>();
             if (item != null) return item.itemName;
-
-            IngredientStorage storage = hit.GetComponent<IngredientStorage>()
-                                      ?? hit.GetComponentInParent<IngredientStorage>();
-            if (storage != null && storage.data != null) return storage.data.storageName;
 
             IAssemblyInteractable interactable = hit.GetComponent<IAssemblyInteractable>()
                                                ?? hit.GetComponentInParent<IAssemblyInteractable>();

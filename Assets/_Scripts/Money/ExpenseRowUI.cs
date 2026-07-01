@@ -51,6 +51,13 @@ namespace Bufe
             Refresh();
         }
 
+        /// <summary>Updates the displayed amount after setup (e.g. a restock row changing).</summary>
+        public void SetAmount(float amount)
+        {
+            _amount = amount;
+            Refresh();
+        }
+
         // ── Internal ──────────────────────────────────────────────────────────────
 
         private void OnToggleValueChanged(bool value)
