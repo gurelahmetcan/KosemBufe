@@ -1,3 +1,4 @@
+using System;
 using Bufe;
 using UnityEngine;
 
@@ -20,6 +21,18 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
 
     private static readonly int OpenHash = Animator.StringToHash("Open");
 
+    private void OnEnable()
+    {
+        if (dayManager != null)
+            dayManager.OnPhaseChanged += OnPhaseChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (dayManager != null)
+            dayManager.OnPhaseChanged -= OnPhaseChanged;
+    }
+    
     public bool CanInteract(PlayerHand hand)
     {
         return dayManager != null && dayManager.CurrentPhase == DayManager.DayPhase.PreOpen;
@@ -33,10 +46,32 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
 
         if (shutterVisual != null)
             shutterVisual.SetActive(false);
+        
+        Debug.Log("[Shutter] Büfe opened!");
+    }
 
+    public void HandleShutterAnimation()
+    {
         if (animator != null)
             animator.SetTrigger(OpenHash);
-
-        Debug.Log("[Shutter] Büfe opened!");
+    }
+    
+    private void OnPhaseChanged(DayManager.DayPhase obj)
+    {
+        switch (obj)
+        {
+            case DayManager.DayPhase.PreOpen:
+                break;
+            case DayManager.DayPhase.Open:
+                HandleShutterAnimation();
+                break;
+            case DayManager.DayPhase.Closing:
+                break;
+            case DayManager.DayPhase.EndOfDay:
+                HandleShutterAnimation();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(obj), obj, null);
+        }
     }
 }
