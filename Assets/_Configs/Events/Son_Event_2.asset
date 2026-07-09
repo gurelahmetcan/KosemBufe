@@ -19,22 +19,34 @@ MonoBehaviour:
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
       relationshipDelta: 1
+      targetFaction: {fileID: 0}
+      factionDelta: 0
       moneyDelta: 0
+      grantedItemPrefab: {fileID: 0}
     - targetMember: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
       relationshipDelta: -1
+      targetFaction: {fileID: 0}
+      factionDelta: 0
       moneyDelta: 0
+      grantedItemPrefab: {fileID: 0}
     followUpEvent: {fileID: 0}
     followUpDelay: 0
   - label: Listen to your mother
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
       relationshipDelta: -1
+      targetFaction: {fileID: 0}
+      factionDelta: 0
       moneyDelta: 0
+      grantedItemPrefab: {fileID: 0}
     - targetMember: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
       relationshipDelta: 1
+      targetFaction: {fileID: 0}
+      factionDelta: 0
       moneyDelta: 0
+      grantedItemPrefab: {fileID: 0}
     followUpEvent: {fileID: 0}
     followUpDelay: 0
   scheduledDay: 0
   minDay: 1
-  triggerChance: 1
+  triggerChance: 0.2

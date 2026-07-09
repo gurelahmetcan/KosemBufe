@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd103e64f8b9c43eda78d4a64e2102c3, type: 3}
+  m_Name: Wife_Event_1
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
+  speaker: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+  eventText: Honey I need you to give me some money.
+  choices:
+  - label: Yes
+    effects:
+    - targetMember: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+      relationshipDelta: 1
+      targetFaction: {fileID: 0}
+      factionDelta: 0
+      moneyDelta: -25
+      grantedItemPrefab: {fileID: 0}
+    followUpEvent: {fileID: 0}
+    followUpDelay: 0
+  - label: I dont have
+    effects:
+    - targetMember: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+      relationshipDelta: -1
+      targetFaction: {fileID: 0}
+      factionDelta: 0
+      moneyDelta: 0
+      grantedItemPrefab: {fileID: 0}
+    followUpEvent: {fileID: 0}
+    followUpDelay: 0
+  scheduledDay: 0
+  minDay: 1
+  triggerChance: 0.3
