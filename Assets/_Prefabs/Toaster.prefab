@@ -1,0 +1,270 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5194072892529324180
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5137976266952295275}
+  - component: {fileID: 3499032559019933575}
+  - component: {fileID: 5196509388724021426}
+  m_Layer: 0
+  m_Name: Toaster
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5137976266952295275
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5194072892529324180}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0.548, y: 1.416, z: -2.4963}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8179939601597243487}
+  - {fileID: 6835734523710476976}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!65 &3499032559019933575
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5194072892529324180}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 0.1, z: 0.5}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5196509388724021426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5194072892529324180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9701c6a9a8d04e2d8e50eb2776b95b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Toaster
+  cookTime: 10
+  lid: {fileID: 0}
+  breadSlot: {fileID: 6835734523710476976}
+--- !u!1 &8358763822145941301
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6835734523710476976}
+  m_Layer: 0
+  m_Name: Bread Slot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6835734523710476976
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8358763822145941301}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.120000005, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5137976266952295275}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &8506810168680892340
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5137976266952295275}
+    m_Modifications:
+    - target: {fileID: -8782867657676325748, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3d3df5434e01c4cb0aeb0aec6c864a53, type: 2}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.0056
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.093
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8143710011712545758, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3d3df5434e01c4cb0aeb0aec6c864a53, type: 2}
+    - target: {fileID: -6902573867230041995, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 35cbce53eff644174bd20525d6b62015, type: 2}
+    - target: {fileID: -6093592463355912122, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 35cbce53eff644174bd20525d6b62015, type: 2}
+    - target: {fileID: -4187505606125293637, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ad5d0d1c5ecd4494e9f20b6a115a2ecb, type: 2}
+    - target: {fileID: -1806680513116206669, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ad5d0d1c5ecd4494e9f20b6a115a2ecb, type: 2}
+    - target: {fileID: -804731622281664130, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3d3df5434e01c4cb0aeb0aec6c864a53, type: 2}
+    - target: {fileID: -678588488315902003, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3d3df5434e01c4cb0aeb0aec6c864a53, type: 2}
+    - target: {fileID: 919132149155446097, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: m_Name
+      value: toaster 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2018769377938206332, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 35cbce53eff644174bd20525d6b62015, type: 2}
+    - target: {fileID: 7202271454713460447, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 35cbce53eff644174bd20525d6b62015, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -5568371526223589888, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3979392746779026019}
+    - targetCorrespondingSourceObject: {fileID: -5568371526223589888, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1712958079026375262}
+  m_SourcePrefab: {fileID: 100100000, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+--- !u!1 &4951542169676335540 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -5568371526223589888, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+  m_PrefabInstance: {fileID: 8506810168680892340}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &3979392746779026019
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4951542169676335540}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.32895488, y: 0.1083136, z: 0.020000005}
+  m_Center: {x: -0.15447716, y: 0.044156846, z: 0.000000002754334}
+--- !u!114 &1712958079026375262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4951542169676335540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf41c3750dbd84866be0c5679e8439a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.ToasterLid
+  openAngle: 80
+  rotationAxis: {x: 0, y: 0, z: -1}
+  dragSensitivity: 1
+  snapDuration: 0.2
+--- !u!4 &8179939601597243487 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0b94289bf4f30430c99cc2618673ec4d, type: 3}
+  m_PrefabInstance: {fileID: 8506810168680892340}
+  m_PrefabAsset: {fileID: 0}

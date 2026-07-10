@@ -231,7 +231,28 @@ MonoBehaviour:
   MaterialShader: Universal Render Pipeline/Lit
   RenderTextures: 0
   OutputRemaped: 0
-  Presets: []
+  Presets:
+  - Info:
+      Label: Dirty Glass
+      Description: 
+      URL: pkg://stylized_glass_window
+    PresetIndex: 0
+    PresetValue: 
+    NativePreset: 1
+  - Info:
+      Label: Lighted Window Glass
+      Description: 
+      URL: pkg://stylized_glass_window
+    PresetIndex: 1
+    PresetValue: 
+    NativePreset: 1
+  - Info:
+      Label: Clean Glass
+      Description: 
+      URL: pkg://stylized_glass_window
+    PresetIndex: 2
+    PresetValue: 
+    NativePreset: 1
   references:
     version: 2
     RefIds:
