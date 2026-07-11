@@ -25,6 +25,9 @@ namespace Bufe
         [Tooltip("Active when bread is open and ready for filling.")]
         [SerializeField] private GameObject openBreadVisual;
 
+        [Tooltip("Material with the toasted (pişmiş) texture, applied when toasting finishes.")]
+        [SerializeField] private Material cookedMaterial;
+
         [Header("Cutting")]
         [Tooltip("Prefab spawned twice when the full bread is cut. Must have a PreparedItem component.")]
         [SerializeField] private GameObject halfBreadPrefab;
@@ -305,6 +308,16 @@ namespace Bufe
             if (halfBreadVisual  != null) halfBreadVisual.SetActive(isHalf);
             if (openBreadVisual  != null) openBreadVisual.SetActive(isOpen);
             // Toasting state: all visuals off — bread is hidden inside the toaster
+
+            // Once toasted, swap the visible visual's renderers to the cooked material.
+            // Uses instanced material (.material) so toasting one bread never recolours others.
+            if (State == BreadState.Toasted && cookedMaterial != null)
+            {
+                GameObject cooked = isWhole ? wholeBreadVisual : isHalf ? halfBreadVisual : null;
+                if (cooked != null)
+                    foreach (Renderer r in cooked.GetComponentsInChildren<Renderer>())
+                        r.material = cookedMaterial;
+            }
         }
 
         #endregion
