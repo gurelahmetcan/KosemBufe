@@ -5381,7 +5381,7 @@ GameObject:
   - component: {fileID: 264248413}
   - component: {fileID: 264248416}
   m_Layer: 5
-  m_Name: Button (Legacy) (3)
+  m_Name: Button_Quit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15256,7 +15256,7 @@ GameObject:
   - component: {fileID: 834739047}
   - component: {fileID: 834739050}
   m_Layer: 5
-  m_Name: Button (Legacy) (1)
+  m_Name: Button_Settings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24233,7 +24233,7 @@ GameObject:
   - component: {fileID: 1449446764}
   - component: {fileID: 1449446767}
   m_Layer: 5
-  m_Name: Button (Legacy) (2)
+  m_Name: Button_Credits
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30568,6 +30568,8 @@ MonoBehaviour:
   creditsVcam: {fileID: 1094386915}
   startVcam: {fileID: 1322785767}
   shutterAnimator: {fileID: 40418353}
+  delayBeforeLoad: 2
+  nextSceneName: GameScene
 --- !u!4 &1770584015 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7079717976174955515, guid: 2def543d094014b28a55f1ed8934adb9, type: 3}
@@ -35419,7 +35421,7 @@ GameObject:
   - component: {fileID: 2117089561}
   - component: {fileID: 2117089564}
   m_Layer: 5
-  m_Name: Button (Legacy)
+  m_Name: Button_Start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35734,8 +35736,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3769121067658823154}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.63854617, z: 0, w: 0.7695835}
-  m_LocalPosition: {x: 0.057, y: 1.89, z: 0.03}
+  m_LocalRotation: {x: -0.05067636, y: 0.39630222, z: 0.02191387, w: 0.9164586}
+  m_LocalPosition: {x: 0.552, y: 2.674, z: 1.133}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
