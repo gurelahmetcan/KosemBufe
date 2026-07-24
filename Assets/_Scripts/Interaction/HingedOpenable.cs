@@ -32,7 +32,7 @@ using UnityEngine.InputSystem;
 namespace Bufe
 {
     [RequireComponent(typeof(Collider))]
-    public class HingedOpenable : MonoBehaviour, IAssemblyInteractable
+    public class HingedOpenable : MonoBehaviour, IAssemblyInteractable, IHoverLabel
     {
         public enum DragAxis { Vertical, Horizontal }
 
@@ -55,6 +55,8 @@ namespace Bufe
 
         [Tooltip("Duration of the snap animation when the mouse is released.")]
         public float snapDuration = 0.2f;
+
+        public string HoverLabel { get; }
 
         // ── Events ────────────────────────────────────────────────────────────────
 

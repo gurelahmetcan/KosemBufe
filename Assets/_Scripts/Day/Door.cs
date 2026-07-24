@@ -17,10 +17,10 @@ public class Door : MonoBehaviour, IAssemblyInteractable, IHoverLabel
 
     [Header("Hover Labels")]
     [Tooltip("Shown when the day can be ended (player may leave).")]
-    [SerializeField] private string readyLabel = "Eve Git";
+    [SerializeField] private string readyLabel = "Go Home";
 
     [Tooltip("Shown while the day is still running and the door can't be used yet.")]
-    [SerializeField] private string notReadyLabel = "Kapı (henüz kapatma vakti değil)";
+    [SerializeField] private string notReadyLabel = "It's not time to close yet.";
 
     // ── IHoverLabel ────────────────────────────────────────────────────────────
 

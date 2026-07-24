@@ -85,6 +85,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 35cbce53eff644174bd20525d6b62015, type: 2}
+    - target: {fileID: -4995383284229079766, guid: 384917825738949c1a86cf2e7d73e27a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e928250accd11472898a21a40a1eae0c, type: 2}
     - target: {fileID: 919132149155446097, guid: 384917825738949c1a86cf2e7d73e27a, type: 3}
       propertyPath: m_Name
       value: vintage_television_01

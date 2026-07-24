@@ -69,7 +69,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Toaster
   cookTime: 10
-  lid: {fileID: 0}
+  lid: {fileID: 1712958079026375262}
   breadSlot: {fileID: 6835734523710476976}
 --- !u!1 &8358763822145941301
 GameObject:
@@ -261,6 +261,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.ToasterLid
   openAngle: 80
   rotationAxis: {x: 0, y: 0, z: -1}
+  dragAxis: 1
+  invertDrag: 0
   dragSensitivity: 1
   snapDuration: 0.2
 --- !u!4 &8179939601597243487 stripped
