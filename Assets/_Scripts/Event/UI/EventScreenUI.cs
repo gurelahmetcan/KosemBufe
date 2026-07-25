@@ -4,7 +4,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using DG.Tweening;
 
 namespace Bufe.UI
 {
@@ -20,15 +19,21 @@ namespace Bufe.UI
         [Header("Dialogue")]
         public TextMeshProUGUI dialogueText;
 
-        [Header("Members Panel")]
-        [Tooltip("Parent container for EventMemberUI rows (only involved members are shown).")]
-        public Transform  membersContainer;
-        public GameObject memberRowPrefab;
+        [Header("Speaker Relationship")]
+        [Tooltip("Segmented bar showing the speaker's relationship level.")]
+        public RelationshipBarUI relationshipBar;
+        [Tooltip("Pause (seconds) after a choice changes the speaker's relationship, so the player sees it.")]
+        [Min(0f)] public float postChoiceDelay = 0.6f;
 
         [Header("Choices")]
         [Tooltip("Parent container for choice buttons.")]
         public Transform  choicesContainer;
         public GameObject choiceButtonPrefab;
+
+        [Header("Effect Hint Colors")]
+        [Tooltip("Applied to a choice's effect hint (e.g. -₺200) via TMP rich text.")]
+        public Color positiveColor = new Color(0.20f, 0.75f, 0.20f, 1f);
+        public Color negativeColor = new Color(0.85f, 0.20f, 0.20f, 1f);
 
         // ── Events ───────────────────────────────────────────────────────────────
 
@@ -37,11 +42,9 @@ namespace Bufe.UI
 
         // ── Runtime ──────────────────────────────────────────────────────────────
 
-        private FamilyEvent                                    _current;
-        private RelationshipManager                            _relManager;
-        private readonly List<(FamilyMemberData, EventMemberUI)> _memberUIs =
-            new List<(FamilyMemberData, EventMemberUI)>();
-        private bool _inputLocked;
+        private FamilyEvent         _current;
+        private RelationshipManager _relManager;
+        private bool                _inputLocked;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────────
 
@@ -61,7 +64,7 @@ namespace Bufe.UI
             if (screenRoot != null) screenRoot.SetActive(true);
 
             PopulateSpeaker(evt);
-            PopulateMembers(evt, relManager, familyManager);
+            UpdateSpeakerBar(SpeakerValue());
             PopulateChoices(evt);
 
             if (dialogueText != null) dialogueText.text = evt.eventText;
@@ -87,21 +90,27 @@ namespace Bufe.UI
                 speakerNameText.text = evt.speaker != null ? evt.speaker.memberName.ToUpper() : string.Empty;
         }
 
-        private void PopulateMembers(FamilyEvent evt, RelationshipManager relManager, FamilyManager familyManager)
+        /// <summary>Current speaker's relationship value, or 0 if untracked/none.</summary>
+        private int SpeakerValue()
         {
-            foreach (Transform child in membersContainer) Destroy(child.gameObject);
-            _memberUIs.Clear();
+            if (_relManager == null || _current?.speaker == null) return 0;
+            return _relManager.GetValue(_current.speaker);
+        }
 
-            foreach (var memberData in GetInvolvedMembers(evt, familyManager))
+        /// <summary>Refreshes the speaker bar to the given value (hidden when there's no speaker).</summary>
+        private void UpdateSpeakerBar(int value)
+        {
+            if (relationshipBar == null) return;
+
+            var speaker = _current?.speaker;
+            if (speaker == null || _relManager == null)
             {
-                var go = Instantiate(memberRowPrefab, membersContainer);
-                var ui = go.GetComponent<EventMemberUI>();
-                if (ui == null) continue;
-
-                int value = relManager != null ? relManager.GetValue(memberData) : 5;
-                ui.Setup(memberData, value);
-                _memberUIs.Add((memberData, ui));
+                relationshipBar.gameObject.SetActive(false);
+                return;
             }
+
+            relationshipBar.gameObject.SetActive(true);
+            relationshipBar.SetValue(value, _relManager.GetLevel(speaker));
         }
 
         private void PopulateChoices(FamilyEvent evt)
@@ -131,65 +140,27 @@ namespace Bufe.UI
 
             SetChoiceButtonsInteractable(false);
 
+            int oldValue = SpeakerValue();
+
             // Notify manager — this applies money and relationship changes immediately
             OnChoiceSelected?.Invoke(_current, choiceIndex);
 
-            // Animate affected members, then hand back to EventScreenManager
-            AnimateEffects(_current.choices[choiceIndex]);
+            int newValue = SpeakerValue();
+            UpdateSpeakerBar(newValue);
+
+            // Give the player a beat to read the change when the speaker's bar moved, then advance
+            if (newValue != oldValue && postChoiceDelay > 0f)
+                Invoke(nameof(FinishChoice), postChoiceDelay);
+            else
+                FinishChoice();
         }
 
-        private void AnimateEffects(EventChoice choice)
+        private void FinishChoice()
         {
-            var masterSeq = DOTween.Sequence();
-            bool hasAnim  = false;
-
-            foreach (var effect in choice.effects)
-            {
-                if (effect.targetMember == null || effect.relationshipDelta == 0) continue;
-
-                foreach (var (data, ui) in _memberUIs)
-                {
-                    if (data != effect.targetMember) continue;
-
-                    // RelationshipManager has already applied the change.
-                    // Reconstruct old value: old = new - delta (pre-clamp approximation).
-                    int newVal = _relManager != null ? _relManager.GetValue(data) : 5;
-                    int oldVal = Mathf.Clamp(newVal - effect.relationshipDelta, 0, 10);
-
-                    masterSeq.Join(ui.AnimateTo(newVal, oldVal));
-                    hasAnim = true;
-                }
-            }
-
-            if (hasAnim)
-                masterSeq.OnComplete(() => EventScreenManager.Instance?.NotifyAnimationComplete());
-            else
-                EventScreenManager.Instance?.NotifyAnimationComplete();
+            EventScreenManager.Instance?.NotifyAnimationComplete();
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────
-
-        private List<FamilyMemberData> GetInvolvedMembers(FamilyEvent evt, FamilyManager familyManager)
-        {
-            var seen   = new HashSet<FamilyMemberData>();
-            var result = new List<FamilyMemberData>();
-
-            void TryAdd(FamilyMemberData m)
-            {
-                if (m == null || seen.Contains(m)) return;
-                foreach (var state in familyManager.States)
-                    if (state.Data == m && state.IsGone) return;
-                seen.Add(m);
-                result.Add(m);
-            }
-
-            TryAdd(evt.speaker);
-            foreach (var choice in evt.choices)
-                foreach (var effect in choice.effects)
-                    TryAdd(effect.targetMember);
-
-            return result;
-        }
 
         private string BuildChoiceLabel(EventChoice choice)
         {
@@ -201,7 +172,7 @@ namespace Bufe.UI
                 string hint = BuildEffectHint(effect);
                 if (string.IsNullOrEmpty(hint)) continue;
 
-                sb.Append(firstHint ? "\n" : "  ");
+                sb.Append(firstHint ? "\n" : " ");   // results drop to a new line under the choice text
                 sb.Append(hint);
                 firstHint = false;
             }
@@ -214,17 +185,26 @@ namespace Bufe.UI
             var parts = new List<string>();
 
             if (effect.moneyDelta != 0f)
-                parts.Add(effect.moneyDelta > 0f
-                    ? $"+{effect.moneyDelta:F0}$"
-                    : $"{effect.moneyDelta:F0}$");
+            {
+                string money = $"{(effect.moneyDelta > 0f ? "+" : "-")}₺{Mathf.Abs(effect.moneyDelta):F0}";
+                parts.Add(Colorize($"({money})", effect.moneyDelta > 0f));
+            }
 
             if (effect.targetMember != null && effect.relationshipDelta != 0)
             {
-                string sign = effect.relationshipDelta > 0 ? "+" : "";
-                parts.Add($"{sign}{effect.relationshipDelta} {effect.targetMember.memberName}");
+                int r = effect.relationshipDelta;
+                string rel = $"{(r > 0 ? "+" : "-")}{Mathf.Abs(r)} {effect.targetMember.memberName}";
+                parts.Add(Colorize($"({rel})", r > 0));
             }
 
-            return string.Join("  ", parts);
+            return string.Join(" ", parts);
+        }
+
+        /// <summary>Wraps text in a TMP color tag — positiveColor when good, negativeColor when bad.</summary>
+        private string Colorize(string text, bool positive)
+        {
+            Color c = positive ? positiveColor : negativeColor;
+            return $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>{text}</color>";
         }
 
         private void SetChoiceButtonsInteractable(bool value)

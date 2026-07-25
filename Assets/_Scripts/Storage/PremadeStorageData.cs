@@ -26,5 +26,8 @@ namespace Bufe
 
         [Tooltip("Icon used in the order screen row.")]
         public Sprite icon;
+
+        [Tooltip("Which tab this item appears under on the phone order screen.")]
+        public OrderCategory category = OrderCategory.StapleFood;
     }
 }

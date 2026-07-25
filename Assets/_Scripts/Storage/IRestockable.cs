@@ -12,6 +12,7 @@ namespace Bufe
         float UnitCost { get; }
         int StockCount { get; }
         bool IsInfinite { get; }
+        OrderCategory Category { get; }
         void AddStock(int amount);
     }
 

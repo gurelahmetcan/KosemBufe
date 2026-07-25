@@ -29,4 +29,7 @@ public class IngredientStorageData : ScriptableObject
 
     [Tooltip("Cost per unit when reordering from the phone.")]
     [Min(0f)] public float unitCost = 0f;
+
+    [Tooltip("Which tab this item appears under on the phone order screen.")]
+    public Bufe.OrderCategory category = Bufe.OrderCategory.StapleFood;
 }

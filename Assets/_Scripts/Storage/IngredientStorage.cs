@@ -32,6 +32,7 @@ namespace Bufe
         public float  UnitCost    => data != null ? data.unitCost : 0f;
         public int    StockCount  => _stockCount;
         public bool   IsInfinite  => data != null && data.defaultStock < 0;
+        public OrderCategory Category => data != null ? data.category : OrderCategory.StapleFood;
 
         public void AddStock(int amount)
         {
