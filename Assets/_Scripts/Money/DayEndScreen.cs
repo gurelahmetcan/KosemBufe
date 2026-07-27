@@ -34,9 +34,6 @@ namespace Bufe
         public Transform    familyContainer;
         public GameObject   familyRowPrefab;
 
-        [Header("Surprise Event Row")]
-        public Transform    surpriseContainer;
-
         [Header("Footer")]
         public TextMeshProUGUI totalText;
         public Button sleepButton;
@@ -60,9 +57,6 @@ namespace Bufe
 
         private readonly List<(FamilyMemberState state, ExpenseRowUI medicineRow)> _medicineRows =
             new List<(FamilyMemberState, ExpenseRowUI)>();
-
-        private SurpriseEvent _surpriseEvent;
-        private ExpenseRowUI  _surpriseRow;
 
         private float                      _restockCost;
         private readonly List<RestockLine> _pendingOrder = new List<RestockLine>();
@@ -128,7 +122,6 @@ namespace Bufe
 
             PopulateExpenseRows();
             PopulateFamilyRows();
-            PopulateSurpriseRow();
             UpdateTotal();
         }
 
@@ -176,21 +169,6 @@ namespace Bufe
                     }
                 }
             }
-        }
-
-        private void PopulateSurpriseRow()
-        {
-            ClearContainer(surpriseContainer);
-            _surpriseRow   = null;
-            _surpriseEvent = null;
-
-            if (familyManager == null || expenseRowPrefab == null || surpriseContainer == null) return;
-
-            _surpriseEvent = familyManager.GetTodaysSurpriseEvent(_dayNumber);
-            if (_surpriseEvent == null) return;
-
-            _surpriseRow = SpawnExpenseRow(surpriseContainer, _surpriseEvent.description, _surpriseEvent.cost, isMandatory: true);
-            if (_surpriseRow != null) _surpriseRow.OnToggled += _ => UpdateTotal();
         }
 
         // ── Phone order (restock) ──────────────────────────────────────────────────
@@ -248,9 +226,6 @@ namespace Bufe
             foreach (var (state, row) in _medicineRows)
                 if (row.IsEnabled) deductions += state.Data.medicineCost;
 
-            if (_surpriseRow != null && _surpriseEvent != null && _surpriseRow.IsEnabled)
-                deductions += _surpriseEvent.cost;
-
             deductions += _restockCost;
 
             float newBalance = _savings + _income - deductions;
@@ -287,10 +262,6 @@ namespace Bufe
                     if (row.IsEnabled)
                         moneyManager.DeductExpense(state.Data.medicineCost, "medicine");
                 }
-
-                // Pay surprise event if it exists (mandatory, auto-deducted)
-                if (_surpriseEvent != null)
-                    moneyManager.DeductExpense(_surpriseEvent.cost, _surpriseEvent.description);
 
                 moneyManager.ResetDailyIncome();
             }
