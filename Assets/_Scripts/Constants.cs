@@ -16,7 +16,8 @@ namespace Bufe
             Ayran,
             Cips,
             Tea,
-            Cigarette
+            Cigarette,
+            Cola
         }
 
         #endregion

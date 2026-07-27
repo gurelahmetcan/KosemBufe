@@ -31,6 +31,7 @@ namespace Bufe
         private Collider[]       _heldColliders;
         private string           _hoverLabel;
         private float            _rightPressTime = -1f;
+        private bool             _suppressRightRelease;
 
         // ── Public API ───────────────────────────────────────────────────────────
 
@@ -60,11 +61,25 @@ namespace Bufe
 
             if (mouse.rightButton.wasPressedThisFrame)
             {
-                _rightPressTime = Time.time;
+                if (_heldItem == null)
+                {
+                    // Empty hand: right-click is a "take back" / secondary interaction
+                    // (e.g. lifting the bread off the prep station). Suppress the
+                    // matching release so it doesn't immediately drop what we grabbed.
+                    _suppressRightRelease = TrySecondaryInteract();
+                }
+                else
+                {
+                    _rightPressTime = Time.time;
+                }
             }
             else if (mouse.rightButton.wasReleasedThisFrame)
             {
-                if (_heldItem != null)
+                if (_suppressRightRelease)
+                {
+                    _suppressRightRelease = false;
+                }
+                else if (_heldItem != null)
                 {
                     bool throwIt = _rightPressTime >= 0f && Time.time - _rightPressTime >= throwHoldThreshold;
                     Drop(throwIt);
@@ -94,6 +109,27 @@ namespace Bufe
                 if (item != null)
                     PickUp(item);
             }
+        }
+
+        /// <summary>
+        /// Empty-hand right-click. Fires the secondary interaction on whatever is
+        /// under the crosshair (e.g. lift the bread back off the prep station).
+        /// Returns true if something handled it.
+        /// </summary>
+        private bool TrySecondaryInteract()
+        {
+            GameObject hit = RaycastTarget();
+            if (hit == null) return false;
+
+            ISecondaryInteractable secondary = hit.GetComponent<ISecondaryInteractable>()
+                                            ?? hit.GetComponentInParent<ISecondaryInteractable>();
+            if (secondary != null && secondary.CanSecondaryInteract(this))
+            {
+                secondary.SecondaryInteract(this);
+                return true;
+            }
+
+            return false;
         }
 
         // ── Hover detection ──────────────────────────────────────────────────────

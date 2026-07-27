@@ -1,12 +1,17 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Add to the whole Sucuk prefab (alongside its Ingredient component).
 ///
 /// When the player holds the knife and left-clicks the sucuk, it is destroyed
-/// and replaced by a configurable number of SucukSlice objects stacked at
-/// the same world position. The player must put the knife down first to
-/// pick up slices one by one.
+/// and replaced by a configurable number of SucukSlice objects.
+///
+/// If the sucuk was placed on a cutting board (<see cref="PrepStation"/>), the
+/// slices spawn at the sucuk's centre and the board slides them over to its
+/// slice anchor, where they can be clicked straight into the open bread. If the
+/// sucuk is cut anywhere else, the slices simply spawn stacked in place and the
+/// player picks them up one by one.
 /// </summary>
 namespace Bufe
 {
@@ -20,6 +25,23 @@ namespace Bufe
 
         [Tooltip("Vertical offset between stacked slice objects after spawning.")]
         public float sliceStackOffset = 0.1f;
+
+        // Set when the sucuk is resting on a cutting board.
+        private PrepStation _station;
+
+        // ── Station tracking ──────────────────────────────────────────────────────
+
+        /// <summary>Called by PrepStation when the whole sucuk is placed on the board.</summary>
+        public void PlaceOnStation(PrepStation station) => _station = station;
+
+        public override void OnPickedUp()
+        {
+            if (_station != null)
+            {
+                _station.OnSucukPickedUp();
+                _station = null;
+            }
+        }
 
         // ── IAssemblyInteractable ─────────────────────────────────────────────────
 
@@ -36,14 +58,27 @@ namespace Bufe
                 return;
             }
 
-            Vector3    spawnPos = transform.position;
-            //Quaternion spawnRot = transform.rotation;
+            Vector3 spawnPos = transform.position;
 
+            var slices = new List<GameObject>(sliceCount);
             for (int i = 0; i < sliceCount; i++)
             {
-                Vector3 pos = spawnPos + Vector3.right * (sliceStackOffset * i);
+                // On a board every slice starts at the centre, then the board
+                // slides them to the anchor. Off a board they stack in place.
+                Vector3 pos = _station != null
+                    ? spawnPos
+                    : spawnPos + Vector3.right * (sliceStackOffset * i);
+
                 GameObject obj = Instantiate(sucukSlicePrefab);
                 obj.transform.position = pos;
+                slices.Add(obj);
+            }
+
+            if (_station != null)
+            {
+                PrepStation station = _station;
+                _station = null;                 // avoid double free via OnPickedUp
+                station.OnSucukSliced(this, slices);
             }
 
             Debug.Log($"[SucukItem] Sliced into {sliceCount} pieces.");

@@ -50,6 +50,10 @@ namespace Bufe
         private readonly List<Constants.IngredientType> _ingredients = new();
         public IReadOnlyList<Constants.IngredientType> Ingredients => _ingredients;
 
+        // The bread counts itself as an ingredient once it's closed. Tracked so
+        // repeated open/close toggling never double-counts it in the recipe.
+        private bool _selfCounted;
+
         private PrepStation _station;
         private Toaster     _toaster;
 
@@ -73,8 +77,9 @@ namespace Bufe
             if (_station == null)
                 return false;
 
-            // Empty hand + Whole or Cut → open the bread
-            if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half))
+            // Empty hand + Whole / Cut / Closed → open the bread (Closed can be
+            // re-opened so the player can keep editing the filling)
+            if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half || State == BreadState.Closed))
                 return true;
 
             // Ingredient in hand + Open → add to filling (only if a socket is free)
@@ -96,7 +101,7 @@ namespace Bufe
                 return;
             }
 
-            if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half))
+            if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half || State == BreadState.Closed))
             {
                 Open();
                 return;
@@ -211,6 +216,15 @@ namespace Bufe
         private void Open()
         {
             State = BreadState.Open;
+
+            // Re-opening a closed bread: drop the self ingredient so it isn't
+            // counted twice once the player closes it again.
+            if (_selfCounted)
+            {
+                _ingredients.Remove(ingredientType);
+                _selfCounted = false;
+            }
+
             RefreshVisuals();
             Debug.Log($"[PreparedItem] Opened ({ingredientType}).");
         }
@@ -235,6 +249,27 @@ namespace Bufe
 
         public bool AddIngredient(Constants.IngredientType type, PlayerHand hand)
         {
+            if (!HasFreeSocket(type))
+            {
+                Debug.LogWarning($"[PreparedItem] No free {type} socket — cannot place ingredient.");
+                return false;
+            }
+
+            // Keep the ingredient visible inside the open bread rather than destroying it.
+            InteractableItem item = hand.Release();
+            return PlaceIngredient(type, item);
+        }
+
+        /// <summary>
+        /// Places an already-detached ingredient object into a free socket for its
+        /// type. Used both by hand placement and by direct transfers (e.g. sucuk
+        /// slices clicked straight off the cutting board). Returns false if there
+        /// is no free socket or the item is null.
+        /// </summary>
+        public bool PlaceIngredient(Constants.IngredientType type, InteractableItem item)
+        {
+            if (item == null) return false;
+
             IngredientSocketGroup group = socketGroups?.Find(g => g.ingredientType == type);
             if (group == null || group.sockets == null || group.sockets.Count == 0)
             {
@@ -255,10 +290,6 @@ namespace Bufe
             }
 
             Transform socket = group.sockets[placedOfType.Count];
-
-            // Keep the ingredient visible inside the open bread rather than destroying it.
-            InteractableItem item = hand.Release();
-            if (item == null) return false;
 
             _ingredients.Add(type);
             physicalIngredients.Add(item.gameObject);
@@ -283,7 +314,14 @@ namespace Bufe
         private void Close()
         {
             State = BreadState.Closed;
-            AddIngredient(ingredientType);
+
+            // Count the bread itself exactly once (see _selfCounted).
+            if (!_selfCounted)
+            {
+                _ingredients.Add(ingredientType);
+                _selfCounted = true;
+            }
+
             RefreshVisuals();
             Debug.Log("[PreparedItem] Closed.");
         }
