@@ -26,7 +26,6 @@ namespace Bufe
         public DayManager dayManager;
         public OrderManager orderManager;
         public MoneyManager moneyManager;
-        public ReputationManager reputationManager;
 
         [Header("Day Controls")]
         public Button endDayButton;
@@ -190,14 +189,11 @@ namespace Bufe
             string day   = dayManager != null ? $"Day {dayManager.CurrentDay}" : "?";
             string phase = dayManager != null ? dayManager.CurrentPhase.ToString() : "?";
             string money = moneyManager != null ? $"${moneyManager.Balance:F0}" : "?";
-            string rep   = reputationManager != null
-                ? $"{reputationManager.Reputation}/{reputationManager.MaxReputation}"
-                : "?";
             string time  = dayManager != null && dayManager.clock != null
                 ? $"{dayManager.clock.CurrentHour:D2}:{dayManager.clock.CurrentMinute:D2}"
                 : "?";
 
-            statusText.text = $"{day} | {phase} | {time} | Money: {money} | Rep: {rep}";
+            statusText.text = $"{day} | {phase} | {time} | Money: {money}";
         }
 
         private void RefreshSpeedLabel()

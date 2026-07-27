@@ -25,7 +25,6 @@ namespace Bufe
         public DayManager dayManager;
         public OrderManager orderManager;
         public MoneyManager moneyManager;
-        public ReputationManager reputationManager;
 
         [Header("UI")]
         public GameOverUI gameOverUI;
@@ -63,9 +62,6 @@ namespace Bufe
 
         private void OnEnable()
         {
-            if (reputationManager != null)
-                reputationManager.OnGameOver += OnReputationGameOver;
-
             if (moneyManager != null)
                 moneyManager.OnBankrupt += OnBankrupt;
 
@@ -75,9 +71,6 @@ namespace Bufe
 
         private void OnDisable()
         {
-            if (reputationManager != null)
-                reputationManager.OnGameOver -= OnReputationGameOver;
-
             if (moneyManager != null)
                 moneyManager.OnBankrupt -= OnBankrupt;
 
@@ -140,9 +133,6 @@ namespace Bufe
                 return;
             }
 
-            if (reputationManager != null)
-                reputationManager.Init(config.maxReputation, config.startingReputation);
-
             if (moneyManager != null)
                 moneyManager.Init(config.startingMoney);
 
@@ -151,11 +141,6 @@ namespace Bufe
         }
 
         // ── Event handlers ───────────────────────────────────────────────────────
-
-        private void OnReputationGameOver()
-        {
-            TriggerGameOver("Reputation reached zero!");
-        }
 
         private void OnBankrupt()
         {
@@ -170,9 +155,7 @@ namespace Bufe
         {
             OnDaySettled?.Invoke(dayNumber);
 
-            Debug.Log($"[GameManager] Day {dayNumber} settled. " +
-                      $"Money: {moneyManager?.Balance:F2}, " +
-                      $"Reputation: {reputationManager?.Reputation}");
+            Debug.Log($"[GameManager] Day {dayNumber} settled. Money: {moneyManager?.Balance:F2}");
         }
 
         // ── Internal ─────────────────────────────────────────────────────────────
@@ -190,7 +173,6 @@ namespace Bufe
             if (dayManager == null) Debug.LogWarning("[GameManager] DayManager is not assigned!", this);
             if (orderManager == null) Debug.LogWarning("[GameManager] OrderManager is not assigned!", this);
             if (moneyManager == null) Debug.LogWarning("[GameManager] MoneyManager is not assigned!", this);
-            if (reputationManager == null) Debug.LogWarning("[GameManager] ReputationManager is not assigned!", this);
             if (gameOverUI == null) Debug.LogWarning("[GameManager] GameOverUI is not assigned!", this);
         }
     }

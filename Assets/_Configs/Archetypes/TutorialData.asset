@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8386350813fd53440ab6cb246106efee, type: 3}
+  m_Name: TutorialData
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.TutorialData
+  introLines:
+  - text: "Ah, So you are the new owner of this b\xFCfe."
+    buttonLabel: ...
+  - text: I like the smile on your face, maybe you will be more succesful then the
+      previous owner.
+    buttonLabel: Do you have an order?
+  orderPromptLine: Back to business you say! Give me Half Mix Toast and one Ayran.
+  orderButtonLabel: Take the order
+  orderItems:
+  - {fileID: 11400000, guid: 0e8f0e3fb2fb14b3588af7b5ac715647, type: 2}
+  - {fileID: 11400000, guid: a19417e32884c4875b4c709cb8c59163, type: 2}
+  thanksLine: Nice!

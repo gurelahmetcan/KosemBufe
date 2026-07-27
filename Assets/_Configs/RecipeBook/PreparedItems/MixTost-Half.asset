@@ -16,5 +16,5 @@ MonoBehaviour:
   price: 9
   icon: {fileID: 0}
   category: 1
-  ingredients: 01000000030000000300000004000000
+  ingredients: 02000000030000000300000004000000
   requiresCooking: 1

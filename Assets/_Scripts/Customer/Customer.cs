@@ -44,6 +44,9 @@ namespace Bufe
         /// <summary>True when this customer is a faction member rather than a normal order customer.</summary>
         public bool IsFactionMember => FactionInteraction != null;
 
+        /// <summary>True when this customer is the scripted day-1 tutorial visitor.</summary>
+        public bool IsTutorial { get; private set; }
+
         // ── Movement runtime ─────────────────────────────────────────────────────
 
         private Vector3       _moveTarget;
@@ -69,6 +72,16 @@ namespace Bufe
         public void InitialiseFaction(FactionInteraction interaction)
         {
             FactionInteraction = interaction;
+        }
+
+        /// <summary>
+        /// Initialises this customer as the scripted day-1 tutorial visitor. There is no
+        /// CustomerInstance/mood — dialogue comes from TutorialData and the order is fixed.
+        /// </summary>
+        public void InitialiseTutorial(Order order)
+        {
+            IsTutorial = true;
+            Recipe     = order;
         }
 
         /// <summary>

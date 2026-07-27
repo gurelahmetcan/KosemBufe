@@ -9,13 +9,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "GameConfig", menuName = "KosemBufe/Game Config")]
 public class GameConfig : ScriptableObject
 {
-    [Header("Reputation")]
-    [Tooltip("Maximum reputation the player can reach.")]
-    public int maxReputation = 100;
-
-    [Tooltip("Reputation the player starts with each run.")]
-    public int startingReputation = 50;
-
     [Header("Money")]
     [Tooltip("Starting money balance for a new game.")]
     public float startingMoney = 500f;

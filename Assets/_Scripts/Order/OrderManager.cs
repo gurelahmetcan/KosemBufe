@@ -40,9 +40,6 @@ namespace Bufe
                  "so the cursor stays free and the auto-relock is suppressed.")]
         [SerializeField] private PlayerLook playerLook;
 
-        [Tooltip("Reputation tracker — receives score changes from order outcomes.")]
-        [SerializeField] private ReputationManager reputationManager;
-
         [Tooltip("Factory that creates customer instances from archetype pool.")]
         [SerializeField] private CustomerFactory customerFactory;
 
@@ -51,6 +48,10 @@ namespace Bufe
 
         [Tooltip("Money tracker — receives income from delivered orders.")]
         [SerializeField] private MoneyManager moneyManager;
+
+        [Header("Tutorial")]
+        [Tooltip("Day-1 scripted tutorial visit. Leave empty to disable the tutorial.")]
+        [SerializeField] private TutorialData tutorialData;
 
         [Header("Order Ticket")]
         [Tooltip("Paper note prefab spawned on the counter to show the active order. Needs an OrderTicket component.")]
@@ -105,6 +106,12 @@ namespace Bufe
         private OrderTicket _activeTicket;
         private int         _normalCustomersToday;
 
+        // Tutorial runtime (no save system — resets on scene reload).
+        private bool _tutorialDone;
+        private bool _tutorialConversationStarted;
+        private bool _tutorialConversationDone;
+        private int  _tutorialLineIndex;
+
         // Day-büfe events scheduled as follow-ups (from any event's choice), due today.
         private readonly List<FactionInteraction> _followUpDaySpawns = new List<FactionInteraction>();
 
@@ -132,6 +139,7 @@ namespace Bufe
                 customerUI.OnReject += OnPromptReject;
                 customerUI.OnClose  += OnPromptClose;
                 customerUI.OnChoicePicked += OnFactionChoicePicked;
+                customerUI.OnContinue += OnTutorialContinue;
             }
 
             if (dayManager != null)
@@ -140,6 +148,10 @@ namespace Bufe
                 dayManager.OnCustomerSpawnTick += OnSpawnTick;
                 dayManager.OnClosingTimeReached += OnClosingTime;
                 dayManager.OnDayEnded += OnDayEnded;
+
+                // Freeze the day for the tutorial visit until its order is delivered.
+                if (tutorialData != null && !_tutorialDone)
+                    dayManager.HasPendingTutorial = true;
             }
             else
             {
@@ -156,6 +168,7 @@ namespace Bufe
                 customerUI.OnReject -= OnPromptReject;
                 customerUI.OnClose  -= OnPromptClose;
                 customerUI.OnChoicePicked -= OnFactionChoicePicked;
+                customerUI.OnContinue -= OnTutorialContinue;
             }
 
             if (dayManager != null)
@@ -200,6 +213,16 @@ namespace Bufe
             switch (_activeCustomer.CurrentState)
             {
                 case Customer.State.WaitingForOrder:
+                    // Tutorial dayı: the first click starts the conversation. After
+                    // that the cursor is unlocked and the on-panel button drives it,
+                    // so no further crosshair clicks reach here.
+                    if (_activeCustomer.IsTutorial)
+                    {
+                        if (!_tutorialConversationStarted)
+                            StartTutorialConversation();
+                        break;
+                    }
+
                     if (_activeCustomer.IsFactionMember)
                         HandleFactionClick();
                     else
@@ -263,7 +286,6 @@ namespace Bufe
         {
             SetCameraLocked(false);
 
-            if (reputationManager != null) reputationManager.ChangeReputation(-5);
             Debug.Log("Order rejected — customer leaves.");
 
             // Show negative exit on reject
@@ -441,7 +463,7 @@ namespace Bufe
                 return;
             }
 
-            Order order = _activeCustomer?.Instance?.Order;
+            Order order = _activeCustomer?.Recipe;
             if (order == null) return;
             
             // Find the first unfulfilled slot that matches the held item
@@ -469,10 +491,22 @@ namespace Bufe
             if (order.IsComplete)
             {
                 Debug.Log("[OrderManager] Order complete!");
-                if (reputationManager != null) reputationManager.ChangeReputation(+5);
+                bool wasTutorial = _activeCustomer != null && _activeCustomer.IsTutorial;
+
                 if (moneyManager != null) moneyManager.AddIncome(order.TotalPrice);
-                ShowResultExit();
+
+                if (wasTutorial && tutorialData != null && customerUI != null)
+                    customerUI.ShowExitLine(tutorialData.thanksLine);
+                else
+                    ShowResultExit();
+
                 EndOrder();
+
+                if (wasTutorial)
+                {
+                    _tutorialDone = true;
+                    dayManager?.BeginTimedPhase();   // unfreeze: clock + spawns start now
+                }
             }
         }
 
@@ -547,6 +581,11 @@ namespace Bufe
         {
             if (EventScreenManager.Instance != null && dayManager != null)
                 _followUpDaySpawns.AddRange(EventScreenManager.Instance.ConsumeDueDayEvents(dayManager.CurrentDay));
+
+            // Day-1 tutorial: the scripted dayı arrives first, before any random
+            // customer and while the clock is frozen.
+            if (tutorialData != null && !_tutorialDone && _activeCustomer == null)
+                SpawnTutorialCustomer();
         }
 
         /// <summary>Called by DayManager on each spawn-interval tick while the shop is open.</summary>
@@ -605,9 +644,6 @@ namespace Bufe
 
             // Don't spawn if debug-paused
             if (_spawningPaused) return;
-
-            // Don't spawn new customers after game over (fallback if no GameManager)
-            if (reputationManager != null && reputationManager.IsGameOver) return;
 
             // Don't spawn if the day system says we're closed
             if (dayManager != null && !dayManager.IsOpenForCustomers) return;
@@ -763,6 +799,101 @@ namespace Bufe
                 _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation, onArrived);
 
             Debug.Log($"[OrderManager] Faction member spawned: {interaction.memberName} ({interaction.kind}).");
+        }
+
+        #endregion
+
+        #region Tutorial
+
+        /// <summary>Spawns the scripted day-1 tutorial visitor using the normal customer pipeline.</summary>
+        private void SpawnTutorialCustomer()
+        {
+            if (customerPrefab == null || spawnPoint == null)
+            {
+                Debug.LogError("[OrderManager] customerPrefab or spawnPoint is not assigned!", this);
+                return;
+            }
+
+            _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
+            _activeCustomer.InitialiseTutorial(BuildTutorialOrder());
+
+            if (dayManager != null)
+                dayManager.SetActiveCustomer(true);
+
+            _tutorialConversationStarted = false;
+            _tutorialConversationDone    = false;
+            _tutorialLineIndex           = 0;
+
+            // Walk to the counter and wait (waving). The conversation only starts
+            // once the player clicks the dayı — see HandleClickInput.
+            if (counterPoint != null)
+                _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation);
+
+            Debug.Log("[OrderManager] Tutorial dayı spawned.");
+        }
+
+        private Order BuildTutorialOrder()
+        {
+            var order = new Order { slots = new List<OrderSlot>() };
+            if (tutorialData.orderItems != null)
+            {
+                foreach (OrderItem item in tutorialData.orderItems)
+                    if (item != null)
+                        order.slots.Add(new OrderSlot { target = item });
+            }
+            return order;
+        }
+
+        /// <summary>
+        /// Begins the conversation once the dayı reaches the counter. The order panel
+        /// stays open the whole time; the cursor is unlocked so the panel button is
+        /// clickable.
+        /// </summary>
+        private void StartTutorialConversation()
+        {
+            _tutorialConversationStarted = true;
+            _tutorialLineIndex           = 0;
+            SetCameraLocked(true);   // free the cursor for the panel button
+            ShowTutorialStep();
+        }
+
+        /// <summary>Shows the current intro line on the panel with its advance button.</summary>
+        private void ShowTutorialStep()
+        {
+            var lines = tutorialData.introLines;
+
+            if (lines == null || lines.Count == 0 || _tutorialLineIndex >= lines.Count)
+            {
+                _tutorialConversationDone = true;
+                ShowTutorialPrompt();
+                return;
+            }
+
+            TutorialData.TutorialLine line = lines[_tutorialLineIndex];
+            if (customerUI != null)
+                customerUI.ShowContinue(line.text, line.buttonLabel);
+        }
+
+        /// <summary>Panel button clicked during the tutorial conversation — advance to the next line.</summary>
+        private void OnTutorialContinue()
+        {
+            if (_activeCustomer == null || !_activeCustomer.IsTutorial || _tutorialConversationDone) return;
+
+            _tutorialLineIndex++;
+            ShowTutorialStep();
+        }
+
+        /// <summary>Presents the fixed tutorial order with a forced Accept (no reject/close).</summary>
+        private void ShowTutorialPrompt()
+        {
+            if (_activeCustomer == null) return;
+
+            _activeCustomer.ShowOrder(_activeCustomer.Recipe);
+
+            if (customerUI != null)
+                customerUI.ShowPrompt(tutorialData.orderPromptLine,
+                                      showReject: false, showClose: false,
+                                      acceptLabel: tutorialData.orderButtonLabel);
         }
 
         #endregion

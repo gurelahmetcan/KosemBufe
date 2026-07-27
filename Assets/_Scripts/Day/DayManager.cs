@@ -44,6 +44,14 @@ namespace Bufe
         private float    _spawnTimer;
         private bool     _firstSpawnPending;
         private bool     _hasActiveCustomer;
+        private bool     _timedPhaseActive;
+
+        /// <summary>
+        /// Set true by OrderManager when the day-1 tutorial still needs to run.
+        /// While set, opening the shutter does NOT start the clock or customer
+        /// spawns — the day stays frozen until BeginTimedPhase() is called.
+        /// </summary>
+        public bool HasPendingTutorial { get; set; }
 
         /// <summary>Current phase of the day.</summary>
         public DayPhase CurrentPhase => _currentPhase;
@@ -90,6 +98,10 @@ namespace Bufe
         {
             if (_currentPhase != DayPhase.Open) return;
 
+            // Frozen during the tutorial: no clock, no spawns until the tutorial
+            // order is delivered and BeginTimedPhase() flips this on.
+            if (!_timedPhaseActive) return;
+
             // Handle first-spawn delay
             if (_firstSpawnPending)
             {
@@ -123,13 +135,41 @@ namespace Bufe
             if (_currentPhase != DayPhase.PreOpen) return;
 
             SetPhase(DayPhase.Open);
-            clock.StartTicking();
 
-            _firstSpawnPending = true;
-            _spawnTimer = config.firstSpawnDelay;
-
-            Debug.Log($"[DayManager] Day {_currentDay} — shutter opened! Customers incoming.");
+            // OnDayStarted lets OrderManager spawn the tutorial dayı (if pending).
             OnDayStarted?.Invoke();
+
+            if (HasPendingTutorial)
+            {
+                // Keep the day frozen until the tutorial order is delivered.
+                Debug.Log($"[DayManager] Day {_currentDay} — shutter opened for tutorial. Time is frozen.");
+                return;
+            }
+
+            StartTimedPhase();
+            Debug.Log($"[DayManager] Day {_currentDay} — shutter opened! Customers incoming.");
+        }
+
+        /// <summary>Starts the clock and the customer spawn loop.</summary>
+        private void StartTimedPhase()
+        {
+            _timedPhaseActive  = true;
+            clock.StartTicking();
+            _firstSpawnPending = true;
+            _spawnTimer        = config.firstSpawnDelay;
+        }
+
+        /// <summary>
+        /// Called by OrderManager once the tutorial order is delivered. Clears the
+        /// tutorial gate and starts the timed day (clock + spawns).
+        /// </summary>
+        public void BeginTimedPhase()
+        {
+            HasPendingTutorial = false;
+            if (_timedPhaseActive) return;
+
+            StartTimedPhase();
+            Debug.Log("[DayManager] Tutorial complete — the day is now running.");
         }
 
         /// <summary>
@@ -202,6 +242,7 @@ namespace Bufe
             clock.SetTime(config.openingHour, config.openingMinute, closingMinutes, config.gameMinutesPerRealSecond);
 
             _hasActiveCustomer = false;
+            _timedPhaseActive  = false;
             SetPhase(DayPhase.PreOpen);
 
             Debug.Log($"[DayManager] Day {_currentDay} — it's {config.openingHour:D2}:{config.openingMinute:D2}. Open the shutter to begin.");

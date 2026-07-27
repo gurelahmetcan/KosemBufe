@@ -69,6 +69,9 @@ namespace Bufe.UI
         /// <summary>Fired when the player picks a faction interaction choice. Passes the choice index.</summary>
         public event Action<int> OnChoicePicked;
 
+        /// <summary>Fired when the player clicks the primary button while a conversation step is showing.</summary>
+        public event Action OnContinue;
+
         /// <summary>True while the prompt buttons (order or faction choices) are visible.</summary>
         public bool IsPromptVisible => panel != null && panel.activeSelf && (_buttonsVisible || _choiceActive);
 
@@ -78,7 +81,12 @@ namespace Bufe.UI
         private Coroutine _activeSequence;
         private bool _buttonsVisible;
         private bool _choiceActive;
+        private bool _conversationMode;
         private readonly List<GameObject> _choiceButtons = new List<GameObject>();
+
+        // Accept button label handling (so we can retitle it per tutorial step).
+        private TextMeshProUGUI _acceptLabel;
+        private string          _defaultAcceptLabel;
 
         private void Awake()
         {
@@ -86,7 +94,19 @@ namespace Bufe.UI
             if (rejectButton != null) rejectButton.onClick.AddListener(HandleReject);
             if (closeButton != null)  closeButton.onClick.AddListener(HandleClose);
 
+            if (acceptButton != null)
+            {
+                _acceptLabel = acceptButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (_acceptLabel != null) _defaultAcceptLabel = _acceptLabel.text;
+            }
+
             Hide();
+        }
+
+        private void SetAcceptLabel(string label)
+        {
+            if (_acceptLabel == null) return;
+            _acceptLabel.text = string.IsNullOrEmpty(label) ? _defaultAcceptLabel : label;
         }
 
         // ── Dialogue API (text only, auto-hides after duration) ──────────────
@@ -132,17 +152,48 @@ namespace Bufe.UI
             _activeSequence = StartCoroutine(ShowLineRoutine(line, duration < 0 ? lineDisplayDuration : duration));
         }
 
+        /// <summary>
+        /// Shows a conversation step on the panel: the line plus a single primary
+        /// button (Accept, retitled to <paramref name="buttonLabel"/>). The panel
+        /// stays open; clicking the button fires <see cref="OnContinue"/> so the
+        /// caller can advance to the next step. Used by the tutorial.
+        /// </summary>
+        public void ShowContinue(string line, string buttonLabel)
+        {
+            StopActive();
+            ClearChoices();
+            SetText(line);
+            SetAcceptLabel(buttonLabel);
+
+            _conversationMode = true;
+            _buttonsVisible   = true;
+            if (acceptButton != null) acceptButton.gameObject.SetActive(true);
+            if (rejectButton != null) rejectButton.gameObject.SetActive(false);
+            if (closeButton  != null) closeButton.gameObject.SetActive(false);
+
+            ShowPanel();
+        }
+
         // ── Prompt API (text + buttons, stays until player clicks) ──────────
 
         /// <summary>
         /// Shows the order prompt with recipe text and Accept/Reject/Close buttons.
-        /// Stays visible until the player clicks a button.
+        /// Stays visible until the player clicks a button. Reject/Close can be
+        /// suppressed and the Accept caption overridden (e.g. the tutorial's
+        /// forced-accept order).
         /// </summary>
-        public void ShowPrompt(string recipe)
+        public void ShowPrompt(string recipe, bool showReject = true, bool showClose = true, string acceptLabel = null)
         {
             StopActive();
             SetText(recipe);
-            SetButtonsVisible(true);
+            SetAcceptLabel(acceptLabel);
+
+            _conversationMode = false;
+            _buttonsVisible   = true;
+            if (acceptButton != null) acceptButton.gameObject.SetActive(true);
+            if (rejectButton != null) rejectButton.gameObject.SetActive(showReject);
+            if (closeButton  != null) closeButton.gameObject.SetActive(showClose);
+
             ShowPanel();
         }
 
@@ -275,6 +326,14 @@ namespace Bufe.UI
 
         private void HandleAccept()
         {
+            // During a conversation the primary button just advances — the panel
+            // stays open and the caller decides what to show next.
+            if (_conversationMode)
+            {
+                OnContinue?.Invoke();
+                return;
+            }
+
             HidePrompt();
             OnAccept?.Invoke();
         }
@@ -312,6 +371,7 @@ namespace Bufe.UI
         private void SetButtonsVisible(bool visible)
         {
             _buttonsVisible = visible;
+            if (!visible) _conversationMode = false;
             if (acceptButton != null) acceptButton.gameObject.SetActive(visible);
             if (rejectButton != null) rejectButton.gameObject.SetActive(visible);
             if (closeButton != null)  closeButton.gameObject.SetActive(visible);
