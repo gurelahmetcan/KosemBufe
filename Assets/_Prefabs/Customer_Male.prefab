@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4595491020392408829}
   - component: {fileID: 4860428017758055208}
   m_Layer: 0
-  m_Name: Customer
+  m_Name: Customer_Male
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -81,15 +81,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.6
+      value: 0.58
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.6
+      value: 0.58
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.6
+      value: 0.58
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}
       propertyPath: m_LocalPosition.x

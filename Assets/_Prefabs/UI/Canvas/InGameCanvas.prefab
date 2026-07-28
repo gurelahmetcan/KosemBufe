@@ -751,6 +751,8 @@ MonoBehaviour:
   choicesContainer: {fileID: 578551516502247502}
   choiceButtonPrefab: {fileID: 4407577069229338120, guid: 50da34bde7c2d4bf4b2bff5b8557c5ec, type: 3}
   factionBar: {fileID: 2323772429328233098}
+  positiveColor: {r: 0.2, g: 0.75, b: 0.2, a: 1}
+  negativeColor: {r: 0.85, g: 0.2, b: 0.2, a: 1}
   lineDisplayDuration: 2
   linePauseDuration: 0.3
 --- !u!1 &2750733176610077357
@@ -1647,8 +1649,8 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1

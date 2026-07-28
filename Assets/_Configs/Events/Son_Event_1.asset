@@ -13,28 +13,31 @@ MonoBehaviour:
   m_Name: Son_Event_1
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
   speaker: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
-  eventText: Can you give me money?
+  eventText: Dad, there's a class trip at school. My teacher asked for fifty lira,
+    I need to give it tomorrow.
   choices:
-  - label: Yes
+  - label: Here, take it
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
       relationshipDelta: 1
       targetFaction: {fileID: 0}
       factionDelta: 0
-      moneyDelta: -10
+      moneyDelta: -50
       grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
-  - label: I don't have, sorry
+  - label: Not this week, son
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
-      relationshipDelta: -1
+      relationshipDelta: -2
       targetFaction: {fileID: 0}
       factionDelta: 0
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
-  scheduledDay: 0
+  scheduledDay: 1
   minDay: 1
   triggerChance: 0.3

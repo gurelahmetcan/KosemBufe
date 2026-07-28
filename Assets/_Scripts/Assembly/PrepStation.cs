@@ -23,29 +23,41 @@ namespace Bufe
     [Tooltip("Seconds it takes for freshly cut slices to slide from the centre to the slice anchor.")]
     public float sliceSlideDuration = 0.25f;
 
+    [Tooltip("Maximum sucuk slices that can rest on the board at once. Slices cut beyond this are discarded.")]
+    public int maxSlices = 8;
+
     // ── Runtime state ────────────────────────────────────────────────────────
 
     private PreparedItem      _preparedItem;               // bread (centre)
     private SucukItem         _sucuk;                       // whole sucuk (side)
-    private readonly List<GameObject> _slices = new();      // cut slices on the side
+
+    // Fixed slots for cut slices on the side. Index → position along the anchor;
+    // null = free. New cuts fill the first free slots, so re-cutting never stacks
+    // slices on top of each other, and deposited slices free their slot.
+    private GameObject[] _sliceSlots;
 
     // ── IAssemblyInteractable (left-click) ───────────────────────────────────
 
     public bool CanInteract(PlayerHand hand)
     {
-        // Placing a bread onto the station.
+        // Placing a bread — blocked while a whole sucuk occupies the board.
         if (!hand.IsHandEmpty && hand.HeldItem is PreparedItem bread && bread.State != BreadState.Toasted)
-            return _preparedItem == null;
+            return _preparedItem == null && _sucuk == null;
 
-        // Placing a whole sucuk onto the station (to be sliced here).
+        // Placing a whole sucuk — blocked while a bread occupies the board.
         if (!hand.IsHandEmpty && hand.HeldItem is SucukItem)
-            return _sucuk == null;
+            return _sucuk == null && _preparedItem == null;
 
-        // Bread already on the station — forward to its own interaction logic
-        // (cut / open / close / add filling). All routed through this collider
-        // because the bread's own colliders stay disabled while it rests here.
+        // Bread on the station (its own colliders are disabled, so clicks route here):
         if (_preparedItem != null)
+        {
+            // Empty hand → left-click lifts the bread back into the hand.
+            if (hand.IsHandEmpty)
+                return true;
+
+            // Knife / ingredient in hand → forward to the bread's own logic (cut / fill).
             return _preparedItem.CanInteract(hand);
+        }
 
         return false;
     }
@@ -66,24 +78,33 @@ namespace Bufe
             return;
         }
 
-        // ── Forward to the bread resting on the station ──────────────────────
+        // ── Bread resting on the station ─────────────────────────────────────
         if (_preparedItem != null)
+        {
+            // Empty hand → left-click takes the bread back.
+            if (hand.IsHandEmpty)
+            {
+                hand.PickUp(_preparedItem);   // OnPickedUp clears _preparedItem
+                return;
+            }
+
+            // Knife / ingredient → forward to the bread (cut / add filling).
             _preparedItem.Interact(hand);
+        }
     }
 
     // ── ISecondaryInteractable (empty-hand right-click) ──────────────────────
 
     public bool CanSecondaryInteract(PlayerHand hand)
     {
-        // Empty hand + bread on the station → lift it back into the hand so the
-        // player can keep editing (open/close/fill) it freely.
-        return hand.IsHandEmpty && _preparedItem != null;
+        // Empty hand + bread on the station → right-click opens / closes it.
+        return hand.IsHandEmpty && _preparedItem != null && _preparedItem.CanToggleOpen();
     }
 
     public void SecondaryInteract(PlayerHand hand)
     {
         if (hand.IsHandEmpty && _preparedItem != null)
-            hand.PickUp(_preparedItem);   // OnPickedUp clears _preparedItem
+            _preparedItem.ToggleOpen();
     }
 
     // ── Bread placement ──────────────────────────────────────────────────────
@@ -160,19 +181,25 @@ namespace Bufe
                          : sucukAnchor != null ? sucukAnchor
                          : stackAnchor;
 
-        // Line the slices up along the anchor's right axis, centred on it.
-        int   count = slices.Count;
-        float span  = sliceSpacing * (count - 1);
-        var   targets = new Vector3[count];
-        for (int i = 0; i < count; i++)
-            targets[i] = anchor.position + new Vector3(i * sliceSpacing, 0f, 0f);
+        EnsureSlots();
 
-        for (int i = 0; i < count; i++)
+        var moving  = new List<GameObject>();
+        var targets = new List<Vector3>();
+
+        foreach (GameObject slice in slices)
         {
-            GameObject slice = slices[i];
             if (slice == null) continue;
 
-            _slices.Add(slice);
+            int slot = FirstFreeSlot();
+            if (slot < 0)
+            {
+                // Board is full — discard the extra slice instead of stacking it.
+                Debug.Log("[PrepStation] Slice board full — extra slice discarded.");
+                Destroy(slice);
+                continue;
+            }
+
+            _sliceSlots[slot] = slice;
 
             // Bind so an empty-hand click drops the slice into the open bread.
             SucukSlice sc = slice.GetComponent<SucukSlice>() ?? slice.AddComponent<SucukSlice>();
@@ -181,9 +208,48 @@ namespace Bufe
             // Freeze physics so slices sit still on the board (and don't fight the slide).
             Rigidbody rb = slice.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = true;
+
+            moving.Add(slice);
+            targets.Add(SlicePosition(anchor, slot));
         }
 
-        StartCoroutine(SlideSlices(new List<GameObject>(slices), targets));
+        if (moving.Count > 0)
+            StartCoroutine(SlideSlices(moving, targets.ToArray()));
+    }
+
+    // ── Slice slot helpers ────────────────────────────────────────────────────
+
+    private void EnsureSlots()
+    {
+        int size = Mathf.Max(1, maxSlices);
+        if (_sliceSlots == null || _sliceSlots.Length != size)
+        {
+            var resized = new GameObject[size];
+            if (_sliceSlots != null)
+                for (int i = 0; i < _sliceSlots.Length && i < size; i++)
+                    resized[i] = _sliceSlots[i];
+            _sliceSlots = resized;
+        }
+    }
+
+    /// <summary>World position of a slice slot, laid out along the anchor from index 0.</summary>
+    private Vector3 SlicePosition(Transform anchor, int index)
+        => anchor.position + new Vector3(-index * sliceSpacing, 0f, 0f);
+
+    /// <summary>First empty slot index, or -1 if the board is full.</summary>
+    private int FirstFreeSlot()
+    {
+        for (int i = 0; i < _sliceSlots.Length; i++)
+            if (_sliceSlots[i] == null) return i;
+        return -1;
+    }
+
+    /// <summary>Frees whatever slot holds this slice (called when it's placed into the bread).</summary>
+    private void FreeSlot(GameObject slice)
+    {
+        if (_sliceSlots == null) return;
+        for (int i = 0; i < _sliceSlots.Length; i++)
+            if (_sliceSlots[i] == slice) { _sliceSlots[i] = null; return; }
     }
 
     private IEnumerator SlideSlices(List<GameObject> slices, Vector3[] targets)
@@ -231,7 +297,7 @@ namespace Bufe
 
         if (_preparedItem.PlaceIngredient(ing.ingredientType, item))
         {
-            _slices.Remove(slice.gameObject);
+            FreeSlot(slice.gameObject);
             slice.ClearStation();
             Destroy(slice);   // remove the SucukSlice behaviour; it's part of the bread now
         }

@@ -25,8 +25,9 @@ namespace Bufe
         [Tooltip("Active when bread is open and ready for filling.")]
         [SerializeField] private GameObject openBreadVisual;
 
-        [Tooltip("Material with the toasted (pişmiş) texture, applied when toasting finishes.")]
-        [SerializeField] private Material cookedMaterial;
+        [Tooltip("Active when the bread is toasted (pişmiş). Its own model with its own " +
+                 "material — swapped in like the other visuals, no runtime material change.")]
+        [SerializeField] private GameObject cookedBreadVisual;
 
         [Header("Cutting")]
         [Tooltip("Prefab spawned twice when the full bread is cut. Must have a PreparedItem component.")]
@@ -69,54 +70,61 @@ namespace Bufe
 
         public bool CanInteract(PlayerHand hand)
         {
-            // Knife + Whole → cut in half (works anywhere)
-            if (hand.HeldItem is KnifeItem && State == BreadState.Full)
+            // Knife + empty whole loaf → cut in half (works anywhere).
+            if (hand.HeldItem is KnifeItem && CanBeCut())
                 return true;
 
-            // Everything below requires the bread to be resting on a station
+            // Everything below requires the bread to be resting on a station.
             if (_station == null)
                 return false;
 
-            // Empty hand + Whole / Cut / Closed → open the bread (Closed can be
-            // re-opened so the player can keep editing the filling)
-            if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half || State == BreadState.Closed))
-                return true;
-
-            // Ingredient in hand + Open → add to filling (only if a socket is free)
+            // Ingredient in hand + Open → add to filling (only if a socket is free).
             if (hand.HeldItem is Ingredient heldIngredient && State == BreadState.Open)
                 return HasFreeSocket(heldIngredient.ingredientType);
-
-            // Empty hand + Open → close the bread
-            if (hand.IsHandEmpty && State == BreadState.Open)
-                return true;
 
             return false;
         }
 
         public void Interact(PlayerHand hand)
         {
-            if (hand.HeldItem is KnifeItem && State == BreadState.Full)
+            if (hand.HeldItem is KnifeItem && CanBeCut())
             {
                 Cut();
-                return;
-            }
-
-            if (hand.IsHandEmpty && (State == BreadState.Full || State == BreadState.Half || State == BreadState.Closed))
-            {
-                Open();
                 return;
             }
 
             if (hand.HeldItem is Ingredient ing && State == BreadState.Open)
             {
                 AddIngredient(ing.ingredientType, hand);
-                return;
             }
+        }
 
-            if (hand.IsHandEmpty && State == BreadState.Open)
-            {
-                Close();
-            }
+        /// <summary>
+        /// True if a knife can split this bread: a whole loaf, empty inside, and not
+        /// toasting/toasted. Works whether or not it has been opened/closed.
+        /// </summary>
+        public bool CanBeCut()
+        {
+            if (ingredientType != Constants.IngredientType.Bread_Full) return false;
+            if (physicalIngredients.Count > 0)                          return false;
+            return State == BreadState.Full || State == BreadState.Open || State == BreadState.Closed;
+        }
+
+        /// <summary>True if the bread can be opened or closed right now (empty-hand right-click on the station).</summary>
+        public bool CanToggleOpen()
+        {
+            if (_station == null) return false;
+            return State == BreadState.Full || State == BreadState.Half
+                || State == BreadState.Closed || State == BreadState.Open;
+        }
+
+        /// <summary>Opens the bread if it's shut, closes it if it's open. Empty-hand right-click on the station.</summary>
+        public void ToggleOpen()
+        {
+            if (!CanToggleOpen()) return;
+
+            if (State == BreadState.Open) Close();
+            else                          Open();
         }
 
         // ── Called by PrepStation ─────────────────────────────────────────────────
@@ -333,30 +341,21 @@ namespace Bufe
 
         private void RefreshVisuals()
         {
-            bool isWhole  = State == BreadState.Full
-                            || (State == BreadState.Closed  && ingredientType == Constants.IngredientType.Bread_Full)
-                            || (State == BreadState.Toasted && ingredientType == Constants.IngredientType.Bread_Full);
+            bool toasted = State == BreadState.Toasted;
 
-            bool isHalf   = State == BreadState.Half
-                            || (State == BreadState.Closed  && ingredientType == Constants.IngredientType.Bread_Half)
-                            || (State == BreadState.Toasted && ingredientType == Constants.IngredientType.Bread_Half);
+            bool isWhole  = !toasted && (State == BreadState.Full
+                            || (State == BreadState.Closed && ingredientType == Constants.IngredientType.Bread_Full));
 
-            bool isOpen   = State == BreadState.Open;
+            bool isHalf   = !toasted && (State == BreadState.Half
+                            || (State == BreadState.Closed && ingredientType == Constants.IngredientType.Bread_Half));
 
-            if (wholeBreadVisual != null) wholeBreadVisual.SetActive(isWhole);
-            if (halfBreadVisual  != null) halfBreadVisual.SetActive(isHalf);
-            if (openBreadVisual  != null) openBreadVisual.SetActive(isOpen);
-            // Toasting state: all visuals off — bread is hidden inside the toaster
+            bool isOpen   = !toasted && State == BreadState.Open;
 
-            // Once toasted, swap the visible visual's renderers to the cooked material.
-            // Uses instanced material (.material) so toasting one bread never recolours others.
-            if (State == BreadState.Toasted && cookedMaterial != null)
-            {
-                GameObject cooked = isWhole ? wholeBreadVisual : isHalf ? halfBreadVisual : null;
-                if (cooked != null)
-                    foreach (Renderer r in cooked.GetComponentsInChildren<Renderer>())
-                        r.material = cookedMaterial;
-            }
+            if (wholeBreadVisual  != null) wholeBreadVisual.SetActive(isWhole);
+            if (halfBreadVisual   != null) halfBreadVisual.SetActive(isHalf);
+            if (openBreadVisual   != null) openBreadVisual.SetActive(isOpen);
+            if (cookedBreadVisual != null) cookedBreadVisual.SetActive(toasted);
+            // Toasting state: everything off — the bread is hidden inside the toaster.
         }
 
         #endregion

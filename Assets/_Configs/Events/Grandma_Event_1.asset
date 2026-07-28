@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: Grandma_Event_1
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
   speaker: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
-  eventText: here take this money son. I will help you
+  eventText: Son, your face is troubled. Is something wrong?
   choices:
-  - label: Thank you mama
+  - label: (Open up about the rent)
     effects:
     - targetMember: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
       relationshipDelta: 0
       targetFaction: {fileID: 0}
       factionDelta: 0
-      moneyDelta: 10
+      moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
   - label: I can't take this
@@ -33,6 +34,7 @@ MonoBehaviour:
       factionDelta: 0
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
   scheduledDay: 0

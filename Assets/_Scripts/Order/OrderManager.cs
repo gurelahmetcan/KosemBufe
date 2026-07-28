@@ -11,8 +11,13 @@ namespace Bufe
         #region Serialized Fields
 
         [Header("References")]
-        [Tooltip("Prefab with Collider, Animator, and Customer component.")]
+        [Tooltip("Default customer prefab (Collider, Animator, Customer component). Used for " +
+                 "faction members and the tutorial, and as a fallback for normal customers.")]
         [SerializeField] private Customer customerPrefab;
+
+        [Tooltip("Body-prefab pool for NORMAL customers — one is picked at random per spawn " +
+                 "(e.g. one male + two female models). Empty = always use customerPrefab.")]
+        [SerializeField] private Customer[] normalCustomerPrefabs;
 
         [Header("Waypoints")]
         [Tooltip("World-space position where new customers appear.")]
@@ -691,7 +696,7 @@ namespace Bufe
                 return;
             }
 
-            _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
+            _activeCustomer = Instantiate(PickNormalCustomerPrefab(), spawnPoint.position, spawnPoint.rotation);
             _normalCustomersToday++;
 
             // Notify day manager that we have an active customer
@@ -718,6 +723,20 @@ namespace Bufe
                 : "default";
 
             Debug.Log($"New customer spawned: {archetypeName} ({moodName})");
+        }
+
+        /// <summary>
+        /// Picks a random body prefab for a normal customer from the pool, falling back to
+        /// the default customerPrefab when the pool is empty or holds a null entry.
+        /// </summary>
+        private Customer PickNormalCustomerPrefab()
+        {
+            if (normalCustomerPrefabs != null && normalCustomerPrefabs.Length > 0)
+            {
+                Customer pick = normalCustomerPrefabs[Random.Range(0, normalCustomerPrefabs.Length)];
+                if (pick != null) return pick;
+            }
+            return customerPrefab;
         }
 
         /// <summary>
