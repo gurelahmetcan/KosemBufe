@@ -25,7 +25,7 @@ MonoBehaviour:
       grantedItemPrefab: {fileID: 0}
     followUpEvent: {fileID: 0}
     followUpDelay: 0
-  - label: I can't take thid
+  - label: I can't take this
     effects:
     - targetMember: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
       relationshipDelta: 1

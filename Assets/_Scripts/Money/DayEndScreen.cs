@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,6 +42,10 @@ namespace Bufe
         [Header("Restock")]
         public PhoneOrderScreen phoneOrderScreen;
         public Button           orderStockButton;
+
+        [Header("Transition")]
+        [Tooltip("Optional fade used to hide the world reset when starting the next day.")]
+        public ScreenFader screenFader;
 
         [Header("Colors")]
         public Color positiveColor = new Color(0.20f, 0.85f, 0.20f, 1f);
@@ -283,11 +288,25 @@ namespace Bufe
             if (familyManager != null)
                 familyManager.ProcessDayEnd(foodPaid, heatPaid, medicated);
 
+            StartCoroutine(FinishSleep());
+        }
+
+        /// <summary>
+        /// Fades to black, starts the next day (which teleports the player and
+        /// clears leftover items under the cover of the fade), closes the screen,
+        /// then fades back in on the fresh morning.
+        /// </summary>
+        private IEnumerator FinishSleep()
+        {
+            if (screenFader != null) yield return screenFader.FadeOut();
+
             if (dayManager != null)
-                dayManager.BeginNextDay();
+                dayManager.BeginNextDay();          // resets the world while black
 
             if (screenRoot  != null) screenRoot.SetActive(false);
             if (playerLook  != null) playerLook.UIMode = false;
+
+            if (screenFader != null) yield return screenFader.FadeIn();
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────

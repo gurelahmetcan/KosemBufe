@@ -141,6 +141,17 @@ public class PlayerLook : MonoBehaviour
             cameraTransform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
     }
 
+    /// <summary>
+    /// Resets the camera's vertical tilt to level. Called on the day reset so the
+    /// player always starts the morning looking straight ahead.
+    /// </summary>
+    public void ResetPitch()
+    {
+        _pitch = 0f;
+        if (cameraTransform != null)
+            cameraTransform.localRotation = Quaternion.identity;
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private void LockCursor()

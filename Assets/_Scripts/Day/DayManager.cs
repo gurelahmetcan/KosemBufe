@@ -37,6 +37,14 @@ namespace Bufe
         /// <summary>Fired on the spawn-interval tick while the shop is open. OrderManager listens to this.</summary>
         public event Action OnCustomerSpawnTick;
 
+        /// <summary>
+        /// Fired at the start of every new day (including day 1), before the shutter
+        /// is opened. Listeners reset the world to its start state — teleport the
+        /// player home, clear leftover items, etc. Fires while the day-end UI still
+        /// covers the screen, so the reset is invisible to the player.
+        /// </summary>
+        public event Action OnNewDayReset;
+
         // ── Runtime ──────────────────────────────────────────────────────────────
 
         private DayPhase _currentPhase;
@@ -238,6 +246,10 @@ namespace Bufe
 
         private void BeginNewDay()
         {
+            // Reset the world (player position, leftover items) before the new day
+            // starts. Fired here so it happens under the day-end UI / fade.
+            OnNewDayReset?.Invoke();
+
             float closingMinutes = config.closingHour * 60f + config.closingMinute;
             clock.SetTime(config.openingHour, config.openingMinute, closingMinutes, config.gameMinutesPerRealSecond);
 

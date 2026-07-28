@@ -204,6 +204,7 @@ namespace Bufe
                 Vector3    pos  = spawnPos + right * (halfSpawnOffset * sign);
                 Quaternion rot  = i == 0 ? spawnRot : spawnRot * Quaternion.Euler(0f, 180f, 0f);
                 GameObject obj  = Instantiate(halfBreadPrefab, pos, rot);
+                DailySpawn.Tag(obj);
                 PreparedItem half = obj.GetComponent<PreparedItem>();
                 if (half != null)
                     half.InitAsHalf();

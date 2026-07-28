@@ -70,6 +70,7 @@ namespace Bufe
                     : spawnPos + Vector3.right * (sliceStackOffset * i);
 
                 GameObject obj = Instantiate(sucukSlicePrefab);
+                DailySpawn.Tag(obj);
                 obj.transform.position = pos;
                 slices.Add(obj);
             }

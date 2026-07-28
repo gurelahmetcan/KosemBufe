@@ -74,6 +74,7 @@ namespace Bufe
             if (!CanInteract(hand)) return;
 
             GameObject spawnedObj = Instantiate(data.ingredientPrefab, transform.position, Quaternion.identity);
+            DailySpawn.Tag(spawnedObj);
 
             InteractableItem item = spawnedObj.GetComponent<InteractableItem>();
 

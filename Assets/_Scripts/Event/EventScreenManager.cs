@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Bufe.UI;
@@ -16,6 +17,9 @@ namespace Bufe
         public FamilyManager       familyManager;
         public EventScreenUI       eventScreenUI;
         public PlayerLook          playerLook;
+
+        [Tooltip("Optional fade used to soften the day→night transition.")]
+        public ScreenFader         screenFader;
 
         [Header("Event Pool")]
         [Tooltip("All authored events. Scheduled events (scheduledDay > 0) are handled automatically.")]
@@ -95,6 +99,22 @@ namespace Bufe
         // ── Day flow ─────────────────────────────────────────────────────────────
 
         private void HandleDayEnded(int dayNumber)
+        {
+            if (screenFader != null)
+                StartCoroutine(EnterNightRoutine(dayNumber));
+            else
+                EnterNight(dayNumber);
+        }
+
+        /// <summary>Fade through black into the night screen (events or day-end).</summary>
+        private IEnumerator EnterNightRoutine(int dayNumber)
+        {
+            yield return screenFader.FadeOut();
+            EnterNight(dayNumber);
+            yield return screenFader.FadeIn();
+        }
+
+        private void EnterNight(int dayNumber)
         {
             _currentDay = dayNumber;
             BuildTodayQueue(dayNumber);
