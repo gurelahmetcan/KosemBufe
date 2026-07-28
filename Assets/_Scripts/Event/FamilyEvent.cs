@@ -37,6 +37,11 @@ namespace Bufe
         [Tooltip("All effects that fire when this choice is selected.")]
         public List<EventEffect> effects = new List<EventEffect>();
 
+        [Tooltip("Optional: consume a quest item when this choice is picked. Any item in the " +
+                 "world with a matching QuestItem.questId is destroyed (e.g. 'taxi_box' when " +
+                 "handing the package to the police). Empty = no item consumed.")]
+        public string consumeQuestId;
+
         [Tooltip("Optional event to schedule after this choice. Fires on a future day, not " +
                  "immediately. Can be a night event OR a day büfe interaction — the scheduler routes it.")]
         public GameEvent followUpEvent;

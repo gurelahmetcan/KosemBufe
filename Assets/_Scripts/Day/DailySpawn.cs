@@ -27,16 +27,24 @@ namespace Bufe
             return go;
         }
 
-        /// <summary>Destroys every currently tagged item. Called on the day reset.</summary>
+        /// <summary>
+        /// Destroys every currently tagged item, except quest items (see
+        /// <see cref="QuestItem"/>) which persist across days. Called on the day reset.
+        /// </summary>
         public static void ClearAll()
         {
             // Copy first: destroying triggers OnDisable which mutates the set.
             var snapshot = new List<DailySpawn>(_all);
             foreach (var spawn in snapshot)
-                if (spawn != null)
-                    Destroy(spawn.gameObject);
+            {
+                if (spawn == null) { _all.Remove(spawn); continue; }
 
-            _all.Clear();
+                // Quest/story items are exempt — they carry over to future days.
+                if (spawn.GetComponent<QuestItem>() != null) continue;
+
+                _all.Remove(spawn);
+                Destroy(spawn.gameObject);
+            }
         }
     }
 }

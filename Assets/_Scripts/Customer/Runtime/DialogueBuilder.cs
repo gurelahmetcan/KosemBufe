@@ -3,9 +3,8 @@
 /// No MonoBehaviour, no side effects — just data in, strings out.
 ///
 /// Normal customer flow:
-///   1. Opening line   → shown when customer spawns
-///   2. Order line     → shown when player clicks customer (+ optional modifier)
-///   3. Exit line      → shown after delivery or timeout (positive / negative / timeout)
+///   1. Order line     → shown when player clicks customer (+ optional modifier)
+///   2. Exit line      → shown after delivery or timeout (positive / negative / timeout)
 /// </summary>
 
 using System.Collections.Generic;
@@ -22,14 +21,6 @@ namespace Bufe
         public struct OrderDialogue
         {
             public string order;
-        }
-
-        /// <summary>
-        /// Returns the opening line for when the customer spawns.
-        /// </summary>
-        public static string GetOpeningLine(CustomerInstance instance)
-        {
-            return instance.Mood.GetOpeningLine();
         }
 
         /// <summary>

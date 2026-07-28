@@ -24,10 +24,11 @@ MonoBehaviour:
     - targetMember: {fileID: 0}
       relationshipDelta: 0
       targetFaction: {fileID: 11400000, guid: af8f0ec2e86c74671ae951fa6ce12284, type: 2}
-      factionDelta: 2
+      factionDelta: 1
       moneyDelta: 0
       grantedItemPrefab: {fileID: 8339836924541611765, guid: 9789ee679568b41658b523e08cae2133, type: 3}
-    followUpEvent: {fileID: 11400000, guid: 0106e489e30454a37857c7aeb5138a2f, type: 2}
+    consumeQuestId: 
+    followUpEvent: {fileID: 11400000, guid: 7bc01b922caaa754ea32336c05710c94, type: 2}
     followUpDelay: 1
   - label: What is inside? I can't take this.
     effects:
@@ -37,6 +38,7 @@ MonoBehaviour:
       factionDelta: -1
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
   requiredItem: {fileID: 0}

@@ -126,7 +126,7 @@ namespace Bufe.UI
                 var btn = go.GetComponent<Button>();
                 var lbl = go.GetComponentInChildren<TextMeshProUGUI>();
 
-                if (lbl != null) lbl.text = BuildChoiceLabel(choice);
+                if (lbl != null) lbl.text = ChoiceHintFormatter.BuildLabel(choice, positiveColor, negativeColor);
                 if (btn != null) btn.onClick.AddListener(() => HandleChoiceClicked(index));
             }
         }
@@ -161,51 +161,6 @@ namespace Bufe.UI
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────
-
-        private string BuildChoiceLabel(EventChoice choice)
-        {
-            var sb = new StringBuilder(choice.label);
-
-            bool firstHint = true;
-            foreach (var effect in choice.effects)
-            {
-                string hint = BuildEffectHint(effect);
-                if (string.IsNullOrEmpty(hint)) continue;
-
-                sb.Append(firstHint ? "\n" : " ");   // results drop to a new line under the choice text
-                sb.Append(hint);
-                firstHint = false;
-            }
-
-            return sb.ToString();
-        }
-
-        private string BuildEffectHint(EventEffect effect)
-        {
-            var parts = new List<string>();
-
-            if (effect.moneyDelta != 0f)
-            {
-                string money = $"{(effect.moneyDelta > 0f ? "+" : "-")}₺{Mathf.Abs(effect.moneyDelta):F0}";
-                parts.Add(Colorize($"({money})", effect.moneyDelta > 0f));
-            }
-
-            if (effect.targetMember != null && effect.relationshipDelta != 0)
-            {
-                int r = effect.relationshipDelta;
-                string rel = $"{(r > 0 ? "+" : "-")}{Mathf.Abs(r)} {effect.targetMember.memberName}";
-                parts.Add(Colorize($"({rel})", r > 0));
-            }
-
-            return string.Join(" ", parts);
-        }
-
-        /// <summary>Wraps text in a TMP color tag — positiveColor when good, negativeColor when bad.</summary>
-        private string Colorize(string text, bool positive)
-        {
-            Color c = positive ? positiveColor : negativeColor;
-            return $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>{text}</color>";
-        }
 
         private void SetChoiceButtonsInteractable(bool value)
         {

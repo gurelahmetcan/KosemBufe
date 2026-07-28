@@ -2,8 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// Defines how a customer talks based on their current mood.
-/// Each mood provides its own pool of opening lines, order phrases,
-/// modifier phrases, and three categories of exit lines (positive, negative, timeout).
+/// Each mood provides its own pool of order phrases, modifier phrases,
+/// and exit lines.
 ///
 /// Create via: Assets → Create → KosemBufe → Customer Mood
 /// </summary>
@@ -12,11 +12,6 @@ public class CustomerMood : ScriptableObject
 {
     [Tooltip("Mood identifier (e.g. 'tired', 'friendly', 'grumpy').")]
     public string moodName;
-
-    [Header("Opening")]
-    [Tooltip("Greetings when the customer arrives (shown on spawn).")]
-    [TextArea(1, 3)]
-    public string[] openingLines;
 
     [Header("Ordering")]
     [Tooltip("How they phrase their order. Use {0} for the food name.")]
@@ -43,7 +38,6 @@ public class CustomerMood : ScriptableObject
         return pool[Random.Range(0, pool.Length)];
     }
 
-    public string GetOpeningLine()      => Pick(openingLines, "Hey.");
     public string GetOrderPhrase()      => Pick(orderPhrases, "I'll have a {0}.");
     public string GetModifierPhrase()   => Pick(modifierPhrases, "Oh, and {0}.");
     public string GetExitLine()     => Pick(exitLines, "Thanks!");

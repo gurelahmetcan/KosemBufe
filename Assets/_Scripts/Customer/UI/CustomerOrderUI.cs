@@ -50,6 +50,11 @@ namespace Bufe.UI
         [Tooltip("Inline relationship bar shown during a faction interaction. Optional.")]
         public FactionBarUI factionBar;
 
+        [Header("Choice Outcome Colors")]
+        [Tooltip("Applied to a choice's outcome hint (e.g. +₺20, +1 Police) via TMP rich text.")]
+        public Color positiveColor = new Color(0.20f, 0.75f, 0.20f, 1f);
+        public Color negativeColor = new Color(0.85f, 0.20f, 0.20f, 1f);
+
         [Header("Timing")]
         [Tooltip("Seconds each dialogue line stays visible before auto-hiding.")]
         public float lineDisplayDuration = 2f;
@@ -110,16 +115,6 @@ namespace Bufe.UI
         }
 
         // ── Dialogue API (text only, auto-hides after duration) ──────────────
-
-        /// <summary>
-        /// Shows the opening line when the customer spawns.
-        /// </summary>
-        public void ShowOpeningLine(string line)
-        {
-            StopActive();
-            ShowPanel();
-            _activeSequence = StartCoroutine(ShowLineRoutine(line, lineDisplayDuration));
-        }
 
         /// <summary>
         /// Plays the order sequence: order line → optional modifier line.
@@ -244,7 +239,7 @@ namespace Bufe.UI
                 var btn = go.GetComponent<Button>();
                 var lbl = go.GetComponentInChildren<TextMeshProUGUI>();
 
-                if (lbl != null) lbl.text = choices[i].label;
+                if (lbl != null) lbl.text = ChoiceHintFormatter.BuildLabel(choices[i], positiveColor, negativeColor);
                 if (btn != null) btn.onClick.AddListener(() => HandleChoicePicked(index));
 
                 _choiceButtons.Add(go);

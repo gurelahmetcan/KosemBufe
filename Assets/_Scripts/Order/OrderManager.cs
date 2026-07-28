@@ -53,6 +53,12 @@ namespace Bufe
         [Tooltip("Day-1 scripted tutorial visit. Leave empty to disable the tutorial.")]
         [SerializeField] private TutorialData tutorialData;
 
+#if UNITY_EDITOR
+        [Tooltip("DEBUG (editor only): skip the tutorial dayı entirely — he won't spawn " +
+                 "and day 1 starts like a normal day.")]
+        [SerializeField] private bool debugSkipTutorial;
+#endif
+
         [Header("Order Ticket")]
         [Tooltip("Paper note prefab spawned on the counter to show the active order. Needs an OrderTicket component.")]
         [SerializeField] private OrderTicket ticketPrefab;
@@ -108,6 +114,21 @@ namespace Bufe
 
         // Tutorial runtime (no save system — resets on scene reload).
         private bool _tutorialDone;
+
+        /// <summary>
+        /// True when the day-1 tutorial should still run. False once it's done, when no
+        /// tutorial is authored, or when the editor-only debug skip is enabled.
+        /// </summary>
+        private bool TutorialPending
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (debugSkipTutorial) return false;
+#endif
+                return tutorialData != null && !_tutorialDone;
+            }
+        }
         private bool _tutorialConversationStarted;
         private bool _tutorialConversationDone;
         private int  _tutorialLineIndex;
@@ -150,7 +171,7 @@ namespace Bufe
                 dayManager.OnDayEnded += OnDayEnded;
 
                 // Freeze the day for the tutorial visit until its order is delivered.
-                if (tutorialData != null && !_tutorialDone)
+                if (TutorialPending)
                     dayManager.HasPendingTutorial = true;
             }
             else
@@ -348,6 +369,14 @@ namespace Bufe
 
             EventChoice choice = interaction.choices[index];
             ApplyEffects(choice.effects);
+
+            // Consume a quest item if this choice hands one over (e.g. the package
+            // given to the police). Destroyed wherever it sits in the world.
+            if (!string.IsNullOrEmpty(choice.consumeQuestId))
+            {
+                int removed = QuestItem.DestroyById(choice.consumeQuestId);
+                Debug.Log($"[OrderManager] Choice consumed quest item '{choice.consumeQuestId}' (x{removed}).");
+            }
 
             // Schedule the consequence (e.g. a night event a few days later).
             if (choice.followUpEvent != null)
@@ -584,7 +613,7 @@ namespace Bufe
 
             // Day-1 tutorial: the scripted dayı arrives first, before any random
             // customer and while the clock is frozen.
-            if (tutorialData != null && !_tutorialDone && _activeCustomer == null)
+            if (TutorialPending && _activeCustomer == null)
                 SpawnTutorialCustomer();
         }
 
@@ -677,19 +706,9 @@ namespace Bufe
                     _activeCustomer.Initialise(instance);
             }
 
-            // Walk to the counter — opening line shown on arrival
+            // Walk to the counter and wait (waving) until the player clicks them.
             if (counterPoint != null)
-            {
-                _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation, () =>
-                {
-                    ShowOpeningLine();
-                });
-            }
-            else
-            {
-                // No counter point — legacy fallback: appear directly and show opening line
-                ShowOpeningLine();
-            }
+                _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation);
 
             string archetypeName = _activeCustomer.Instance != null
                 ? _activeCustomer.Instance.Archetype.archetypeName
@@ -699,15 +718,6 @@ namespace Bufe
                 : "default";
 
             Debug.Log($"New customer spawned: {archetypeName} ({moodName})");
-        }
-
-        private void ShowOpeningLine()
-        {
-            if (_activeCustomer == null) return;
-            if (_activeCustomer.Instance == null || customerUI == null) return;
-
-            string opening = DialogueBuilder.GetOpeningLine(_activeCustomer.Instance);
-            customerUI.ShowOpeningLine(opening);
         }
 
         /// <summary>
