@@ -15,6 +15,7 @@ MonoBehaviour:
   memberName: Son
   memberType: 1
   portrait: {fileID: 21300000, guid: 266cd1187d0889849b96e2e331ad558a, type: 3}
+  bigImage: {fileID: 21300000, guid: 1807483edd43d984a9770c092879bb7a, type: 3}
   hungerToSickDays: 2
   coldToSickDays: 3
   sickToCriticalDays: 3

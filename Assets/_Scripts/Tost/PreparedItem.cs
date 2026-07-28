@@ -201,6 +201,9 @@ namespace Bufe
                 _station.OnPreparedItemPickedUp();
                 _station = null;
             }
+            
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Knife);
 
             Vector3    spawnPos = transform.position;
             Quaternion spawnRot = transform.rotation;

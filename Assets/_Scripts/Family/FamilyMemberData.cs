@@ -13,6 +13,7 @@ namespace Bufe
 
         [Header("Portrait (optional)")]
         public Sprite portrait;
+        public Sprite bigImage;
 
         [Header("Days until state worsens")]
         [Min(1)] public int hungerToSickDays    = 2;

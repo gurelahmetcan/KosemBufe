@@ -16,10 +16,22 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
     [Tooltip("Object to hide when the shutter opens.")]
     public GameObject shutterVisual;
 
-    [Tooltip("Optional animation trigger on open.")]
+    [Tooltip("Animator holding the shutter open clip. Played forward to open, backward to close.")]
     public Animator animator;
 
-    private static readonly int OpenHash = Animator.StringToHash("Open");
+    [Tooltip("Name of the state that holds the open animation clip (Loop Time must be OFF).")]
+    public string animStateName = "ShutterAnim";
+
+    private void Awake()
+    {
+        // Start fully closed (first frame of the open clip), frozen until a phase change.
+        if (animator != null)
+        {
+            animator.Play(animStateName, 0, 0f);
+            animator.Update(0f);
+            animator.speed = 0f;
+        }
+    }
 
     private void OnEnable()
     {
@@ -42,6 +54,9 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
     {
         if (!CanInteract(hand)) return;
 
+        if(AudioManager.Instance)
+            AudioManager.Instance.PlaySfx(Sfx.Shutter);
+
         dayManager.OpenShutter();
 
         if (shutterVisual != null)
@@ -50,12 +65,25 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
         Debug.Log("[Shutter] Büfe opened!");
     }
 
-    public void HandleShutterAnimation()
+    /// <summary>Plays the open clip forward (0 → 1).</summary>
+    public void OpenAnim()
     {
-        if (animator != null)
-            animator.SetTrigger(OpenHash);
+        if (animator == null) return;
+        animator.speed = 1f;
+        animator.Play(animStateName, 0, 0f);
     }
-    
+
+    /// <summary>Plays the open clip backward (1 → 0) — the exact reverse of opening.</summary>
+    public void CloseAnim()
+    {
+        if (animator == null) return;
+        animator.speed = -1f;
+        animator.Play(animStateName, 0, 1f);
+
+        if (AudioManager.Instance)
+            AudioManager.Instance.PlaySfx(Sfx.Shutter);
+    }
+
     private void OnPhaseChanged(DayManager.DayPhase obj)
     {
         switch (obj)
@@ -63,12 +91,12 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
             case DayManager.DayPhase.PreOpen:
                 break;
             case DayManager.DayPhase.Open:
-                HandleShutterAnimation();
+                OpenAnim();
                 break;
             case DayManager.DayPhase.Closing:
                 break;
             case DayManager.DayPhase.EndOfDay:
-                HandleShutterAnimation();
+                CloseAnim();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(obj), obj, null);

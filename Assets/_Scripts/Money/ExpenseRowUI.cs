@@ -62,6 +62,9 @@ namespace Bufe
 
         private void OnToggleValueChanged(bool value)
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             IsEnabled = value;
             Refresh();
             OnToggled?.Invoke(IsEnabled);

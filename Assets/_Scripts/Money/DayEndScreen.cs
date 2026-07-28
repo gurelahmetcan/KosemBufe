@@ -183,6 +183,10 @@ namespace Bufe
             if (phoneOrderScreen == null) return;
 
             if (screenRoot != null) screenRoot.SetActive(false);   // hide day-end while ordering
+            
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             phoneOrderScreen.Open(_pendingOrder);
         }
 
@@ -287,6 +291,9 @@ namespace Bufe
 
             if (familyManager != null)
                 familyManager.ProcessDayEnd(foodPaid, heatPaid, medicated);
+            
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
 
             StartCoroutine(FinishSleep());
         }

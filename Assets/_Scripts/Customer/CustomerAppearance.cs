@@ -28,17 +28,24 @@ namespace Bufe
         /// <summary>Picks a random variant and applies it to the configured material slot.</summary>
         public void Randomize()
         {
-            if (bodyRenderer == null || variants == null || variants.Length == 0) return;
+            if (variants == null || variants.Length == 0) return;
+            Apply(variants[Random.Range(0, variants.Length)]);
+        }
 
-            Material chosen = variants[Random.Range(0, variants.Length)];
-            if (chosen == null) return;
+        /// <summary>
+        /// Forces a specific material onto the configured slot, overriding the random pick.
+        /// Used for scripted characters with a fixed look (e.g. the tutorial dayı).
+        /// </summary>
+        public void Apply(Material material)
+        {
+            if (bodyRenderer == null || material == null) return;
 
             // Assign the material asset directly (sharedMaterials) so we don't leak
             // per-instance material copies; identical variants stay batchable.
             Material[] mats = bodyRenderer.sharedMaterials;
             if (materialIndex < 0 || materialIndex >= mats.Length) return;
 
-            mats[materialIndex] = chosen;
+            mats[materialIndex] = material;
             bodyRenderer.sharedMaterials = mats;
         }
     }

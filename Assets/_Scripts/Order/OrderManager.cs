@@ -54,9 +54,17 @@ namespace Bufe
         [Tooltip("Money tracker — receives income from delivered orders.")]
         [SerializeField] private MoneyManager moneyManager;
 
+        [Tooltip("Cash register — the player rings up each order here after delivering it. " +
+                 "Leave empty to fall back to instant auto-payment on delivery.")]
+        [SerializeField] private CashRegister cashRegister;
+
         [Header("Tutorial")]
         [Tooltip("Day-1 scripted tutorial visit. Leave empty to disable the tutorial.")]
         [SerializeField] private TutorialData tutorialData;
+
+        [Tooltip("Special texture for the tutorial dayı — overrides the random appearance. " +
+                 "Needs a CustomerAppearance on the customer prefab. Optional.")]
+        [SerializeField] private Material tutorialCustomerMaterial;
 
 #if UNITY_EDITOR
         [Tooltip("DEBUG (editor only): skip the tutorial dayı entirely — he won't spawn " +
@@ -112,6 +120,7 @@ namespace Bufe
 
         private Customer    _activeCustomer;
         private bool        _orderActive;
+        private bool        _awaitingPayment;   // order fully delivered, waiting for register entry
         private bool        _spawnScheduled;
         private bool        _spawningPaused;
         private OrderTicket _activeTicket;
@@ -305,6 +314,11 @@ namespace Bufe
 
             ShowOrderTicket(_activeCustomer.Recipe);
 
+            // Show the amount to charge on the register right away (keypad stays locked
+            // until the food is fully delivered).
+            if (cashRegister != null && _activeCustomer.Recipe != null)
+                cashRegister.SetOrder(_activeCustomer.Recipe.TotalPrice);
+
             Debug.Log($"Order accepted: TODO");
         }
 
@@ -490,6 +504,9 @@ namespace Bufe
 
         private void TryDeliver()
         {
+            // Order already delivered in full — waiting for the player to ring it up.
+            if (_awaitingPayment) return;
+
             InteractableItem heldItem = playerHand != null ? playerHand.HeldItem : null;
             if (heldItem == null)
             {
@@ -524,29 +541,54 @@ namespace Bufe
 
             if (order.IsComplete)
             {
-                Debug.Log("[OrderManager] Order complete!");
                 bool wasTutorial = _activeCustomer != null && _activeCustomer.IsTutorial;
 
-                if (moneyManager != null) moneyManager.AddIncome(order.TotalPrice);
-
-                if (wasTutorial && tutorialData != null && customerUI != null)
-                    customerUI.ShowExitLine(tutorialData.thanksLine);
-                else
-                    ShowResultExit();
-
-                EndOrder();
-
-                if (wasTutorial)
+                // Food is all delivered — the customer waits while the player rings the
+                // order up on the register. Payment (and the customer leaving) happens on
+                // a correct register entry. No register wired → fall back to instant pay.
+                if (cashRegister != null)
                 {
-                    _tutorialDone = true;
-                    dayManager?.BeginTimedPhase();   // unfreeze: clock + spawns start now
+                    Debug.Log("[OrderManager] Order complete — ring it up on the register.");
+                    _awaitingPayment = true;
+                    cashRegister.Arm(() => FinalizeSale(order, wasTutorial));
                 }
+                else
+                {
+                    Debug.Log("[OrderManager] Order complete (no register — auto-paid).");
+                    FinalizeSale(order, wasTutorial);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Completes a sale: banks the income, plays the exit line, and sends the customer
+        /// off. Invoked by the register on a correct entry, or directly when no register is
+        /// wired.
+        /// </summary>
+        private void FinalizeSale(Order order, bool wasTutorial)
+        {
+            if (moneyManager != null && order != null)
+                moneyManager.AddIncome(order.TotalPrice);
+
+            if (wasTutorial && tutorialData != null && customerUI != null)
+                customerUI.ShowExitLine(tutorialData.thanksLine);
+            else
+                ShowResultExit();
+
+            EndOrder();
+
+            if (wasTutorial)
+            {
+                _tutorialDone = true;
+                dayManager?.BeginTimedPhase();   // unfreeze: clock + spawns start now
             }
         }
 
         private void EndOrder()
         {
-            _orderActive = false;
+            _orderActive     = false;
+            _awaitingPayment = false;
+            if (cashRegister != null) cashRegister.Clear();
 
             SendCustomerAway();
         }
@@ -657,10 +699,12 @@ namespace Bufe
 
             _activeCustomer       = null;
             _orderActive          = false;
+            _awaitingPayment      = false;
             _spawnScheduled       = false;
             _normalCustomersToday = 0;
             _followUpDaySpawns.Clear();
             HideOrderTicket();
+            if (cashRegister != null) cashRegister.Clear();
 
             HideUI();
         }
@@ -845,6 +889,13 @@ namespace Bufe
 
             _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
             _activeCustomer.InitialiseTutorial(BuildTutorialOrder());
+
+            // Give the tutorial dayı his fixed texture instead of a random one.
+            if (tutorialCustomerMaterial != null)
+            {
+                CustomerAppearance appearance = _activeCustomer.GetComponentInChildren<CustomerAppearance>();
+                if (appearance != null) appearance.Apply(tutorialCustomerMaterial);
+            }
 
             if (dayManager != null)
                 dayManager.SetActiveCustomer(true);

@@ -25,6 +25,9 @@ public class Door : MonoBehaviour, IAssemblyInteractable, IHoverLabel
     {
         if (!CanInteract(hand)) return;
         Debug.Log("[Door] Day ended. Going home.");
+        if(AudioManager.Instance)
+            AudioManager.Instance.PlaySfx(Sfx.Door);
+
         dayManager.EndDay();
     }
 }

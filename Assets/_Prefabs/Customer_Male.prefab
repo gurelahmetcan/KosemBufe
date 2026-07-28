@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 658957240742430148}
   - component: {fileID: 4595491020392408829}
   - component: {fileID: 4860428017758055208}
+  - component: {fileID: 4386425127017225631}
   m_Layer: 0
   m_Name: Customer_Male
   m_TagString: Untagged
@@ -71,6 +72,23 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4386425127017225631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6855468303921159200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d343c23ce7f9b374d944482b26d4919a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.CustomerAppearance
+  bodyRenderer: {fileID: 708110016864719860}
+  materialIndex: 0
+  variants:
+  - {fileID: 2100000, guid: a5c228db93f56c4408c0c4ee673efb75, type: 2}
+  - {fileID: 2100000, guid: 1f687828f855c574e81e3ba40d504bad, type: 2}
 --- !u!1001 &9008272104225904234
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -151,6 +169,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2656494573640471273}
   m_SourcePrefab: {fileID: 100100000, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}
+--- !u!137 &708110016864719860 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8417361359673230750, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}
+  m_PrefabInstance: {fileID: 9008272104225904234}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8197296867344591675 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 174aeaea28e0e2e4f8a61a1010409dbf, type: 3}

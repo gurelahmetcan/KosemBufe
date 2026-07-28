@@ -53,6 +53,9 @@ namespace Bufe.UI
 
         private void Change(int delta)
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             Amount = Mathf.Max(0, Amount + delta);   // min 0, no upper cap
             Refresh();
             _onChanged?.Invoke();

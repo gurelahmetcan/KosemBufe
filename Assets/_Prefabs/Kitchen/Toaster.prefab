@@ -68,7 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9701c6a9a8d04e2d8e50eb2776b95b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Toaster
-  cookTime: 10
+  cookTime: 12
   lid: {fileID: 1712958079026375262}
   breadSlot: {fileID: 6835734523710476976}
 --- !u!1 &8358763822145941301

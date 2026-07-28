@@ -5,21 +5,6 @@ using TMPro;
 using System.Collections;
 using System.Collections.Generic;
 
-/// <summary>
-/// Unified UI that handles both customer dialogue bubbles and the order
-/// accept/reject/close prompt — on a single panel.
-///
-/// Dialogue-only moments (opening line, exit line) show only the text.
-/// The order prompt shows text + action buttons so the player can decide.
-///
-/// Scene Setup:
-///   1. Create a Canvas with a panel child.
-///   2. Inside the panel add:
-///        - A TextMeshProUGUI for dialogue / recipe text.
-///        - Three Buttons: Accept, Reject, Close.
-///   3. Drag references into this component's fields.
-///   The panel starts hidden.
-/// </summary>
 namespace Bufe.UI
 {
     public class CustomerOrderUI : MonoBehaviour
@@ -249,6 +234,9 @@ namespace Bufe.UI
         private void HandleChoicePicked(int index)
         {
             // Lock buttons against double-clicks; the caller drives what happens next.
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             SetChoiceButtonsInteractable(false);
             OnChoicePicked?.Invoke(index);
         }

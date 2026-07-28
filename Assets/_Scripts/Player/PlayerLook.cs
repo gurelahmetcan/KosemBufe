@@ -52,14 +52,39 @@ public class PlayerLook : MonoBehaviour
 
     private float _pitch; // camera's current vertical tilt
 
+    // Constrained look (e.g. while operating the cash register): yaw is clamped to a
+    // small range around the facing direction captured when the constraint began.
+    // Pitch stays on the normal clamp so the player can still look up/down freely.
+    private bool  _constrained;
+    private float _yawCenter;
+    private float _yawOffset;
+    private float _conYawRange;
+
     /// <summary>
-    /// Set to true by external systems (e.g. OrderManager) when a UI panel
-    /// is open. While true:
-    ///   - Cursor is forced unlocked so the player can click UI buttons.
-    ///   - All look input and auto-relock behaviour are suppressed.
-    ///   - Resetting to false immediately re-locks the cursor and resumes look.
+    /// Set to true by external systems (e.g. OrderManager) when a UI panel is open.
+    /// While true the cursor is freed and look input is suppressed. Setting it back to
+    /// false immediately re-locks the cursor and resumes look — no extra click needed.
     /// </summary>
-    public bool UIMode { get; set; }
+    private bool _uiMode;
+    public bool UIMode
+    {
+        get => _uiMode;
+        set
+        {
+            if (_uiMode == value) return;
+            _uiMode = value;
+
+            if (_uiMode)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible   = true;
+            }
+            else
+            {
+                LockCursor();   // resume gameplay right away — no click required
+            }
+        }
+    }
 
     // ── Unity lifecycle ──────────────────────────────────────────────────────
 
@@ -130,16 +155,42 @@ public class PlayerLook : MonoBehaviour
         // ── Look ─────────────────────────────────────────────────────────────
         Vector2 delta = mouse.delta.ReadValue() * sensitivity;
 
-        // Yaw: rotate the whole Player body left/right
-        transform.Rotate(Vector3.up, delta.x, Space.World);
+        if (_constrained)
+        {
+            // Yaw clamped to a small cone around the captured facing direction.
+            _yawOffset = Mathf.Clamp(_yawOffset + delta.x, -_conYawRange, _conYawRange);
+            transform.rotation = Quaternion.Euler(0f, _yawCenter + _yawOffset, 0f);
+        }
+        else
+        {
+            // Yaw: rotate the whole Player body left/right (free).
+            transform.Rotate(Vector3.up, delta.x, Space.World);
+        }
 
-        // Pitch: tilt only the camera up/down, clamped
+        // Pitch: tilt the camera up/down, clamped the same in both modes (kept free so
+        // the player can still aim down at a keypad / up at a screen while constrained).
         _pitch -= delta.y;
         _pitch  = Mathf.Clamp(_pitch, pitchMin, pitchMax);
 
         if (cameraTransform != null)
             cameraTransform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
     }
+
+    /// <summary>
+    /// Limits look to a small cone around the current facing direction — used while the
+    /// player operates a fixed station (e.g. the cash register), so they can glance across
+    /// the keypad but not turn away. Call <see cref="ClearLookConstraint"/> to release.
+    /// </summary>
+    public void BeginLookConstraint(float yawRange)
+    {
+        _constrained = true;
+        _yawCenter   = transform.eulerAngles.y;
+        _yawOffset   = 0f;
+        _conYawRange = Mathf.Abs(yawRange);
+    }
+
+    /// <summary>Releases the look constraint set by <see cref="BeginLookConstraint"/>.</summary>
+    public void ClearLookConstraint() => _constrained = false;
 
     /// <summary>
     /// Resets the camera's vertical tilt to level. Called on the day reset so the

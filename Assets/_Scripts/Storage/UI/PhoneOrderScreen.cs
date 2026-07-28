@@ -206,12 +206,18 @@ namespace Bufe.UI
                 total += row.Subtotal;
             }
 
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             Close();
             OnOrderConfirmed?.Invoke(lines, total);
         }
 
         private void HandleCancel()
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             Close();
             OnCancelled?.Invoke();
         }

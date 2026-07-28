@@ -15,6 +15,9 @@ namespace Bufe
 
         public void Interact(PlayerHand hand)
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Trash);
+
             hand.DestroyHeldItem();
         }
     }

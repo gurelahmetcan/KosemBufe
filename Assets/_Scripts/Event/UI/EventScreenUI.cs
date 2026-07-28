@@ -14,6 +14,7 @@ namespace Bufe.UI
 
         [Header("Speaker")]
         public Image           speakerPortrait;
+        public Image           speakerBigPhoto;
         public TextMeshProUGUI speakerNameText;
 
         [Header("Dialogue")]
@@ -86,6 +87,14 @@ namespace Bufe.UI
                 if (has) speakerPortrait.sprite = evt.speaker.portrait;
             }
 
+            if (speakerBigPhoto != null)
+            {
+                bool has = evt.speaker != null && evt.speaker.bigImage != null;
+                speakerBigPhoto.gameObject.SetActive(has);
+                if (has) speakerBigPhoto.sprite = evt.speaker.bigImage;
+
+            }
+
             if (speakerNameText != null)
                 speakerNameText.text = evt.speaker != null ? evt.speaker.memberName.ToUpper() : string.Empty;
         }
@@ -137,6 +146,9 @@ namespace Bufe.UI
         {
             if (_inputLocked) return;
             _inputLocked = true;
+
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
 
             SetChoiceButtonsInteractable(false);
 

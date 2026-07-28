@@ -226,6 +226,9 @@ namespace Bufe
                 _heldRb.isKinematic    = false;
                 _heldRb.linearVelocity = (throwIt && cam != null) ? cam.transform.forward * throwForce : Vector3.zero;
             }
+            
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.ItemFall);
 
             item.OnDropped();
 

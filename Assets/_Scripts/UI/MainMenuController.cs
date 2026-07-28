@@ -43,21 +43,30 @@ namespace Bufe.UI
         {
             if (isStarting) return;
             isStarting = true;
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
             StartCoroutine(StartSequence());
         }
 
         public void OnCreditsButtonPressed()
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
             creditsVcam.Prioritize();
         }
 
         public void OnSettingsButtonPressed()
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
             settingsVcam.Prioritize();
         }
 
         public void OnBackButtonPressed()
         {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
             menuVcam.Prioritize();
         }
 
