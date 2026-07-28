@@ -194,7 +194,8 @@ MonoBehaviour:
   PhysicalSize: {x: 150, y: 150, z: 1}
   EnablePhysicalSize: 0
   Thumbnail: 
-  CurrentStatePreset: 
+  CurrentStatePreset: " <sbspreset pkgurl=\"pkg://grout_covered_brick_wall\" label=\"\"
+    >\n </sbspreset>\n"
   IsRuntimeOnly: 0
   GenerateAllOutputs: 0
   GenerateAllMipmaps: 1
@@ -241,7 +242,7 @@ MonoBehaviour:
           GuiDescription: 
           Type: 5
           WidgetType: 0
-        Data: {x: 10, y: 10}
+        Data: {x: 8, y: 8}
         NumericalDescription:
           DefaultValue: {x: 8, y: 8}
           MinValue: {x: 0, y: 0}

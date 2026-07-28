@@ -212,7 +212,7 @@ MonoBehaviour:
       Index: 9
       Type: 8
       Channel: ambientOcclusion
-    OutputTexture: {fileID: 0}
+    OutputTexture: {fileID: 2800000, guid: 772352ae6e2f249e38b75dcb94bc8759, type: 3}
     sRGB: 0
     IsVirtual: 0
     IsAlphaAssignable: 1
@@ -235,7 +235,28 @@ MonoBehaviour:
   MaterialShader: Universal Render Pipeline/Lit
   RenderTextures: 0
   OutputRemaped: 0
-  Presets: []
+  Presets:
+  - Info:
+      Label: Dusty Asphalt
+      Description: 
+      URL: pkg://shattered_asphalt
+    PresetIndex: 0
+    PresetValue: 
+    NativePreset: 1
+  - Info:
+      Label: Dusty Red Asphalt
+      Description: 
+      URL: pkg://shattered_asphalt
+    PresetIndex: 1
+    PresetValue: 
+    NativePreset: 1
+  - Info:
+      Label: Muddy Asphalt
+      Description: 
+      URL: pkg://shattered_asphalt
+    PresetIndex: 2
+    PresetValue: 
+    NativePreset: 1
   references:
     version: 2
     RefIds:
