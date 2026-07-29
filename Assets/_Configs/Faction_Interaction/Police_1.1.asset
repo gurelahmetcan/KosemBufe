@@ -26,8 +26,8 @@ MonoBehaviour:
     - targetMember: {fileID: 0}
       relationshipDelta: 0
       healthChange: 0
-      targetFaction: {fileID: 0}
-      factionDelta: 0
+      targetFaction: {fileID: 11400000, guid: 6827af0b8c93f4e68b0c2ba6df24722e, type: 2}
+      factionDelta: 1
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: taxi_box

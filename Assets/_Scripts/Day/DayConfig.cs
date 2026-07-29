@@ -28,7 +28,7 @@ public class DayConfig : ScriptableObject
     [Tooltip("In-game minutes of prep after the day starts. The clock ticks during prep and " +
              "the shutter auto-opens when it runs out — or earlier if the player clicks it. " +
              "0 = no prep phase (old behaviour: frozen clock until the shutter is clicked). " +
-             "Skipped on the day-1 tutorial.")]
+             "Skipped entirely on day 1 (intro + tutorial).")]
     [Min(0f)]
     public float prepTimeMinutes = 60f;
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Son_Event_1.0
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
   speaker: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
-  eventText: Dad, there's a class trip at school. My teacher asked for fifty lira,
+  eventText: Dad, there's a class trip at school. My teacher asked for 120 lira,
     I need to give it tomorrow.
   choices:
   - label: Here, take it.

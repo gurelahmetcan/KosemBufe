@@ -311,8 +311,18 @@ namespace Bufe
         {
             if (screenFader != null) yield return screenFader.FadeOut();
 
-            if (dayManager != null)
-                dayManager.BeginNextDay();          // resets the world while black
+            // If anything in the new-day reset chain throws, we still MUST close the
+            // screen and release the player — otherwise UIMode stays true and the
+            // player is stuck unable to move with a free cursor.
+            try
+            {
+                if (dayManager != null)
+                    dayManager.BeginNextDay();      // resets the world while black
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[DayEndScreen] Exception while starting the next day: {e}");
+            }
 
             if (screenRoot  != null) screenRoot.SetActive(false);
             if (playerLook  != null) playerLook.UIMode = false;

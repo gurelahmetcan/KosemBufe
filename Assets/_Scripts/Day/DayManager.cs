@@ -112,8 +112,6 @@ namespace Bufe
 
         private void Update()
         {
-            HandlePrepPhase();
-
             if (_currentPhase != DayPhase.Open) return;
 
             // Frozen during the tutorial: no clock, no spawns until the tutorial
@@ -139,30 +137,6 @@ namespace Bufe
             {
                 _spawnTimer = config.spawnIntervalSeconds;
                 OnCustomerSpawnTick?.Invoke();
-            }
-        }
-
-        /// <summary>
-        /// Prep phase: while PreOpen (and not gated by the day-1 tutorial), the clock ticks
-        /// from the day-start time and the shutter auto-opens once prepTimeMinutes run out.
-        /// The player can still open earlier by clicking the shutter. Runs lazily from
-        /// Update so it works regardless of Start-order (HasPendingTutorial is set by
-        /// OrderManager's own Start).
-        /// </summary>
-        private void HandlePrepPhase()
-        {
-            if (_currentPhase != DayPhase.PreOpen) return;
-            if (config == null || clock == null || config.prepTimeMinutes <= 0f) return;
-            if (HasPendingTutorial) return;   // tutorial day keeps the old frozen-clock flow
-
-            if (!clock.IsTicking)
-                clock.StartTicking();
-
-            float deadline = config.openingHour * 60f + config.openingMinute + config.prepTimeMinutes;
-            if (clock.TotalMinutes >= deadline)
-            {
-                Debug.Log("[DayManager] Prep time over — shutter opens automatically.");
-                OpenShutter();
             }
         }
 
