@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeStorageData
   itemName: Chips
   itemPrefab: {fileID: 7092654054394100058, guid: 862bfe961ed174e65b146bd6a527870b, type: 3}
-  defaultStock: 10
+  defaultStock: 20
   unitCost: 2
   icon: {fileID: 0}
   category: 2

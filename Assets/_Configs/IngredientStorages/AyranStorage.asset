@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeStorageData
   itemName: Ayran
   itemPrefab: {fileID: 1698448077650380602, guid: 20fe27eeba9f2487eae7d6527216c587, type: 3}
-  defaultStock: 10
+  defaultStock: 20
   unitCost: 2
   icon: {fileID: 0}
   category: 1

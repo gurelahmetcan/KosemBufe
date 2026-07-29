@@ -15,5 +15,6 @@ MonoBehaviour:
   storageName: Bread
   ingredientPrefab: {fileID: 7513634554787112371, guid: 48d102c5e1aa1a14887b40029fd51fa5, type: 3}
   icon: {fileID: 0}
-  defaultStock: 10
+  defaultStock: -1
   unitCost: 5
+  category: 0

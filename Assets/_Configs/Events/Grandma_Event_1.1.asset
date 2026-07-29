@@ -23,7 +23,7 @@ MonoBehaviour:
       healthChange: 2
       targetFaction: {fileID: 0}
       factionDelta: 0
-      moneyDelta: 20
+      moneyDelta: 30
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: 
     followUpEvent: {fileID: 0}
@@ -36,7 +36,7 @@ MonoBehaviour:
       healthChange: 3
       targetFaction: {fileID: 0}
       factionDelta: 0
-      moneyDelta: -30
+      moneyDelta: -90
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: 
     followUpEvent: {fileID: 0}

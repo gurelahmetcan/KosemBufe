@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
   demoLastDay: 5
-  startingMoney: 250
+  rentTarget: 1000
+  startingMoney: 200
   orderDuration: 30
   timeBetweenCustomers: 3
   customerWalkSpeed: 2

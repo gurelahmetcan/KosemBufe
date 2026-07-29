@@ -24,7 +24,7 @@ MonoBehaviour:
       healthChange: 0
       targetFaction: {fileID: 0}
       factionDelta: 0
-      moneyDelta: -50
+      moneyDelta: -120
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: 
     followUpEvent: {fileID: 11400000, guid: 993652dc5153d034ebe6467ad23afbae, type: 2}

@@ -15,5 +15,6 @@ MonoBehaviour:
   storageName: Kasar
   ingredientPrefab: {fileID: 4181419651491393624, guid: e0f84406eba0b924fa6a091ac99f3697, type: 3}
   icon: {fileID: 0}
-  defaultStock: 10
+  defaultStock: -1
   unitCost: 3
+  category: 0

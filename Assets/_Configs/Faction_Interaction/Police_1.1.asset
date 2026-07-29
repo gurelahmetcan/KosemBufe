@@ -21,9 +21,11 @@ MonoBehaviour:
   dialogue: I see the box there. Hand it over.
   choices:
   - label: Ahh, Yes sure please take it.
+    summaryLine: 
     effects:
     - targetMember: {fileID: 0}
       relationshipDelta: 0
+      healthChange: 0
       targetFaction: {fileID: 0}
       factionDelta: 0
       moneyDelta: 0
@@ -32,12 +34,14 @@ MonoBehaviour:
     followUpEvent: {fileID: 11400000, guid: cde02a0f7e95a5c489b59addabf05641, type: 2}
     followUpDelay: 1
   - label: Officer, maybe we can solve this.
+    summaryLine: 
     effects:
     - targetMember: {fileID: 0}
       relationshipDelta: 0
+      healthChange: 0
       targetFaction: {fileID: 0}
       factionDelta: 0
-      moneyDelta: -20
+      moneyDelta: -150
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: 
     followUpEvent: {fileID: 11400000, guid: 0106e489e30454a37857c7aeb5138a2f, type: 2}

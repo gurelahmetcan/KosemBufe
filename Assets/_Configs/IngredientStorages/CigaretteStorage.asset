@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeStorageData
   itemName: Cigarette
   itemPrefab: {fileID: 6160696986312936192, guid: ff8d2bf06f509496e8943fe02ac6ff9c, type: 3}
-  defaultStock: 10
+  defaultStock: 20
   unitCost: 4
   icon: {fileID: 0}
   category: 3

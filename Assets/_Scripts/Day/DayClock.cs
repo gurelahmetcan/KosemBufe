@@ -25,6 +25,9 @@ namespace Bufe
         /// <summary>Current minute (0–59).</summary>
         public int CurrentMinute => Mathf.FloorToInt(_currentTimeMinutes % 60f);
 
+        /// <summary>Raw minutes since midnight (fractional). Used e.g. for the prep-time deadline.</summary>
+        public float TotalMinutes => _currentTimeMinutes;
+
         /// <summary>True while the clock is advancing.</summary>
         public bool IsTicking => _ticking;
 

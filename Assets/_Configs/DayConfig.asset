@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed2d6e438bf9940b5b3d2f1056311632, type: 3}
   m_Name: DayConfig
   m_EditorClassIdentifier: Assembly-CSharp::DayConfig
-  openingHour: 9
+  openingHour: 8
   openingMinute: 0
   closingHour: 21
   closingMinute: 0
+  prepTimeMinutes: 60
   gameMinutesPerRealSecond: 3
   spawnIntervalSeconds: 3
   firstSpawnDelay: 1

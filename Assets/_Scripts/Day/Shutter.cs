@@ -57,19 +57,20 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
     {
         if (!CanInteract(hand)) return;
 
-        if(AudioManager.Instance)
-            AudioManager.Instance.PlaySfx(Sfx.Shutter);
-
         dayManager.OpenShutter();   // → phase Open → OnPhaseChanged → OpenAnim() raises the shutter
 
         Debug.Log("[Shutter] Büfe opened!");
     }
 
-    /// <summary>Plays the open clip forward (0 → 1).</summary>
+    /// <summary>Plays the open clip forward (0 → 1). SFX lives here so the prep-time
+    /// auto-open sounds identical to a manual click.</summary>
     public void OpenAnim()
     {
         if (animator == null) return;
         if (_closeRoutine != null) { StopCoroutine(_closeRoutine); _closeRoutine = null; }
+
+        if (AudioManager.Instance)
+            AudioManager.Instance.PlaySfx(Sfx.Shutter);
 
         animator.speed = 1f;
         animator.Play(animStateName, 0, 0f);

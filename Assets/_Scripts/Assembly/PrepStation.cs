@@ -236,6 +236,19 @@ namespace Bufe
     private Vector3 SlicePosition(Transform anchor, int index)
         => anchor.position + new Vector3(-index * sliceSpacing, 0f, 0f);
 
+    /// <summary>How many slice slots are currently empty. Used to gate cutting a new sucuk.</summary>
+    public int FreeSliceSlots
+    {
+        get
+        {
+            EnsureSlots();
+            int free = 0;
+            for (int i = 0; i < _sliceSlots.Length; i++)
+                if (_sliceSlots[i] == null) free++;
+            return free;
+        }
+    }
+
     /// <summary>First empty slot index, or -1 if the board is full.</summary>
     private int FirstFreeSlot()
     {

@@ -15,5 +15,6 @@ MonoBehaviour:
   storageName: Sucuk
   ingredientPrefab: {fileID: 6997515067872796856, guid: b6f277e79a4a3b944ae90600ca4ed9c3, type: 3}
   icon: {fileID: 0}
-  defaultStock: 10
+  defaultStock: -1
   unitCost: 4
+  category: 0

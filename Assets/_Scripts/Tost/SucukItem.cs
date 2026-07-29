@@ -47,11 +47,20 @@ namespace Bufe
 
         public bool CanInteract(PlayerHand hand)
         {
-            return hand.HeldItem is KnifeItem;
+            if (hand.HeldItem is not KnifeItem) return false;
+
+            // On a board: only cuttable when every slice fits in a free slot —
+            // otherwise the overflow would be destroyed.
+            if (_station != null && _station.FreeSliceSlots < sliceCount)
+                return false;
+
+            return true;
         }
 
         public void Interact(PlayerHand hand)
         {
+            if (!CanInteract(hand)) return;
+
             if (sucukSlicePrefab == null)
             {
                 Debug.LogWarning("[SucukItem] sucukSlicePrefab is not assigned.");

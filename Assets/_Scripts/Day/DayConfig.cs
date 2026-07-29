@@ -24,6 +24,14 @@ public class DayConfig : ScriptableObject
     [Range(0, 59)]
     public int closingMinute = 0;
 
+    [Header("Prep Time")]
+    [Tooltip("In-game minutes of prep after the day starts. The clock ticks during prep and " +
+             "the shutter auto-opens when it runs out — or earlier if the player clicks it. " +
+             "0 = no prep phase (old behaviour: frozen clock until the shutter is clicked). " +
+             "Skipped on the day-1 tutorial.")]
+    [Min(0f)]
+    public float prepTimeMinutes = 60f;
+
     [Header("Time Scale")]
     [Tooltip("How many in-game minutes pass per real-time second. " +
              "E.g. 2 means 1 real second = 2 in-game minutes.")]

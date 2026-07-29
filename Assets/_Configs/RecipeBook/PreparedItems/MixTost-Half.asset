@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MixTost-Half
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Half Mix Tost
-  price: 95
+  price: 55
   icon: {fileID: 0}
   category: 1
   ingredients: 02000000030000000300000004000000
