@@ -16,6 +16,7 @@ namespace Bufe
         ItemFall,       // stomp.wav
         Toast,          // toast.wav
         Trash,          // trash.wav
+        Beep,           // fridge-left-open beep (looped)
     }
 
     /// <summary>

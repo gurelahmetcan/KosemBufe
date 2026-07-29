@@ -75,8 +75,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeItem
   itemName: Cola
-  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  InHandLocalPos: {x: 0, y: 0, z: 0}
+  InHandLocalRotation: {x: 0, y: -0.6427876, z: 0, w: 0.76604444}
+  InHandLocalPos: {x: -0.15, y: -0.05, z: -0.2}
   ingredientType: 9
   definition: {fileID: 11400000, guid: 7877ce7cc8bdf6d4c9d5135d9ce33597, type: 2}
 --- !u!65 &6583832168404484925

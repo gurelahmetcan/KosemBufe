@@ -25,7 +25,7 @@ namespace Bufe
         [Tooltip("Player's look script — its pitch is reset to level. Optional.")]
         public PlayerLook playerLook;
 
-        [Tooltip("Player's hand — anything held is destroyed on reset. Optional.")]
+        [Tooltip("Player's hand — anything held is cleared on reset (junk destroyed, keepers released). Optional.")]
         public PlayerHand playerHand;
 
         [Header("Options")]
@@ -46,13 +46,27 @@ namespace Bufe
         [ContextMenu("Reset World Now")]
         public void ResetWorld()
         {
-            // Empty the hand first so we don't leave a dangling reference to an
-            // item that ClearAll would otherwise destroy underneath it.
-            if (playerHand != null)
-                playerHand.DestroyHeldItem();
+            // Empty the hand. "Keepers" (knife, quest items) are released so they survive;
+            // ordinary junk is destroyed. Releasing first avoids a dangling hand reference.
+            if (playerHand != null && !playerHand.IsHandEmpty)
+            {
+                InteractableItem held = playerHand.HeldItem;
+                bool keeper = held != null &&
+                              (held.GetComponent<ReturnHomeOnReset>() != null ||
+                               held.GetComponent<QuestItem>() != null);
+
+                if (keeper) playerHand.Drop(false);       // drop into the world, don't destroy
+                else        playerHand.DestroyHeldItem();
+            }
 
             if (clearLeftoverItems)
                 DailySpawn.ClearAll();
+
+            // Send important items (knife, etc.) back to their start pose.
+            ReturnHomeOnReset.ReturnAllHome();
+
+            // Snap appliance lids/doors (fridge, toaster) shut.
+            HingedOpenable.ResetAllClosed();
 
             TeleportPlayerToStart();
         }

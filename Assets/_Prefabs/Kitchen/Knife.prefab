@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7079717976174955515}
   - component: {fileID: 2472528519977882432}
   - component: {fileID: 862606024137412580}
+  - component: {fileID: 8903221266248907444}
   m_Layer: 0
   m_Name: Knife
   m_TagString: Untagged
@@ -47,8 +48,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KnifeItem
   itemName: Knife
-  InHandLocalRotation: {x: 0.3999728, y: 0.42346826, z: -0.5174457, w: 0.6268543}
-  InHandLocalPos: {x: 0, y: 0, z: 0}
+  InHandLocalRotation: {x: -0.39997244, y: -0.42346805, z: 0.51744574, w: -0.62685466}
+  InHandLocalPos: {x: -0.02, y: -0.15, z: -0.4}
 --- !u!54 &862606024137412580
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -76,6 +77,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &8903221266248907444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3859906518469922953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6fcf327b0676fa4e8cdacd934c52173, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.ReturnHomeOnReset
+  homePoint: {fileID: 0}
 --- !u!1001 &108590063283744998
 PrefabInstance:
   m_ObjectHideFlags: 0

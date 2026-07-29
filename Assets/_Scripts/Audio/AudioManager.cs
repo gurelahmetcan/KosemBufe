@@ -28,6 +28,12 @@ namespace Bufe
             [Tooltip("Random pitch range for variety. Keep both at 1 for none.")]
             public float pitchMin = 1f;
             public float pitchMax = 1f;
+
+            [Header("3D (only used when played positionally, e.g. the toaster)")]
+            [Tooltip("Within this distance the sound is at full volume.")]
+            public float minDistance = 1.5f;
+            [Tooltip("Beyond this distance the sound fades to silence (linear falloff).")]
+            public float maxDistance = 15f;
         }
 
         [System.Serializable]
@@ -137,25 +143,13 @@ namespace Bufe
         // ── SFX ────────────────────────────────────────────────────────────────
 
         /// <summary>Plays a one-shot SFX in 2D (UI / global sounds).</summary>
-        public void PlaySfx(Sfx id)
-        {
-            AudioSource src = PrepareSfx(id);
-            if (src == null) return;
-            src.spatialBlend = 0f;
-            src.Play();
-        }
+        /// <summary>Plays a one-shot SFX in 2D (UI / global sounds).</summary>
+        public void PlaySfx(Sfx id) => PlayInternal(id, spatial: false, Vector3.zero);
 
-        /// <summary>Plays a one-shot SFX positioned in the world (3D).</summary>
-        public void PlaySfxAt(Sfx id, Vector3 position)
-        {
-            AudioSource src = PrepareSfx(id);
-            if (src == null) return;
-            src.transform.position = position;
-            src.spatialBlend = 1f;
-            src.Play();
-        }
+        /// <summary>Plays a one-shot SFX positioned in the world (3D): louder up close, quieter far.</summary>
+        public void PlaySfxAt(Sfx id, Vector3 position) => PlayInternal(id, spatial: true, position);
 
-        private AudioSource PrepareSfx(Sfx id)
+        private AudioSource PlayInternal(Sfx id, bool spatial, Vector3 position)
         {
             if (id == Sfx.None) return null;
             if (!_sfx.TryGetValue(id, out SfxEntry e) || e.clip == null)
@@ -169,27 +163,43 @@ namespace Bufe
             src.volume = e.volume * sfxVolume * masterVolume;
             src.pitch  = e.pitchMin >= e.pitchMax ? e.pitchMin : Random.Range(e.pitchMin, e.pitchMax);
             src.loop   = false;
+
+            if (spatial)
+            {
+                src.spatialBlend       = 1f;                       // full 3D
+                src.rolloffMode        = AudioRolloffMode.Linear;  // intuitive near→far falloff
+                src.minDistance        = Mathf.Max(0.01f, e.minDistance);
+                src.maxDistance        = Mathf.Max(e.minDistance + 0.01f, e.maxDistance);
+                src.transform.position = position;
+            }
+            else
+            {
+                src.spatialBlend = 0f;                             // 2D
+            }
+
+            src.Play();
             return src;
         }
 
         /// <summary>
         /// Plays a one-shot SFX <paramref name="count"/> times back-to-back (each after the
-        /// previous finishes), then invokes <paramref name="onComplete"/>. Used e.g. by the
-        /// toaster: the sound plays twice and, when it ends, the toast is done.
+        /// previous finishes), then invokes <paramref name="onComplete"/>. 2D version.
         /// </summary>
         public void PlaySfxSequence(Sfx id, int count, System.Action onComplete = null)
-        {
-            StartCoroutine(SfxSequenceRoutine(id, count, onComplete));
-        }
+            => StartCoroutine(SfxSequenceRoutine(id, count, false, Vector3.zero, onComplete));
 
-        private IEnumerator SfxSequenceRoutine(Sfx id, int count, System.Action onComplete)
+        /// <summary>Same as <see cref="PlaySfxSequence"/> but 3D, positioned in the world (e.g. the toaster).</summary>
+        public void PlaySfxSequenceAt(Sfx id, int count, Vector3 position, System.Action onComplete = null)
+            => StartCoroutine(SfxSequenceRoutine(id, count, true, position, onComplete));
+
+        private IEnumerator SfxSequenceRoutine(Sfx id, int count, bool spatial, Vector3 position, System.Action onComplete)
         {
             if (_sfx.TryGetValue(id, out SfxEntry e) && e.clip != null)
             {
                 int n = Mathf.Max(1, count);
                 for (int i = 0; i < n; i++)
                 {
-                    PlaySfx(id);
+                    PlayInternal(id, spatial, position);
                     yield return new WaitForSeconds(e.clip.length);
                 }
             }
@@ -199,6 +209,42 @@ namespace Bufe
             }
 
             onComplete?.Invoke();
+        }
+
+        /// <summary>
+        /// Starts a looping SFX on a dedicated 3D source at <paramref name="position"/> and
+        /// returns it. Keep the reference and pass it to <see cref="StopLoop"/> to stop.
+        /// Used for sustained sounds like the fridge-left-open beep.
+        /// </summary>
+        public AudioSource StartLoop(Sfx id, Vector3 position)
+        {
+            if (id == Sfx.None) return null;
+            if (!_sfx.TryGetValue(id, out SfxEntry e) || e.clip == null)
+            {
+                Debug.LogWarning($"[AudioManager] StartLoop: no clip for Sfx.{id}.", this);
+                return null;
+            }
+
+            var go = new GameObject($"Loop_{id}");
+            go.transform.SetParent(transform);
+            go.transform.position = position;
+
+            var src = go.AddComponent<AudioSource>();
+            src.clip         = e.clip;
+            src.volume       = e.volume * sfxVolume * masterVolume;
+            src.loop         = true;
+            src.spatialBlend = 1f;
+            src.rolloffMode  = AudioRolloffMode.Linear;
+            src.minDistance  = Mathf.Max(0.01f, e.minDistance);
+            src.maxDistance  = Mathf.Max(e.minDistance + 0.01f, e.maxDistance);
+            src.Play();
+            return src;
+        }
+
+        /// <summary>Stops and disposes a looping source returned by <see cref="StartLoop"/>.</summary>
+        public void StopLoop(AudioSource loopSource)
+        {
+            if (loopSource != null) Destroy(loopSource.gameObject);
         }
 
         private AudioSource NextSfxSource()

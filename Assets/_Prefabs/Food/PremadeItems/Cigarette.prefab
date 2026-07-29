@@ -74,8 +74,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeItem
   itemName: Cigarette
-  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  InHandLocalPos: {x: 0, y: 0, z: 0}
+  InHandLocalRotation: {x: 0, y: -0.6427876, z: 0, w: 0.76604444}
+  InHandLocalPos: {x: -0.1, y: 0, z: -0.25}
   ingredientType: 8
   definition: {fileID: 11400000, guid: d4ffeefc565fc477891c00d5da17c9af, type: 2}
 --- !u!1001 &7559923606991329394

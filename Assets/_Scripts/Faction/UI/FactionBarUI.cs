@@ -37,8 +37,6 @@ namespace Bufe.UI
         public Color highColor  = new Color(0.20f, 0.80f, 0.20f, 1f);
         public Color midColor   = new Color(0.95f, 0.78f, 0.20f, 1f);
         public Color lowColor   = new Color(0.90f, 0.25f, 0.20f, 1f);
-        [Tooltip("Colour of unfilled segments.")]
-        public Color emptyColor = new Color(1f, 1f, 1f, 0.15f);
 
         private void OnEnable()
         {
@@ -90,17 +88,20 @@ namespace Bufe.UI
         {
             if (factionManager == null || faction == null) return;
 
-            int value     = factionManager.GetValue(faction);
+            int   value    = Mathf.Clamp(factionManager.GetValue(faction), 0, 10);
             Color levelCol = LevelColor(factionManager.GetLevel(faction));
 
             if (segments != null && segments.Count > 0)
             {
+                // Open `value` segments and tint them by level; close the rest —
+                // same behaviour as RelationshipBarUI on the event screen.
                 for (int i = 0; i < segments.Count; i++)
                 {
                     if (segments[i] == null) continue;
-                    // Map 0–10 value across however many segments exist.
-                    float threshold = (i + 1) / (float)segments.Count * 10f;
-                    segments[i].color = value >= threshold ? levelCol : emptyColor;
+
+                    bool open = i < value;
+                    segments[i].enabled = open;
+                    if (open) segments[i].color = levelCol;
                 }
             }
             else if (fillBar != null)

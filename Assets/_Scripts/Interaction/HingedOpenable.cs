@@ -1,5 +1,6 @@
 using DG.Tweening;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -74,6 +75,9 @@ namespace Bufe
         private enum SnapState { Closed, Open }
         private SnapState _snapState = SnapState.Closed;
 
+        // Registry of all openables so the day reset can snap them shut.
+        private static readonly HashSet<HingedOpenable> _all = new HashSet<HingedOpenable>();
+
         protected virtual void Awake()
         {
             // Record the authored rotation as the closed position.
@@ -81,6 +85,9 @@ namespace Bufe
             _closedRotation = transform.localRotation;
             _currentAngle   = 0f;
         }
+
+        protected virtual void OnEnable()  => _all.Add(this);
+        protected virtual void OnDisable() => _all.Remove(this);
 
         // ── Public API ────────────────────────────────────────────────────────────
 
@@ -93,6 +100,26 @@ namespace Bufe
             _isLocked = locked;
             if (locked && _isDragging)
                 _isDragging = false;
+        }
+
+        /// <summary>
+        /// Silently snaps the object shut and unlocks it — no OnClosed event fired.
+        /// Used by the day reset so appliances (fridge, toaster lid) start each day closed.
+        /// </summary>
+        public void ForceClose()
+        {
+            _isDragging   = false;
+            _isLocked     = false;
+            _currentAngle = 0f;
+            ApplyRotation();
+            _snapState    = SnapState.Closed;
+        }
+
+        /// <summary>Snaps every openable shut. Called on the day reset.</summary>
+        public static void ResetAllClosed()
+        {
+            foreach (var o in new List<HingedOpenable>(_all))
+                if (o != null) o.ForceClose();
         }
 
         // Hooks for subclasses that want to rename/forward the open/close events

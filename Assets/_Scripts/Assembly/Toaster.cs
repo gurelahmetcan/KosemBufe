@@ -11,6 +11,9 @@ namespace Bufe
     [Tooltip("Optional transform indicating where the bread should rest inside the toaster.")]
     public Transform breadSlot;
 
+    [Tooltip("DayManager — the toaster resets its state on OnNewDayReset. Auto-found if empty.")]
+    public DayManager dayManager;
+
     // ── Runtime state ─────────────────────────────────────────────────────────
 
     private PreparedItem     _bread;
@@ -24,12 +27,28 @@ namespace Bufe
     {
         lid.OnLidClosed += HandleLidClosed;
         lid.OnLidOpened += HandleLidOpened;
+
+        if (dayManager == null) dayManager = FindAnyObjectByType<DayManager>();
+        if (dayManager != null) dayManager.OnNewDayReset += ResetForNewDay;
     }
 
     private void OnDestroy()
     {
         lid.OnLidClosed -= HandleLidClosed;
         lid.OnLidOpened -= HandleLidOpened;
+
+        if (dayManager != null) dayManager.OnNewDayReset -= ResetForNewDay;
+    }
+
+    /// <summary>
+    /// Clears the toaster for a new day: any bread inside was destroyed by the day reset,
+    /// so drop the reference, go back to Empty, and unlock the (now force-closed) lid.
+    /// </summary>
+    private void ResetForNewDay()
+    {
+        _bread = null;
+        _state = ToasterState.Empty;
+        if (lid != null) lid.SetLocked(false);
     }
 
     // ── IAssemblyInteractable (toaster body) ──────────────────────────────────
@@ -113,11 +132,17 @@ namespace Bufe
         // Lock the lid shut while it cooks — no peeking until it's done.
         lid.SetLocked(true);
 
-        // The toast SFX plays twice; when it ends, the toast is done (OnToastingComplete).
+        // The toast SFX plays twice from the toaster's position (3D — louder up close);
+        // when it ends, the toast is done (OnToastingComplete).
         if (AudioManager.Instance != null)
-            AudioManager.Instance.PlaySfxSequence(Sfx.Toast, 2, OnToastingComplete);
+        {
+            Vector3 soundPos = breadSlot != null ? breadSlot.position : transform.position;
+            AudioManager.Instance.PlaySfxSequenceAt(Sfx.Toast, 2, soundPos, OnToastingComplete);
+        }
         else
+        {
             OnToastingComplete();   // no audio in scene → finish immediately
+        }
 
         Debug.Log("[Toaster] Toasting started — sound plays twice, then it's ready.");
     }

@@ -14,8 +14,20 @@ namespace Bufe.UI
         [SerializeField] private CinemachineCamera settingsVcam;
         [SerializeField] private CinemachineCamera creditsVcam;
         [SerializeField] private CinemachineCamera startVcam;
-        [SerializeField] private Animator shutterAnimator;
-        
+
+        [Header("Shutter")]
+        [Tooltip("Shutter object that slides straight up when Start is pressed.")]
+        [SerializeField] private Transform menuShutter;
+        [Tooltip("How far the shutter rises (world units).")]
+        [SerializeField] private float shutterRise = 3f;
+        [Tooltip("Seconds for the shutter to fully open.")]
+        [SerializeField] private float shutterOpenDuration = 1.5f;
+
+        [Header("Camera Priorities")]
+        [Tooltip("Priority given to the active camera; all others drop to the inactive value.")]
+        [SerializeField] private int activePriority   = 20;
+        [SerializeField] private int inactivePriority = 0;
+
         [SerializeField] private float delayBeforeLoad = 2f;
         [SerializeField] private string nextSceneName = "GameScene";
 
@@ -23,16 +35,20 @@ namespace Bufe.UI
 
         #region Variables
 
-        private static readonly int OpenHash = Animator.StringToHash("Open");
         private bool isStarting;
+        private CinemachineCamera[] _cameras;
 
         #endregion
 
         #region Unity Methods
 
-        private void Start()
+        private void Awake()
         {
-            menuVcam.Prioritize();
+            _cameras = new[] { menuVcam, settingsVcam, creditsVcam, startVcam };
+
+            // Set the menu live before the first Cinemachine update so the game opens on
+            // the menu with no blend from another camera.
+            ShowCamera(menuVcam);
         }
 
         #endregion
@@ -53,38 +69,69 @@ namespace Bufe.UI
         {
             if(AudioManager.Instance)
                 AudioManager.Instance.PlaySfx(Sfx.Click);
-            creditsVcam.Prioritize();
+            ShowCamera(creditsVcam);
         }
 
         public void OnSettingsButtonPressed()
         {
             if(AudioManager.Instance)
                 AudioManager.Instance.PlaySfx(Sfx.Click);
-            settingsVcam.Prioritize();
+            ShowCamera(settingsVcam);
         }
 
         public void OnBackButtonPressed()
         {
             if(AudioManager.Instance)
                 AudioManager.Instance.PlaySfx(Sfx.Click);
-            menuVcam.Prioritize();
+            ShowCamera(menuVcam);
         }
 
         #endregion
 
         #region Private Methods
 
+        /// <summary>
+        /// Makes <paramref name="target"/> the live camera by giving it the highest priority
+        /// and dropping every other camera to the inactive value. Deterministic — no reliance
+        /// on Prioritize()/tie-breaks.
+        /// </summary>
+        private void ShowCamera(CinemachineCamera target)
+        {
+            if (_cameras == null) return;
+
+            foreach (CinemachineCamera cam in _cameras)
+                if (cam != null)
+                    cam.Priority = (cam == target) ? activePriority : inactivePriority;
+        }
+
         private IEnumerator StartSequence()
         {
-            if (shutterAnimator != null)
-                shutterAnimator.SetTrigger(OpenHash);
+            ShowCamera(startVcam);
 
-            if (startVcam != null)
-                startVcam.Prioritize();
-            
+            if (menuShutter != null)
+                StartCoroutine(RaiseShutter());
+
             yield return new WaitForSeconds(delayBeforeLoad);
 
             SceneManager.LoadScene(nextSceneName);
+        }
+
+        /// <summary>Slides the shutter straight up over shutterOpenDuration.</summary>
+        private IEnumerator RaiseShutter()
+        {
+            Vector3 startPos = menuShutter.position;
+            Vector3 endPos   = startPos + Vector3.up * shutterRise;
+            float   dur      = Mathf.Max(0.0001f, shutterOpenDuration);
+
+            float t = 0f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime / dur;
+                menuShutter.position = Vector3.Lerp(startPos, endPos, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t)));
+                yield return null;
+            }
+
+            menuShutter.position = endPos;
         }
 
         #endregion

@@ -151,7 +151,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.5424528, g: 0.9474178, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.14
   m_Range: 10
   m_SpotAngle: 36.22608
   m_InnerSpotAngle: 28.028168
@@ -465,6 +465,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 728745832516389755}
+  - component: {fileID: 4952220717712583389}
   m_Layer: 0
   m_Name: Kitchen_Fridge
   m_TagString: Untagged
@@ -480,7 +481,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2972938002178905286}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.000000015453594, y: 0.7071398, z: 0.00000001545503, w: 0.70707387}
+  m_LocalRotation: {x: 0, y: 0.7071376, z: 0, w: 0.707076}
   m_LocalPosition: {x: 2.4610002, y: 0.18100014, z: -5.329}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -491,6 +492,21 @@ Transform:
   - {fileID: 3520193715048520720}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90.005, z: 0}
+--- !u!114 &4952220717712583389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2972938002178905286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27ded433bae34b649b56df6a52ee7d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.FridgeBeep
+  door: {fileID: 9134851606543017847}
+  openThreshold: 5
+  beepSound: 9
 --- !u!1 &3686110570708930108
 GameObject:
   m_ObjectHideFlags: 0
@@ -1713,7 +1729,7 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 0.5424528, g: 0.9474178, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.14
   m_Range: 10
   m_SpotAngle: 36.22608
   m_InnerSpotAngle: 28.028168
@@ -1807,13 +1823,16 @@ GameObject:
   - component: {fileID: 5050385914183766290}
   - component: {fileID: 8214693517547538775}
   - component: {fileID: 7988768513730348459}
+  - component: {fileID: 8885383917685972733}
+  - component: {fileID: 2342994348243577469}
+  - component: {fileID: 3408967244134659399}
   m_Layer: 0
   m_Name: rack_001_mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5050385914183766290
 Transform:
   m_ObjectHideFlags: 0
@@ -1886,6 +1905,69 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &8885383917685972733
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8895192943064167697}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.552861, y: 0.01, z: 0.53235066}
+  m_Center: {x: 0.0037451386, y: 0.49, z: 0.034624547}
+--- !u!65 &2342994348243577469
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8895192943064167697}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.552861, y: 0.01, z: 0.53235066}
+  m_Center: {x: 0.0037451386, y: 0.19, z: 0.034624547}
+--- !u!65 &3408967244134659399
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8895192943064167697}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.552861, y: 0.01, z: 0.53235066}
+  m_Center: {x: 0.0037451386, y: -0.25, z: 0.034624547}
 --- !u!1 &8964707027475488224
 GameObject:
   m_ObjectHideFlags: 0
