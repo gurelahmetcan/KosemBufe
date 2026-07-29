@@ -10,43 +10,38 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd103e64f8b9c43eda78d4a64e2102c3, type: 3}
-  m_Name: Son_Event_2
+  m_Name: Son_Event_1.1
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
   speaker: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
-  eventText: My mom said I can't go outside. Can I?
+  eventText: Dad... is it because of the trip money? Are we going to lose the house
+    because of me?
   choices:
-  - label: Yes
+  - label: No, of course not.
+    summaryLine: Told Ali everything would be fine.
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
-      relationshipDelta: 1
+      relationshipDelta: 0
+      healthChange: 0
       targetFaction: {fileID: 0}
       factionDelta: 0
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
-    - targetMember: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
-      relationshipDelta: -1
-      targetFaction: {fileID: 0}
-      factionDelta: 0
-      moneyDelta: 0
-      grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
-  - label: Listen to your mother
+  - label: I don't know yet, but we're trying.
+    summaryLine: Told Ali the truth that you didn't know yet.
     effects:
     - targetMember: {fileID: 11400000, guid: 1035bb25d8cb64ae3a016a477d94f3bb, type: 2}
-      relationshipDelta: -1
+      relationshipDelta: 0
+      healthChange: 0
       targetFaction: {fileID: 0}
       factionDelta: 0
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
-    - targetMember: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
-      relationshipDelta: 1
-      targetFaction: {fileID: 0}
-      factionDelta: 0
-      moneyDelta: 0
-      grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
     followUpEvent: {fileID: 0}
     followUpDelay: 0
   scheduledDay: 0
   minDay: 1
-  triggerChance: 0.2
+  triggerChance: 0

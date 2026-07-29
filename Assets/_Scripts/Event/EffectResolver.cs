@@ -37,6 +37,9 @@ namespace Bufe
                 if (effect.targetMember != null && effect.relationshipDelta != 0)
                     family?.Modify(effect.targetMember, effect.relationshipDelta);
 
+                if (effect.targetMember != null && effect.healthChange != FamilyHealthChange.None)
+                    FamilyManager.Instance?.ApplyHealthChange(effect.targetMember, effect.healthChange);
+
                 if (effect.targetFaction != null && effect.factionDelta != 0)
                     faction?.Modify(effect.targetFaction, effect.factionDelta);
 

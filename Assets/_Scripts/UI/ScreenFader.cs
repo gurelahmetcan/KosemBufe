@@ -17,7 +17,8 @@ namespace Bufe.UI
         [Tooltip("Seconds for a full fade in either direction.")]
         public float fadeDuration = 0.4f;
 
-        [Tooltip("Start the game already black and fade in on the first frame.")]
+        [Tooltip("Start covered in solid black at scene load (no flash of the world). A controller " +
+                 "— e.g. IntroController — decides when to fade in.")]
         public bool startBlack = false;
 
         private CanvasGroup _cg;
@@ -29,11 +30,8 @@ namespace Bufe.UI
             _cg.blocksRaycasts = startBlack;
         }
 
-        private void Start()
-        {
-            if (startBlack)
-                StartCoroutine(FadeIn());
-        }
+        /// <summary>True while the screen is fully black (e.g. covering a load flash).</summary>
+        public bool IsBlack => _cg != null && _cg.alpha >= 0.999f;
 
         /// <summary>Fade the screen to solid black.</summary>
         public IEnumerator FadeOut() => Fade(1f);

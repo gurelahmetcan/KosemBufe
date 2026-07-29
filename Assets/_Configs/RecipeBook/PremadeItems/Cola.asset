@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Cola
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Cola
-  price: 8
+  price: 25
   icon: {fileID: 0}
   category: 0
   ingredients: 09000000

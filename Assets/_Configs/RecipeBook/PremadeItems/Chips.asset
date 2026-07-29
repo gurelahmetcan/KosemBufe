@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chips
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Chips
-  price: 5
+  price: 30
   icon: {fileID: 0}
   category: 0
   ingredients: 06000000

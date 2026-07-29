@@ -64,11 +64,43 @@ namespace Bufe.UI
 
             if (screenRoot != null) screenRoot.SetActive(true);
 
-            PopulateSpeaker(evt);
+            SetSpeaker(evt.speaker);
             UpdateSpeakerBar(SpeakerValue());
             PopulateChoices(evt);
 
             if (dialogueText != null) dialogueText.text = evt.eventText;
+        }
+
+        /// <summary>
+        /// Shows a single linear conversation line (speaker + text) with one advance button —
+        /// no choices, no relationship bar. Used by the opening sequence (IntroController).
+        /// Clicking the button fires <paramref name="onAdvance"/>.
+        /// </summary>
+        public void ShowConversationLine(FamilyMemberData speaker, string text, string buttonLabel, Action onAdvance)
+        {
+            _current     = null;
+            _inputLocked = false;
+
+            if (screenRoot != null) screenRoot.SetActive(true);
+
+            SetSpeaker(speaker);
+            if (relationshipBar != null) relationshipBar.gameObject.SetActive(false);
+            if (dialogueText   != null) dialogueText.text = text;
+
+            // Replace the choices with a single "advance" button.
+            foreach (Transform child in choicesContainer) Destroy(child.gameObject);
+
+            var go  = Instantiate(choiceButtonPrefab, choicesContainer);
+            var btn = go.GetComponent<Button>();
+            var lbl = go.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (lbl != null) lbl.text = string.IsNullOrEmpty(buttonLabel) ? "Next" : buttonLabel;
+            if (btn != null)
+                btn.onClick.AddListener(() =>
+                {
+                    if (AudioManager.Instance) AudioManager.Instance.PlaySfx(Sfx.Click);
+                    onAdvance?.Invoke();
+                });
         }
 
         public void Hide()
@@ -78,25 +110,24 @@ namespace Bufe.UI
 
         // ── Population ────────────────────────────────────────────────────────────
 
-        private void PopulateSpeaker(FamilyEvent evt)
+        private void SetSpeaker(FamilyMemberData speaker)
         {
             if (speakerPortrait != null)
             {
-                bool has = evt.speaker != null && evt.speaker.portrait != null;
+                bool has = speaker != null && speaker.portrait != null;
                 speakerPortrait.gameObject.SetActive(has);
-                if (has) speakerPortrait.sprite = evt.speaker.portrait;
+                if (has) speakerPortrait.sprite = speaker.portrait;
             }
 
             if (speakerBigPhoto != null)
             {
-                bool has = evt.speaker != null && evt.speaker.bigImage != null;
+                bool has = speaker != null && speaker.bigImage != null;
                 speakerBigPhoto.gameObject.SetActive(has);
-                if (has) speakerBigPhoto.sprite = evt.speaker.bigImage;
-
+                if (has) speakerBigPhoto.sprite = speaker.bigImage;
             }
 
             if (speakerNameText != null)
-                speakerNameText.text = evt.speaker != null ? evt.speaker.memberName.ToUpper() : string.Empty;
+                speakerNameText.text = speaker != null ? speaker.memberName.ToUpper() : string.Empty;
         }
 
         /// <summary>Current speaker's relationship value, or 0 if untracked/none.</summary>

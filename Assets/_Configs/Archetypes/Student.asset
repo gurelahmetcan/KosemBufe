@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d17b3ba3571046218dc3c0b70bb95d1, type: 3}
+  m_Name: Student
+  m_EditorClassIdentifier: 
+  archetypeName: Student
+  possibleSprites: []
+  possibleBodies:
+  - prefab: {fileID: 4595491020392408829, guid: df7ac1073cfcb4fda929be6d3438c2a6, type: 3}
+    materialVariants:
+    - {fileID: 2100000, guid: a5c228db93f56c4408c0c4ee673efb75, type: 2}
+  - prefab: {fileID: 4595491020392408829, guid: 2513f96bf09b771498b46705ac77abf1, type: 3}
+    materialVariants:
+    - {fileID: 2100000, guid: 82e7b5b34abf918418db68bda5849aa7, type: 2}
+  - prefab: {fileID: 4595491020392408829, guid: 2513f96bf09b771498b46705ac77abf1, type: 3}
+    materialVariants:
+    - {fileID: 2100000, guid: 36072cb02b32d544eaef9b7ed5ffa975, type: 2}
+  possibleMoods:
+  - {fileID: 11400000, guid: 5ecc770d0a35455428f8249774ca2966, type: 2}
+  - {fileID: 11400000, guid: 721d0e7ca2847d34d95e0f02b61cfa03, type: 2}
+  possibleOrders:
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: 0dc97d974219a415e83fc092b1a97a31, type: 2}
+      - {fileID: 11400000, guid: a19417e32884c4875b4c709cb8c59163, type: 2}
+    weight: 3
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: 03de16249e094430ebabc784edd86f17, type: 2}
+    weight: 2
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: 4108eb36e0cad46878aea761a79be495, type: 2}
+      - {fileID: 11400000, guid: 7877ce7cc8bdf6d4c9d5135d9ce33597, type: 2}
+    weight: 2

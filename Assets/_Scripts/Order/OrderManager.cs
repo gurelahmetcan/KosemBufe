@@ -326,20 +326,10 @@ namespace Bufe
         {
             SetCameraLocked(false);
 
-            Debug.Log("Order rejected — customer leaves.");
+            Debug.Log("Order rejected — customer leaves silently.");
 
-            // Show negative exit on reject
-            // todo(Ahmetcan): Change this later
-            if (_activeCustomer != null && _activeCustomer.Instance != null && customerUI != null)
-            {
-                string exit = _activeCustomer.Instance.Mood.GetExitLine();
-                customerUI.ShowExitLine(exit);
-            }
-            else
-            {
-                HideUI();
-            }
-
+            // No exit line on reject — the customer just walks off without a word.
+            HideUI();
             SendCustomerAway();
         }
 
@@ -387,6 +377,9 @@ namespace Bufe
             if (interaction == null || index < 0 || index >= interaction.choices.Count) return;
 
             EventChoice choice = interaction.choices[index];
+
+            DecisionLog.Instance?.Add(choice.summaryLine);
+
             ApplyEffects(choice.effects);
 
             // Consume a quest item if this choice hands one over (e.g. the package
@@ -740,19 +733,31 @@ namespace Bufe
                 return;
             }
 
-            _activeCustomer = Instantiate(PickNormalCustomerPrefab(), spawnPoint.position, spawnPoint.rotation);
+            // Resolve WHO is coming first — the archetype may dictate the body/texture.
+            CustomerInstance instance = customerFactory != null
+                ? customerFactory.CreateNormalCustomer()
+                : null;
+
+            // Archetype-curated body wins; otherwise fall back to the generic pool.
+            Customer prefab = instance?.BodyPrefab != null ? instance.BodyPrefab : PickNormalCustomerPrefab();
+
+            _activeCustomer = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
             _normalCustomersToday++;
 
             // Notify day manager that we have an active customer
             if (dayManager != null)
                 dayManager.SetActiveCustomer(true);
 
-            // Initialise with factory-created instance data
-            if (customerFactory != null)
+            if (instance != null)
             {
-                CustomerInstance instance = customerFactory.CreateNormalCustomer();
-                if (instance != null)
-                    _activeCustomer.Initialise(instance);
+                _activeCustomer.Initialise(instance);
+
+                // Archetype-curated texture overrides the CustomerAppearance random pick.
+                if (instance.BodyMaterial != null)
+                {
+                    CustomerAppearance appearance = _activeCustomer.GetComponentInChildren<CustomerAppearance>();
+                    if (appearance != null) appearance.Apply(instance.BodyMaterial);
+                }
             }
 
             // Walk to the counter and wait (waving) until the player clicks them.
@@ -857,8 +862,18 @@ namespace Bufe
         /// <summary>Spawns a faction member: walks to the counter and waits until clicked.</summary>
         private void SpawnFactionMember(FactionInteraction interaction)
         {
-            _activeCustomer = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
+            // Use the interaction's own body prefab if it names one (e.g. a specific police
+            // officer), otherwise the default customer prefab.
+            Customer prefab = interaction.bodyPrefab != null ? interaction.bodyPrefab : customerPrefab;
+            _activeCustomer = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
             _activeCustomer.InitialiseFaction(interaction);
+
+            // Fixed appearance for this scripted member, if one is set (overrides random).
+            if (interaction.appearanceMaterial != null)
+            {
+                CustomerAppearance appearance = _activeCustomer.GetComponentInChildren<CustomerAppearance>();
+                if (appearance != null) appearance.Apply(interaction.appearanceMaterial);
+            }
 
             if (dayManager != null)
                 dayManager.SetActiveCustomer(true);

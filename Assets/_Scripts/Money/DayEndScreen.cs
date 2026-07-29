@@ -35,6 +35,10 @@ namespace Bufe
         public Transform    familyContainer;
         public GameObject   familyRowPrefab;
 
+        [Tooltip("Show the medicine-purchase row for sick members. OFF for the 5-day demo — " +
+                 "the only sick member is healed through an event instead. Sick status still shows.")]
+        public bool allowMedicinePurchase = false;
+
         [Header("Footer")]
         public TextMeshProUGUI totalText;
         public Button sleepButton;
@@ -164,7 +168,7 @@ namespace Bufe
 
                 row.Setup(state);
 
-                if (state.NeedsMedicine)
+                if (allowMedicinePurchase && state.NeedsMedicine)
                 {
                     var medRow = row.SpawnMedicineRow(expenseRowPrefab, state.Data.medicineCost);
                     if (medRow != null)

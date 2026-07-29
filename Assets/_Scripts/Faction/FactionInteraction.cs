@@ -35,6 +35,14 @@ namespace Bufe
         [Tooltip("Optional portrait. The 3D model in-scene is the primary visual.")]
         public Sprite portrait;
 
+        [Header("Appearance (optional)")]
+        [Tooltip("Specific body prefab for this member. Empty = OrderManager's default customer prefab.")]
+        public Customer bodyPrefab;
+
+        [Tooltip("Specific texture/material for this member, applied via CustomerAppearance. " +
+                 "Empty = the prefab's own (or random) look.")]
+        public Material appearanceMaterial;
+
         [Header("Interaction")]
         public InteractionKind kind = InteractionKind.Offer;
 

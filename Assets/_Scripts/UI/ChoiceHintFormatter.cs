@@ -6,13 +6,16 @@ namespace Bufe.UI
 {
     /// <summary>
     /// Builds a choice-button label: the choice text, then its outcomes on a new
-    /// line (e.g. "(+₺20) (+1 Police)"). Money, family-relationship and faction
+    /// line (e.g. "(+₺20) (+2 REP)"). Money, family-relationship and faction
     /// deltas are colorized — green for gains, red for losses. Shared by the night
     /// event screen (EventScreenUI) and the day faction prompt (CustomerOrderUI)
     /// so both read identically.
     /// </summary>
     public static class ChoiceHintFormatter
     {
+        /// <summary>Short label for relationship / faction reputation changes (e.g. "+2 REP").</summary>
+        private const string RepLabel = "REP";
+
         public static string BuildLabel(EventChoice choice, Color positive, Color negative)
         {
             if (choice == null) return string.Empty;
@@ -25,7 +28,7 @@ namespace Bufe.UI
                 string hint = BuildEffectHint(effect, positive, negative);
                 if (string.IsNullOrEmpty(hint)) continue;
 
-                sb.Append(first ? "\n" : " ");   // outcomes drop to a new line under the label
+                sb.Append(first ? " " : " ");   // outcomes drop to a new line under the label
                 sb.Append(hint);
                 first = false;
             }
@@ -46,14 +49,14 @@ namespace Bufe.UI
             if (effect.targetMember != null && effect.relationshipDelta != 0)
             {
                 int r = effect.relationshipDelta;
-                string rel = $"{(r > 0 ? "+" : "-")}{Mathf.Abs(r)} {effect.targetMember.memberName}";
+                string rel = $"{(r > 0 ? "+" : "-")}{Mathf.Abs(r)} {RepLabel}";
                 parts.Add(Colorize($"({rel})", r > 0, positive, negative));
             }
 
             if (effect.targetFaction != null && effect.factionDelta != 0)
             {
                 int f = effect.factionDelta;
-                string fac = $"{(f > 0 ? "+" : "-")}{Mathf.Abs(f)} {effect.targetFaction.displayName}";
+                string fac = $"{(f > 0 ? "+" : "-")}{Mathf.Abs(f)} {RepLabel}";
                 parts.Add(Colorize($"({fac})", f > 0, positive, negative));
             }
 

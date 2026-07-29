@@ -10,33 +10,37 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bd103e64f8b9c43eda78d4a64e2102c3, type: 3}
-  m_Name: Grandma_Event_1
+  m_Name: Grandma_Event_1.0
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
   speaker: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
-  eventText: Son, your face is troubled. Is something wrong?
+  eventText: (coughing) "It's nothing, just the weather changing.
   choices:
-  - label: (Open up about the rent)
+  - label: Mom, you need to rest.
+    summaryLine: Insisted your mother rest.
     effects:
     - targetMember: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
       relationshipDelta: 0
+      healthChange: 1
       targetFaction: {fileID: 0}
       factionDelta: 0
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: 
-    followUpEvent: {fileID: 0}
-    followUpDelay: 0
-  - label: I can't take this
+    followUpEvent: {fileID: 11400000, guid: 790ca17bb338fa04889064cf6ffa02ac, type: 2}
+    followUpDelay: 1
+  - label: Alright, Mom.
+    summaryLine: Let it go when your mother brushed off her cough.
     effects:
     - targetMember: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
-      relationshipDelta: 1
+      relationshipDelta: 0
+      healthChange: 1
       targetFaction: {fileID: 0}
       factionDelta: 0
       moneyDelta: 0
       grantedItemPrefab: {fileID: 0}
     consumeQuestId: 
-    followUpEvent: {fileID: 0}
-    followUpDelay: 0
-  scheduledDay: 0
+    followUpEvent: {fileID: 11400000, guid: 790ca17bb338fa04889064cf6ffa02ac, type: 2}
+    followUpDelay: 1
+  scheduledDay: 2
   minDay: 1
-  triggerChance: 1
+  triggerChance: 0

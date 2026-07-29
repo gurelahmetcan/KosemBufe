@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd103e64f8b9c43eda78d4a64e2102c3, type: 3}
+  m_Name: Grandma_Event_1.1
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.FamilyEvent
+  speaker: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
+  eventText: (coughing) "Take this, maybe it'll help with the rent.
+  choices:
+  - label: Thank you, Mom.
+    summaryLine: Took your sick mother's savings.
+    effects:
+    - targetMember: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
+      relationshipDelta: 0
+      healthChange: 2
+      targetFaction: {fileID: 0}
+      factionDelta: 0
+      moneyDelta: 20
+      grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
+    followUpEvent: {fileID: 0}
+    followUpDelay: 0
+  - label: Let's get you medicine first.
+    summaryLine: Paid for your mother's medicine instead of taking her money.
+    effects:
+    - targetMember: {fileID: 11400000, guid: 14764afa989fc4a638b9cc0bf8357b01, type: 2}
+      relationshipDelta: 1
+      healthChange: 3
+      targetFaction: {fileID: 0}
+      factionDelta: 0
+      moneyDelta: -30
+      grantedItemPrefab: {fileID: 0}
+    consumeQuestId: 
+    followUpEvent: {fileID: 0}
+    followUpDelay: 0
+  scheduledDay: 0
+  minDay: 1
+  triggerChance: 0

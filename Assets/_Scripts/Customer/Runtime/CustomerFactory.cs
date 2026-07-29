@@ -61,7 +61,15 @@ namespace Bufe
         
             Sprite sprite = archetype.PickSprite();
 
-            return new CustomerInstance(archetype, mood, order, sprite);
+            // Appearance: the archetype may curate its own bodies (prefab + matching
+            // texture). Null = the spawner falls back to its generic body pool.
+            CustomerBodyOption body = archetype.PickBody();
+            Customer bodyPrefab     = body?.prefab;
+            Material bodyMaterial   = null;
+            if (body != null && body.materialVariants != null && body.materialVariants.Length > 0)
+                bodyMaterial = body.materialVariants[Random.Range(0, body.materialVariants.Length)];
+
+            return new CustomerInstance(archetype, mood, order, sprite, bodyPrefab, bodyMaterial);
         }
     }
 

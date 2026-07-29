@@ -148,14 +148,23 @@ namespace Bufe
                 if (_todayQueue.Count >= maxEventsPerDay) return;
             }
 
-            // 2. Random pool
+            // 2. Authored pool: fixed-day events on their exact day, plus random events.
             foreach (var evt in eventPool)
             {
                 if (_todayQueue.Count >= maxEventsPerDay) break;
-                if (evt.HasTriggered)    continue;
-                if (evt.scheduledDay > 0) continue; // fixed-day events skip the random pool
-                if (dayNumber < evt.minDay) continue;
+                if (evt == null || evt.HasTriggered) continue;
                 if (!IsSpeakerAvailable(evt)) continue;
+
+                if (evt.scheduledDay > 0)
+                {
+                    // Fixed-day event: fires only on its scheduled day.
+                    if (evt.scheduledDay == dayNumber)
+                        _todayQueue.Add(evt);
+                    continue;
+                }
+
+                // Random event.
+                if (dayNumber < evt.minDay) continue;
                 if (UnityEngine.Random.value > evt.triggerChance) continue;
 
                 _todayQueue.Add(evt);
@@ -184,6 +193,8 @@ namespace Bufe
         private void HandleChoiceSelected(FamilyEvent evt, int choiceIndex)
         {
             var choice = evt.choices[choiceIndex];
+
+            DecisionLog.Instance?.Add(choice.summaryLine);
 
             // Night has no counter to place items on, so no grant point is passed.
             EffectResolver.Apply(choice.effects, moneyManager, relationshipManager,

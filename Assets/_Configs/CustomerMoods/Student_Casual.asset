@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a18d8a97a6f0b472a97eb4bb79faf4b0, type: 3}
+  m_Name: Student_Casual
+  m_EditorClassIdentifier: 
+  moodName: Student_Casual
+  orderPhrases:
+  - What's up abi? Wrap up {0} for me, the gang is waiting at the park.
+  - Hey boss, give me {0}. We ditching the last period today, don't tell my parents!
+  - Yo bro, get me {0}. Need a quick snack before heading to the internet cafe.
+  modifierPhrases: []
+  exitLines:
+  - Thanks abi, catch you around!
+  - Later bro, don't work too hard!

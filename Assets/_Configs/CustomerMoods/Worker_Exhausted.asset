@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a18d8a97a6f0b472a97eb4bb79faf4b0, type: 3}
+  m_Name: Worker_Exhausted
+  m_EditorClassIdentifier: 
+  moodName: Worker_Exhausted
+  orderPhrases:
+  - Chief, I just finished a 12-hour shift... I need {0} right away.
+  - Brother, prepare {0} for me. My knees are killing me today.
+  - Get me {0}, boss. Hard labor all day, I'm completely drained.
+  modifierPhrases: []
+  exitLines:
+  - Thanks brother, take it easy!
+  - Eyvallah chief, don't work too hard.

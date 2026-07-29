@@ -15,6 +15,8 @@ MonoBehaviour:
   faction: {fileID: 11400000, guid: 6827af0b8c93f4e68b0c2ba6df24722e, type: 2}
   memberName: Police Ahmet
   portrait: {fileID: 0}
+  bodyPrefab: {fileID: 4595491020392408829, guid: df7ac1073cfcb4fda929be6d3438c2a6, type: 3}
+  appearanceMaterial: {fileID: 2100000, guid: db48d6d168b14b44ab4bf814baba36c9, type: 2}
   kind: 0
   dialogue: I see the box there. Hand it over.
   choices:

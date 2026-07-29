@@ -138,6 +138,9 @@ namespace Bufe
 
             if (orderManager != null)
                 orderManager.Init(config.orderDuration, config.timeBetweenCustomers);
+
+            if (dayManager != null)
+                dayManager.demoLastDay = config.demoLastDay;
         }
 
         // ── Event handlers ───────────────────────────────────────────────────────

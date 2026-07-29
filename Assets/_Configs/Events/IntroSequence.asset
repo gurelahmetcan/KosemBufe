@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 560a101f370039f4e8beba63921923cf, type: 3}
+  m_Name: IntroSequence
+  m_EditorClassIdentifier: Assembly-CSharp::Bufe.IntroSequence
+  lines:
+  - speaker: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+    text: You look tired. Sit for a second.
+    buttonLabel: ...
+  - speaker: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+    text: "I did the math again today. Rent is due in five days. We're short. We
+      need \u20BA1000 until the end of the week."
+    buttonLabel: I know, I know..
+  - speaker: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+    text: "I'm not saying this to scare you. I need you to know before the week starts.
+      Whatever happens at the b\xFCfe this week, it has to be enough."
+    buttonLabel: We will figure it out.
+  - speaker: {fileID: 11400000, guid: 709f215eb0aec459185751a8f17251b1, type: 2}
+    text: Five days. That's what we have.
+    buttonLabel: Continue

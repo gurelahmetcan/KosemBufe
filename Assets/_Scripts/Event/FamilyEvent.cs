@@ -13,6 +13,11 @@ namespace Bufe
         [Tooltip("Family relationship change (0–10 scale). Positive = gain, negative = loss.")]
         public int relationshipDelta;
 
+        [Tooltip("Force a health change on targetMember, bypassing hunger/cold buildup " +
+                 "(e.g. MakeSick for a 'mom falls ill' event, Cure when medicine is bought). " +
+                 "None = no health change.")]
+        public FamilyHealthChange healthChange = FamilyHealthChange.None;
+
         [Header("Faction (demo)")]
         [Tooltip("Which faction is affected. Null = no faction effect.")]
         public FactionData targetFaction;
@@ -33,6 +38,10 @@ namespace Bufe
     {
         [Tooltip("Button text shown to the player.")]
         public string label;
+
+        [Tooltip("Optional one-line recap of this decision for the demo-end screen " +
+                 "(e.g. 'Sent your son on the school trip'). Empty = not logged.")]
+        public string summaryLine;
 
         [Tooltip("All effects that fire when this choice is selected.")]
         public List<EventEffect> effects = new List<EventEffect>();

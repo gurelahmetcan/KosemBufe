@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3d08cb24df8a40fe9abab0b8a61cd50, type: 3}
   m_Name: GameConfig
   m_EditorClassIdentifier: Assembly-CSharp::GameConfig
-  maxReputation: 100
-  startingReputation: 50
-  startingMoney: 200
+  demoLastDay: 5
+  startingMoney: 250
   orderDuration: 30
   timeBetweenCustomers: 3
   customerWalkSpeed: 2

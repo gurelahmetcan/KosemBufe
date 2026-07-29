@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SucukTost-Full
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Full Sucuk Tost
-  price: 14
+  price: 120
   icon: {fileID: 0}
   category: 1
   ingredients: 0100000003000000030000000300000003000000

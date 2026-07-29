@@ -42,6 +42,30 @@ namespace Bufe
         // ── Public API ───────────────────────────────────────────────────────────
 
         /// <summary>
+        /// Forces a health change on a member (from an event effect), independent of the
+        /// hunger/cold buildup. Fires OnMemberStatusChanged if the derived status moves.
+        /// </summary>
+        public void ApplyHealthChange(FamilyMemberData member, FamilyHealthChange change)
+        {
+            if (member == null || change == FamilyHealthChange.None) return;
+
+            FamilyMemberState state = _states.Find(s => s.Data == member);
+            if (state == null || state.IsGone) return;
+
+            FamilyMemberStatus prev = state.Status;
+
+            switch (change)
+            {
+                case FamilyHealthChange.MakeSick:     state.ForceSick();     break;
+                case FamilyHealthChange.MakeCritical: state.ForceCritical(); break;
+                case FamilyHealthChange.Cure:         state.Cure();          break;
+            }
+
+            if (state.Status != prev)
+                OnMemberStatusChanged?.Invoke(state);
+        }
+
+        /// <summary>
         /// Processes the end of a day. Call this from DayEndScreen before BeginNextDay.
         /// medicatedMembers: the set of FamilyMemberState instances whose medicine was paid.
         /// </summary>

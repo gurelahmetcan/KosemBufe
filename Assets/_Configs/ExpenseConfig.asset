@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ExpenseConfig
   expenses:
   - displayName: Food
-    amount: 10
+    amount: 50
     frequency: 0
     isMandatory: 0
     needType: 1
   - displayName: Heat
-    amount: 5
+    amount: 60
     frequency: 0
     isMandatory: 0
     needType: 2

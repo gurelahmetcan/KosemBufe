@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Bufe;
 using UnityEngine;
 
@@ -12,15 +13,17 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
     [Tooltip("DayManager that controls the day cycle.")]
     public DayManager dayManager;
 
-    [Header("Visuals (optional)")]
-    [Tooltip("Object to hide when the shutter opens.")]
-    public GameObject shutterVisual;
-
+    [Header("Visuals")]
     [Tooltip("Animator holding the shutter open clip. Played forward to open, backward to close.")]
     public Animator animator;
 
     [Tooltip("Name of the state that holds the open animation clip (Loop Time must be OFF).")]
     public string animStateName = "ShutterAnim";
+
+    [Tooltip("Seconds for the shutter to lower (close). Match your open clip length for a symmetric reverse.")]
+    public float closeDuration = 1.2f;
+
+    private Coroutine _closeRoutine;
 
     private void Awake()
     {
@@ -57,11 +60,8 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
         if(AudioManager.Instance)
             AudioManager.Instance.PlaySfx(Sfx.Shutter);
 
-        dayManager.OpenShutter();
+        dayManager.OpenShutter();   // → phase Open → OnPhaseChanged → OpenAnim() raises the shutter
 
-        if (shutterVisual != null)
-            shutterVisual.SetActive(false);
-        
         Debug.Log("[Shutter] Büfe opened!");
     }
 
@@ -69,19 +69,45 @@ public class Shutter : MonoBehaviour, IAssemblyInteractable
     public void OpenAnim()
     {
         if (animator == null) return;
+        if (_closeRoutine != null) { StopCoroutine(_closeRoutine); _closeRoutine = null; }
+
         animator.speed = 1f;
         animator.Play(animStateName, 0, 0f);
     }
 
-    /// <summary>Plays the open clip backward (1 → 0) — the exact reverse of opening.</summary>
+    /// <summary>
+    /// Lowers the shutter — the reverse of opening. Unity forbids a negative Animator.speed
+    /// at runtime, so instead of playing the clip backwards we scrub its normalized time
+    /// from 1 → 0 ourselves (speed held at 0).
+    /// </summary>
     public void CloseAnim()
     {
         if (animator == null) return;
-        animator.speed = -1f;
-        animator.Play(animStateName, 0, 1f);
 
         if (AudioManager.Instance)
             AudioManager.Instance.PlaySfx(Sfx.Shutter);
+
+        if (_closeRoutine != null) StopCoroutine(_closeRoutine);
+        _closeRoutine = StartCoroutine(ScrubClose());
+    }
+
+    private IEnumerator ScrubClose()
+    {
+        animator.speed = 0f;                     // we drive the playhead manually (never negative)
+        float dur = Mathf.Max(0.0001f, closeDuration);
+        float t   = 1f;
+
+        while (t > 0f)
+        {
+            t -= Time.deltaTime / dur;
+            animator.Play(animStateName, 0, Mathf.Clamp01(t));
+            animator.Update(0f);                 // force it to sample the new pose this frame
+            yield return null;
+        }
+
+        animator.Play(animStateName, 0, 0f);     // settle fully closed
+        animator.Update(0f);
+        _closeRoutine = null;
     }
 
     private void OnPhaseChanged(DayManager.DayPhase obj)

@@ -20,6 +20,11 @@ namespace Bufe
         [Tooltip("Clock component that tracks in-game time.")]
         public DayClock clock;
 
+        [Header("Demo")]
+        [Tooltip("Last playable day. When this day ends (door), the demo-end flow runs instead " +
+                 "of starting the next day. 0 = no limit. Set from GameConfig at runtime — edit it there.")]
+        public int demoLastDay = 5;
+
         // ── Events ───────────────────────────────────────────────────────────────
 
         /// <summary>Fired when the day phase changes. Passes the new phase.</summary>
@@ -33,6 +38,9 @@ namespace Bufe
 
         /// <summary>Fired when the player ends the day (clicks door). Passes the day number that just ended.</summary>
         public event Action<int> OnDayEnded;
+
+        /// <summary>Fired instead of OnDayEnded when the final demo day ends — go to the demo-end screen.</summary>
+        public event Action OnDemoComplete;
 
         /// <summary>Fired on the spawn-interval tick while the shop is open. OrderManager listens to this.</summary>
         public event Action OnCustomerSpawnTick;
@@ -203,8 +211,16 @@ namespace Bufe
         {
             if (_currentPhase != DayPhase.EndOfDay) return;
 
-            int dayThatEnded = _currentDay; 
+            int dayThatEnded = _currentDay;
             _currentDay++;
+
+            // Final demo day → demo-end flow instead of the normal night / next-day flow.
+            if (demoLastDay > 0 && dayThatEnded >= demoLastDay)
+            {
+                Debug.Log($"[DayManager] Demo complete after day {dayThatEnded}.");
+                OnDemoComplete?.Invoke();
+                return;
+            }
 
             Debug.Log($"[DayManager] Day {dayThatEnded} ended. Waiting for day-end screen.");
             OnDayEnded?.Invoke(dayThatEnded);

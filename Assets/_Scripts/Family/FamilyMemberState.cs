@@ -62,6 +62,31 @@ namespace Bufe
             }
         }
 
+        // ── Forced health changes (from events) ────────────────────────────────
+
+        /// <summary>Forces the member sick now, bypassing hunger/cold. No-op if gone or already sick/critical.</summary>
+        public void ForceSick()
+        {
+            if (IsGone || SicknessDays > 0 || CriticalDays > 0) return;
+            SicknessDays = 1;
+        }
+
+        /// <summary>Forces the member into a critical condition now. No-op if gone.</summary>
+        public void ForceCritical()
+        {
+            if (IsGone) return;
+            SicknessDays = 0;
+            CriticalDays = 1;
+        }
+
+        /// <summary>Clears sickness/critical (full recovery). No-op if gone.</summary>
+        public void Cure()
+        {
+            if (IsGone) return;
+            SicknessDays = 0;
+            CriticalDays = 0;
+        }
+
         private FamilyMemberStatus DeriveStatus()
         {
             if (IsGone)           return FamilyMemberStatus.Gone;

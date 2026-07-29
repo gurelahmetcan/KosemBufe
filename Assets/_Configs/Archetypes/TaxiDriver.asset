@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d17b3ba3571046218dc3c0b70bb95d1, type: 3}
+  m_Name: TaxiDriver
+  m_EditorClassIdentifier: 
+  archetypeName: TaxiDriver
+  possibleSprites: []
+  possibleBodies:
+  - prefab: {fileID: 4595491020392408829, guid: df7ac1073cfcb4fda929be6d3438c2a6, type: 3}
+    materialVariants:
+    - {fileID: 2100000, guid: 1f687828f855c574e81e3ba40d504bad, type: 2}
+    - {fileID: 2100000, guid: a5c228db93f56c4408c0c4ee673efb75, type: 2}
+  possibleMoods:
+  - {fileID: 11400000, guid: e9425c3ab7e50934f8051b0b6c641cbb, type: 2}
+  - {fileID: 11400000, guid: b757878e0816ebf4f81b8daf91b4be28, type: 2}
+  possibleOrders:
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: d4ffeefc565fc477891c00d5da17c9af, type: 2}
+    weight: 3
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: d4ffeefc565fc477891c00d5da17c9af, type: 2}
+      - {fileID: 11400000, guid: 7877ce7cc8bdf6d4c9d5135d9ce33597, type: 2}
+    weight: 2
+  - recipe:
+      items:
+      - {fileID: 11400000, guid: f90661b46ad4344ed8d6ad7cda5d9cf1, type: 2}
+      - {fileID: 11400000, guid: 7877ce7cc8bdf6d4c9d5135d9ce33597, type: 2}
+    weight: 2
