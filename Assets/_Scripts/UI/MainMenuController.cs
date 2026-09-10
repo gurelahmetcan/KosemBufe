@@ -86,6 +86,18 @@ namespace Bufe.UI
             ShowCamera(menuVcam);
         }
 
+        public void OnQuitButtonPressed()
+        {
+            if(AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
         #endregion
 
         #region Private Methods

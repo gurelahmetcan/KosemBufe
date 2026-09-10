@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ayran
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Ayran
-  price: 15
+  price: 10
   icon: {fileID: 0}
   category: 0
   ingredients: 05000000

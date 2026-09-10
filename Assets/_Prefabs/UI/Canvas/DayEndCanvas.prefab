@@ -1612,11 +1612,12 @@ MonoBehaviour:
   expenseRowPrefab: {fileID: 1215812690139065491, guid: e1178791312c042ca88a5820d3cecbe5, type: 3}
   familyContainer: {fileID: 3949683312890486018}
   familyRowPrefab: {fileID: 8789080913568109163, guid: 0cd5a355d380b41499b31428e2b980cf, type: 3}
-  surpriseContainer: {fileID: 0}
+  allowMedicinePurchase: 0
   totalText: {fileID: 4466978692946546158}
   sleepButton: {fileID: 4991176586792368782}
   phoneOrderScreen: {fileID: 0}
   orderStockButton: {fileID: 6896779654159668643}
+  screenFader: {fileID: 0}
   positiveColor: {r: 0.2, g: 0.85, b: 0.2, a: 1}
   negativeColor: {r: 0.85, g: 0.2, b: 0.2, a: 1}
 --- !u!1 &7615128616589792542
@@ -1636,7 +1637,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8032863592725565406
 RectTransform:
   m_ObjectHideFlags: 0

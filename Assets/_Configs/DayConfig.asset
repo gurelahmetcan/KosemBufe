@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DayConfig
   openingHour: 9
   openingMinute: 0
-  closingHour: 21
+  closingHour: 20
   closingMinute: 0
   prepTimeMinutes: 60
   gameMinutesPerRealSecond: 3

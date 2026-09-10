@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Cigarette
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Cigarette
-  price: 55
+  price: 50
   icon: {fileID: 0}
   category: 0
   ingredients: 08000000

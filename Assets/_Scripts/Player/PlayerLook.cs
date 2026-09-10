@@ -41,6 +41,9 @@ public class PlayerLook : MonoBehaviour
     [Tooltip("Mouse movement multiplier. Adjust to taste (default 0.15).")]
     public float sensitivity = 0.15f;
 
+    /// <summary>PlayerPrefs key used to persist the player's chosen look sensitivity.</summary>
+    public const string SensitivityPrefKey = "LookSensitivity";
+
     [Header("Pitch Clamp")]
     [Tooltip("Maximum downward angle (degrees). Negative = below horizon.")]
     public float pitchMin = -80f;
@@ -110,6 +113,10 @@ public class PlayerLook : MonoBehaviour
             if (_pitch > 180f) _pitch -= 360f; // normalise 270° → -90°
         }
 
+        // Restore the player's saved look sensitivity (set via the pause-menu slider).
+        if (PlayerPrefs.HasKey(SensitivityPrefKey))
+            sensitivity = PlayerPrefs.GetFloat(SensitivityPrefKey);
+
         LockCursor();
     }
 
@@ -131,18 +138,12 @@ public class PlayerLook : MonoBehaviour
             return;
         }
 
-        Keyboard kb    = Keyboard.current;
-        Mouse    mouse = Mouse.current;
+        Mouse mouse = Mouse.current;
 
-        // ── Escape → unlock cursor ───────────────────────────────────────────
-        if (kb != null && kb.escapeKey.wasPressedThisFrame)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible   = true;
-            return;
-        }
+        // Escape is handled by PauseMenuController, which opens the pause menu and
+        // sets UIMode (freeing the cursor). This script no longer intercepts it.
 
-        // ── Click → re-lock cursor (after Escape or window focus loss) ───────
+        // ── Click → re-lock cursor (after window focus loss) ─────────────────
         if (Cursor.lockState != CursorLockMode.Locked)
         {
             if (mouse != null && mouse.leftButton.wasPressedThisFrame)
@@ -201,6 +202,17 @@ public class PlayerLook : MonoBehaviour
         _pitch = 0f;
         if (cameraTransform != null)
             cameraTransform.localRotation = Quaternion.identity;
+    }
+
+    /// <summary>
+    /// Sets the look sensitivity and persists it so it survives scene loads and restarts.
+    /// Called by the pause-menu sensitivity slider.
+    /// </summary>
+    public void SetSensitivity(float value)
+    {
+        sensitivity = Mathf.Max(0f, value);
+        PlayerPrefs.SetFloat(SensitivityPrefKey, sensitivity);
+        PlayerPrefs.Save();
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

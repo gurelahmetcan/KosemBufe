@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CheeseTost-Full
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.OrderItem
   itemName: Full Cheese Tost
-  price: 60
+  price: 50
   icon: {fileID: 0}
   category: 1
   ingredients: 010000000400000004000000
