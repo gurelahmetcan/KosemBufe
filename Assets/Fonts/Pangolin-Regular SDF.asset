@@ -81,27 +81,27 @@ MonoBehaviour:
   m_FontFeatureTable:
     m_MultipleSubstitutionRecords: []
     m_LigatureSubstitutionRecords:
-    - m_ComponentGlyphIDs: 7200000066010000c0020000
+    - m_ComponentGlyphIDs: 7200000066010000c0020000u
       m_LigatureGlyphID: 808
-    - m_ComponentGlyphIDs: 2e0100002e0100003b010000
+    - m_ComponentGlyphIDs: 2e0100002e0100003b010000u
       m_LigatureGlyphID: 470
-    - m_ComponentGlyphIDs: 2e0100002e01000051010000
+    - m_ComponentGlyphIDs: 2e0100002e01000051010000u
       m_LigatureGlyphID: 471
-    - m_ComponentGlyphIDs: 2e0100002e010000
+    - m_ComponentGlyphIDs: 2e0100002e010000u
       m_LigatureGlyphID: 469
-    - m_ComponentGlyphIDs: 2e0100003b010000
+    - m_ComponentGlyphIDs: 2e0100003b010000u
       m_LigatureGlyphID: 472
-    - m_ComponentGlyphIDs: 2e01000051010000
+    - m_ComponentGlyphIDs: 2e01000051010000u
       m_LigatureGlyphID: 473
-    - m_ComponentGlyphIDs: 89010000ec0000005c0100002f01000066010000510100003b0100005c0100005101000066010000bf01000016010000
+    - m_ComponentGlyphIDs: 89010000ec0000005c0100002f01000066010000510100003b0100005c0100005101000066010000bf01000016010000u
       m_LigatureGlyphID: 475
-    - m_ComponentGlyphIDs: 89010000ec0000005c0100002f01000066010000510100003b0100005c01000036010000a80100002f010000
+    - m_ComponentGlyphIDs: 89010000ec0000005c0100002f01000066010000510100003b0100005c01000036010000a80100002f010000u
       m_LigatureGlyphID: 474
-    - m_ComponentGlyphIDs: 95020000c602000096020000
+    - m_ComponentGlyphIDs: 95020000c602000096020000u
       m_LigatureGlyphID: 691
-    - m_ComponentGlyphIDs: 95020000c602000098020000
+    - m_ComponentGlyphIDs: 95020000c602000098020000u
       m_LigatureGlyphID: 692
-    - m_ComponentGlyphIDs: 97020000c602000098020000
+    - m_ComponentGlyphIDs: 97020000c602000098020000u
       m_LigatureGlyphID: 693
     m_GlyphPairAdjustmentRecords:
     - m_FirstAdjustmentRecord:

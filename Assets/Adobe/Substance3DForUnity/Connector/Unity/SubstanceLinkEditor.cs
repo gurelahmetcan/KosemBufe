@@ -14,9 +14,10 @@ namespace Adobe.Substance.Connector.Unity
         private static readonly object InitializedLock = new object();
 
         static bool started = false;
-        static SubstanceConnectorEditor() {
+        static SubstanceConnectorEditor()
+        {
             AssemblyReloadEvents.beforeAssemblyReload += TearDown;
-            AssemblyReloadEvents.afterAssemblyReload += Setup; 
+            AssemblyReloadEvents.afterAssemblyReload += Setup;
             Setup();
         }
 
@@ -25,9 +26,10 @@ namespace Adobe.Substance.Connector.Unity
         private static Dictionary<string, string> _monitoredFiles = new Dictionary<string, string>();
         private static void Setup()
         {
-            lock (InitializedLock) 
+            lock (InitializedLock)
             {
-                if(!started) {
+                if (!started)
+                {
 
                     Instance.Initialize();
                     Instance.OnImportFile += OnFileImportMessageReceived;
@@ -47,8 +49,10 @@ namespace Adobe.Substance.Connector.Unity
 
         static void TearDown()
         {
-            lock (InitializedLock) {
-                if(started){
+            lock (InitializedLock)
+            {
+                if (started)
+                {
                     Instance.Shutdown();
                     Instance.OnImportFile -= OnFileImportMessageReceived;
                     EditorApplication.update -= Update;
@@ -57,12 +61,12 @@ namespace Adobe.Substance.Connector.Unity
                 }
             }
         }
-        
+
 
         static void Update()
         {
             while (_ImportFiles.TryDequeue(out ImportFileMessage importMessage))
-            {              
+            {
                 HandleImportMessage(importMessage);
             }
         }
@@ -140,7 +144,7 @@ namespace Adobe.Substance.Connector.Unity
                 ImportNewFile(importPath, destFullPath, messageUUID);
             }
         }
-    
+
         private static string GetCurrentDestinationFolder()
         {
             string path;
@@ -152,16 +156,16 @@ namespace Adobe.Substance.Connector.Unity
 
             var obj = Selection.activeObject;
 
-            if (obj == null) 
+            if (obj == null)
                 return UnityEngine.Application.dataPath;
-            else 
-                path = AssetDatabase.GetAssetPath(obj.GetInstanceID());
+            else
+                path = AssetDatabase.GetAssetPath(obj.GetEntityId());
 
             if (path.Length == 0)
                 return UnityEngine.Application.dataPath;
 
             return Directory.Exists(path) ? path : Path.GetDirectoryName(path);
-        }    
+        }
 
         private static string NormalizePath(string path)
         {
@@ -173,7 +177,7 @@ namespace Adobe.Substance.Connector.Unity
         {
             var _tryGetActiveFolderPath = typeof(ProjectWindowUtil).GetMethod("TryGetActiveFolderPath", BindingFlags.Static | BindingFlags.NonPublic);
 
-            if (_tryGetActiveFolderPath == null) 
+            if (_tryGetActiveFolderPath == null)
             {
                 path = null;
                 return false;
