@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 using UnityEngine.InputSystem;
 using TMPro;
 
@@ -30,8 +32,21 @@ namespace Bufe
         [Tooltip("Optional TextMeshProUGUI showing what the player is currently holding.")]
         public TextMeshProUGUI handStatusText;
 
+        [Header("Arms")]
+        [Tooltip("Animator on the viewmodel Arms. Its int 'Grip' parameter is driven from the " +
+                 "hand state: 0 while holding an item, -1 while empty. Optional.")]
+        [SerializeField] private Animator armsAnimator;
+
+        [Tooltip("Plays the reach-and-grab when an item in the world is clicked; the pick-up runs " +
+                 "when the hand arrives. Auto-found under the Player if empty. None = instant pick-up.")]
+        [SerializeField] private HandReach handReach;
+
         /// <summary>Layer the Viewmodelcamera renders — the arms and whatever they hold.</summary>
         private const string ViewmodelLayer = "Viewmodel";
+
+        private static readonly int GripParam = Animator.StringToHash("Grip");
+        private const int GripHolding = 0;
+        private const int GripEmpty   = -1;
 
         // ── Runtime state ────────────────────────────────────────────────────────
 
@@ -51,6 +66,7 @@ namespace Bufe
         // whatever it hit are cached until the player looks at something else.
 
         private GameObject _frameHit;              // collider hit by this frame's ray
+        private Vector3    _frameHitPoint;         // where that ray hit it (world space)
         private int        _frameHitStamp = -1;    // frame the cached ray was cast on
 
         private GameObject             _resolvedFor;   // object the lookups below describe
@@ -64,6 +80,12 @@ namespace Bufe
         // The player's own colliders — the CharacterController capsule among them.
         // A dropped item ignores these until it has fallen clear of them.
         private Collider[] _selfColliders;
+
+        // Whether armsAnimator's controller actually has an int "Grip" parameter.
+        // Resolved once per controller, so a missing parameter stays silent instead
+        // of logging an Animator warning every frame.
+        private RuntimeAnimatorController _gripCheckedFor;
+        private bool                      _hasGripParam;
 
         // ── Public API ───────────────────────────────────────────────────────────
 
@@ -89,10 +111,32 @@ namespace Bufe
 
         // ── Unity loop ───────────────────────────────────────────────────────────
 
-        private void Awake() => _selfColliders = transform.root.GetComponentsInChildren<Collider>(true);
+        private void Awake()
+        {
+            _selfColliders = transform.root.GetComponentsInChildren<Collider>(true);
+
+            if (handReach == null)
+                handReach = transform.root.GetComponentInChildren<HandReach>(true);
+
+            // Not set up in the scene: add it to the rigged arms (the object with the
+            // Rig Builder) so the reach works without an extra setup step.
+            if (handReach == null)
+            {
+                RigBuilder rig = transform.root.GetComponentInChildren<RigBuilder>(true);
+                if (rig != null)
+                {
+                    handReach = rig.gameObject.AddComponent<HandReach>();
+                    Debug.Log($"[PlayerHand] No HandReach found — added one to '{rig.name}'.", rig);
+                }
+            }
+        }
 
         private void Update()
         {
+            // Before the InputBlocked early-out: the arms must follow the hand even
+            // while a station is driving the player.
+            UpdateArmsGrip();
+
             if (InputBlocked)
             {
                 // A station is driving the player (e.g. an appliance is processing).
@@ -149,6 +193,11 @@ namespace Bufe
 
             if (!mouse.leftButton.wasPressedThisFrame) return;
 
+            // A new click abandons a reach still in flight — its pick-up is dropped
+            // and this click is handled normally (it may start a new reach).
+            if (handReach != null && handReach.IsReaching)
+                handReach.Cancel();
+
             if (!ResolveHover()) return;
 
             if (_rInteractable != null && _rInteractable.CanInteract(this))
@@ -158,7 +207,41 @@ namespace Bufe
             }
 
             if (_heldItem == null && _rItem != null)
-                PickUp(_rItem);
+                PickUpWithReach(_rItem);
+        }
+
+        /// <summary>
+        /// Clicked a loose item: let the hand reach for it and run the normal PickUp when
+        /// it arrives. Falls back to an instant PickUp when there is no HandReach or it
+        /// can't run, so the mechanic never depends on the animation.
+        /// </summary>
+        private void PickUpWithReach(InteractableItem item)
+        {
+            // By the time the hand arrives the item may be gone, or another pick-up
+            // (e.g. from a storage) may have filled the hand — PickUp ignores the latter.
+            if (handReach != null && handReach.TryReach(item, () => { if (item != null) PickUp(item); }))
+                return;
+
+            PickUp(item);
+        }
+
+        /// <summary>
+        /// For interactables that put something into the hand (storages): the hand first
+        /// reaches to where the player clicked, then <paramref name="onArrive"/> runs —
+        /// that is where the item should be spawned and picked up. Runs it immediately
+        /// when there is no HandReach or it can't run. A new click before arrival
+        /// cancels it, so onArrive must re-check its own preconditions.
+        /// </summary>
+        public void ReachThen(Action onArrive)
+        {
+            if (onArrive == null) return;
+
+            // The click that got us here resolved the crosshair this frame, so the
+            // cached hit point is the spot on the interactable that was clicked.
+            if (handReach != null && _frameHit != null && handReach.TryReach(_frameHitPoint, onArrive))
+                return;
+
+            onArrive();
         }
 
         /// <summary>
@@ -500,7 +583,127 @@ namespace Bufe
             _heldOriginalLayers  = null;
         }
 
-        // ── UI ────────────────────────────────────────────────────────────────────
+        // ── Arms grip ─────────────────────────────────────────────────────────────
+        // Driven every frame from _heldItem instead of from each pick-up / drop /
+        // release / destroy path. That also covers a held item destroyed from outside
+        // (e.g. QuestItem.DestroyById) — Unity's null check catches it here — and an
+        // Animator that was disabled and re-enabled, which resets its parameters.
+
+        private void UpdateArmsGrip()
+        {
+            if (armsAnimator == null)
+            {
+                WarnGripOnce(GripIssue.NoAnimator,
+                    "armsAnimator is not assigned — the arms will never change pose. " +
+                    "Drag the Animator on Player/Vcam_Main/ViewmodelCamera/Arms into PlayerHand's Arms Animator field.");
+                return;
+            }
+
+            if (!armsAnimator.isActiveAndEnabled)
+            {
+                WarnGripOnce(GripIssue.AnimatorInactive,
+                    $"armsAnimator on '{armsAnimator.name}' is disabled or its GameObject is inactive.");
+                return;
+            }
+
+            RuntimeAnimatorController controller = armsAnimator.runtimeAnimatorController;
+            if (controller == null)
+            {
+                WarnGripOnce(GripIssue.NoController,
+                    $"armsAnimator on '{armsAnimator.name}' has no Animator Controller assigned.");
+                return;
+            }
+
+            if (controller != _gripCheckedFor)
+            {
+                _gripCheckedFor = controller;
+                _hasGripParam   = false;
+                foreach (AnimatorControllerParameter p in armsAnimator.parameters)
+                {
+                    if (p.nameHash == GripParam && p.type == AnimatorControllerParameterType.Int)
+                    {
+                        _hasGripParam = true;
+                        break;
+                    }
+                }
+
+                if (!_hasGripParam)
+                    WarnGripOnce(GripIssue.NoParam,
+                        $"Controller '{controller.name}' has no Int parameter named 'Grip'.");
+            }
+
+            if (!_hasGripParam) return;
+
+            int grip = _heldItem != null ? GripHolding : GripEmpty;
+            armsAnimator.SetInteger(GripParam, grip);
+            _lastGripIssue = null;   // setup is healthy again — re-warn if it breaks later
+
+            LogGripDiagnostics(grip);   // TEMP-GRIP-DIAG
+        }
+
+        private enum GripIssue { NoAnimator, AnimatorInactive, NoController, NoParam }
+
+        private GripIssue? _lastGripIssue;
+
+        /// <summary>Logs a grip setup problem once per distinct issue instead of every frame.</summary>
+        private void WarnGripOnce(GripIssue issue, string message)
+        {
+            if (_lastGripIssue == issue) return;
+            _lastGripIssue = issue;
+            Debug.LogWarning($"[PlayerHand] {message}", this);
+        }
+
+        // ── TEMP-GRIP-DIAG ─────────────────────────────────────────────────────────
+        // Temporary diagnostics for "the hand pose doesn't change on pick-up". Delete
+        // this block and the LogGripDiagnostics call above once the cause is found
+        // (search for TEMP-GRIP-DIAG).
+        //
+        // SetInteger runs every frame, so logging each call would flood the Console;
+        // this logs the first call and every call whose value differs from the last.
+
+        private int  _diagLastGrip = int.MinValue;
+        private bool _diagBindingChecked;
+
+        private void LogGripDiagnostics(int grip)
+        {
+            if (!_diagBindingChecked)
+            {
+                _diagBindingChecked = true;
+
+                // The Idle/Grip clips key paths that start at "mixamorig:RightShoulder",
+                // so those bones must be DIRECT children of the Animator's GameObject.
+                // If this is null the clips bind to nothing and the pose never changes.
+                Transform bound = armsAnimator.transform.Find("mixamorig:RightShoulder");
+                Debug.Log($"[PlayerHand][GripDiag] Animator GO path='{GetPath(armsAnimator.transform)}', " +
+                          $"controller='{armsAnimator.runtimeAnimatorController.name}', " +
+                          $"updateMode={armsAnimator.updateMode}, cullingMode={armsAnimator.cullingMode}, " +
+                          $"clip path 'mixamorig:RightShoulder' resolves={(bound != null)}", this);
+            }
+
+            if (grip == _diagLastGrip) return;
+            _diagLastGrip = grip;
+
+            AnimatorStateInfo state = armsAnimator.GetCurrentAnimatorStateInfo(0);
+            string stateName = state.IsName("Grip") ? "Grip" : state.IsName("Idle") ? "Idle" : $"hash {state.shortNameHash}";
+
+            Debug.Log($"[PlayerHand][GripDiag] SetInteger(\"Grip\", {grip}) — " +
+                      $"animator null={armsAnimator == null}, held='{(_heldItem != null ? _heldItem.itemName : "none")}', " +
+                      $"state before this frame's evaluation={stateName}, inTransition={armsAnimator.IsInTransition(0)}, " +
+                      $"timeScale={Time.timeScale}", this);
+        }
+
+        private static string GetPath(Transform t)
+        {
+            string path = t.name;
+            while (t.parent != null)
+            {
+                t    = t.parent;
+                path = t.name + "/" + path;
+            }
+            return path;
+        }
+
+        // ── UI────────────────────────────────────────────────────────────────────
 
         private void RefreshUI()
         {
@@ -534,9 +737,9 @@ namespace Bufe
             }
 
             Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-            _frameHit = Physics.Raycast(ray, out RaycastHit hit, interactRange)
-                ? hit.collider.gameObject
-                : null;
+            bool didHit = Physics.Raycast(ray, out RaycastHit hit, interactRange);
+            _frameHit      = didHit ? hit.collider.gameObject : null;
+            _frameHitPoint = didHit ? hit.point : Vector3.zero;
 
             return _frameHit;
         }

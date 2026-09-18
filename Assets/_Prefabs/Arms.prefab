@@ -835,12 +835,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2793792499977790395, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5725347160248310283}
-    - targetCorrespondingSourceObject: {fileID: 5899912604930627130, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7520099541180432331}
-    - targetCorrespondingSourceObject: {fileID: 5899912604930627130, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5168822973359994850}
   m_SourcePrefab: {fileID: 100100000, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}
 --- !u!4 &8811130118417833 stripped
 Transform:
@@ -1161,51 +1155,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5834654910997889021, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}
   m_PrefabInstance: {fileID: 879933692305275958}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &6761754922091129356 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5899912604930627130, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}
-  m_PrefabInstance: {fileID: 879933692305275958}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &7520099541180432331
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6761754922091129356}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &5168822973359994850
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6761754922091129356}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fff0960ef4ea6e04eac66b4a7fd2189d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.RigBuilder
-  m_RigLayers:
-  - m_Rig: {fileID: 3932822157694860287}
-    m_Active: 1
-  - m_Rig: {fileID: 6770757235609178639}
-    m_Active: 1
-  m_Effectors: []
 --- !u!4 &6908118343868603232 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6046282677490100054, guid: 7f17574d710dd437cb690c1c8dcf7163, type: 3}

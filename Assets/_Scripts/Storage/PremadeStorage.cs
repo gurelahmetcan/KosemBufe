@@ -68,6 +68,19 @@ namespace Bufe
         {
             if (!CanInteract(hand)) return;
 
+            // The hand reaches into the storage first; the item is only spawned once it
+            // arrives, so nothing floats or falls meanwhile and a cancelled reach costs
+            // no stock.
+            hand.ReachThen(() => Dispense(hand));
+        }
+
+        /// <summary>Spawns one item straight into the hand and takes it off the stock.</summary>
+        private void Dispense(PlayerHand hand)
+        {
+            // Re-checked on arrival: the hand may have filled or the stock run out
+            // while it was reaching.
+            if (hand == null || !CanInteract(hand)) return;
+
             GameObject spawnedObj = Instantiate(data.itemPrefab, transform.position, Quaternion.identity);
             DailySpawn.Tag(spawnedObj);
 
