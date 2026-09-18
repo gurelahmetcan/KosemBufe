@@ -264,8 +264,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TostBread
   itemName: Ekmek
-  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  InHandLocalPos: {x: 0, y: 0, z: 0}
+  InHandLocalEuler: {x: 0, y: -90, z: 60}
+  InHandLocalPos: {x: -0.05, y: 0.1, z: 0.075}
   ingredientType: 2
   wholeBreadVisual: {fileID: 0}
   halfBreadVisual: {fileID: 2865064122797191943}

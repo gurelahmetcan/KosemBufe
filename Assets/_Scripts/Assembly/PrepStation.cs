@@ -115,8 +115,8 @@ namespace Bufe
 
         bread.transform.SetParent(stackAnchor, worldPositionStays: false);
         bread.transform.localRotation = Quaternion.identity;
-        bread.transform.localScale    = bread.OriginalLocalScale;
         bread.transform.localPosition = Vector3.zero;
+        bread.RestoreWorldScale();
 
         // Colliders intentionally left DISABLED (same as regular ingredients).
         // All interactions go through the PrepStation's collider to avoid
@@ -144,8 +144,8 @@ namespace Bufe
         Transform anchor = sucukAnchor != null ? sucukAnchor : stackAnchor;
         sucuk.transform.SetParent(anchor, worldPositionStays: false);
         sucuk.transform.localPosition = Vector3.zero;
-        sucuk.transform.localRotation = Quaternion.Euler(0, 0, -90f);        
-        sucuk.transform.localScale    = sucuk.OriginalLocalScale;
+        sucuk.transform.localRotation = Quaternion.Euler(0, 0, -90f);
+        sucuk.RestoreWorldScale();
 
         // Re-enable the sucuk's colliders (PlayerHand disabled them on pickup) so
         // the player can still aim at it to cut it, and freeze it in place.

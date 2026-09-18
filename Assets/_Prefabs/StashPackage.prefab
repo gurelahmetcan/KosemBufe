@@ -84,7 +84,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeItem
   itemName: Package
-  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  InHandLocalEuler: {x: 0, y: 0, z: 0}
   InHandLocalPos: {x: 0, y: 0, z: 0}
   ingredientType: 0
   definition: {fileID: 11400000, guid: e67b6b77407934bf5af76b25ddf69770, type: 2}

@@ -74,8 +74,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeItem
   itemName: Chips
-  InHandLocalRotation: {x: 0, y: -0.6087614, z: 0, w: 0.7933533}
-  InHandLocalPos: {x: 0, y: 0, z: 0}
+  InHandLocalEuler: {x: 0, y: -75, z: -25}
+  InHandLocalPos: {x: -0.057, y: -0.079, z: 0.006}
   ingredientType: 6
   definition: {fileID: 11400000, guid: 4108eb36e0cad46878aea761a79be495, type: 2}
 --- !u!1001 &6449289910183201121

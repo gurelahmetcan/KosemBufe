@@ -75,8 +75,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bufe.PremadeItem
   itemName: Ayran
-  InHandLocalRotation: {x: 0, y: 0.76604444, z: 0, w: 0.64278764}
-  InHandLocalPos: {x: -0.15, y: -0.05, z: -0.2}
+  InHandLocalEuler: {x: 0, y: 100, z: 30}
+  InHandLocalPos: {x: -0.0177, y: 0.0067, z: -0.0086}
   ingredientType: 5
   definition: {fileID: 11400000, guid: a19417e32884c4875b4c709cb8c59163, type: 2}
 --- !u!65 &6583832168404484925

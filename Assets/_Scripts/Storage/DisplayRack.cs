@@ -110,7 +110,7 @@ namespace Bufe
             if (item == null) return;
 
             item.transform.SetPositionAndRotation(slot.position, slot.rotation);
-            item.transform.localScale = item.OriginalLocalScale;
+            item.RestoreWorldScale();
 
             // Freeze it on the rack and make it clickable again (PlayerHand disabled
             // the colliders on pickup).

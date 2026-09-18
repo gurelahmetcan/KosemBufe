@@ -104,6 +104,7 @@ namespace Bufe
         _bread.transform.SetParent(anchor);
         _bread.transform.localPosition = Vector3.zero;
         _bread.transform.localRotation = Quaternion.identity;
+        _bread.RestoreWorldScale();
 
         // Colliders intentionally left DISABLED — player collects via the
         // toaster body interaction (CollectBread), not by clicking the bread.

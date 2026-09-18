@@ -51,9 +51,7 @@ namespace Bufe
             if (playerHand != null && !playerHand.IsHandEmpty)
             {
                 InteractableItem held = playerHand.HeldItem;
-                bool keeper = held != null &&
-                              (held.GetComponent<ReturnHomeOnReset>() != null ||
-                               held.GetComponent<QuestItem>() != null);
+                bool keeper = held != null && held.IsKeeper;
 
                 if (keeper) playerHand.Drop(false);       // drop into the world, don't destroy
                 else        playerHand.DestroyHeldItem();

@@ -310,6 +310,7 @@ namespace Bufe
             item.transform.SetParent(socket);
             item.transform.localPosition = Vector3.zero;
             item.transform.localRotation = Quaternion.identity;
+            item.RestoreWorldScale();
 
             // Disable colliders — ingredient is now part of the bread, not independently pickable
             foreach (Collider col in item.GetComponentsInChildren<Collider>())

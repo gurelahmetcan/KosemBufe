@@ -48,8 +48,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ingredient
   itemName: Kasar
-  InHandLocalRotation: {x: 0, y: -0.3007058, z: 0, w: 0.95371693}
-  InHandLocalPos: {x: 0.025, y: -0.05, z: -0.15}
+  InHandLocalEuler: {x: -30.264256, y: -59.50874, z: 56.834095}
+  InHandLocalPos: {x: -0.06, y: 0.012, z: -0.013}
   ingredientType: 4
 --- !u!54 &2530735777528918367
 Rigidbody:

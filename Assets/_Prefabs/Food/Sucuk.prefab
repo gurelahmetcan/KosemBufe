@@ -47,8 +47,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SucukItem
   itemName: Sucuk
-  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  InHandLocalPos: {x: 0, y: 0, z: 0}
+  InHandLocalEuler: {x: 55.616005, y: 0, z: 0}
+  InHandLocalPos: {x: -0.002, y: 0.017, z: 0.024}
   sucukSlicePrefab: {fileID: 7078193256821094703, guid: b60a2021721dfb64caf1b030d20414bc, type: 3}
   sliceCount: 4
   sliceStackOffset: 0.1

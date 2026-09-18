@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 3859906518469922953}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.0043, y: 0.286, z: 0.307}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -48,8 +48,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KnifeItem
   itemName: Knife
-  InHandLocalRotation: {x: -0.39997244, y: -0.42346805, z: 0.51744574, w: -0.62685466}
-  InHandLocalPos: {x: -0.02, y: -0.15, z: -0.4}
+  InHandLocalEuler: {x: 150, y: -180, z: 100}
+  InHandLocalPos: {x: 0.04, y: -0.1, z: -0.05}
 --- !u!54 &862606024137412580
 Rigidbody:
   m_ObjectHideFlags: 0

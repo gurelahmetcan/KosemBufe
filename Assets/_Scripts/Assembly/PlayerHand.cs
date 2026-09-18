@@ -388,9 +388,11 @@ namespace Bufe
                 _heldRb.isKinematic = true;
             }
 
-            item.transform.SetParent(holdPoint);
-            item.transform.localPosition = item.InHandLocalPos;
-            item.transform.localRotation = item.InHandLocalRotation;
+            // The hold point is a bone deep inside the arm rig, so it carries whatever
+            // scale that rig was built at. PlaceInHand poses the item in metres
+            // against that scale, so the rig can be rescaled without resizing or
+            // displacing everything the player picks up.
+            item.PlaceInHand(holdPoint);
 
             ApplyViewmodelLayer(item);
 
@@ -407,6 +409,7 @@ namespace Bufe
             _heldItem = null;
 
             item.transform.SetParent(null);
+            item.RestoreWorldScale();
             RestoreWorldLayer();
 
             Collider[] itemColliders = _heldColliders;
@@ -450,6 +453,7 @@ namespace Bufe
             _heldItem = null;
 
             item.transform.SetParent(null);
+            item.RestoreWorldScale();
             RestoreWorldLayer();
 
             _heldRb        = null;

@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ingredient
   itemName: Sucuk Slice
-  InHandLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  InHandLocalEuler: {x: -60, y: 0, z: 30}
   InHandLocalPos: {x: 0, y: 0, z: 0}
   ingredientType: 3
 --- !u!54 &6702744545471385858
