@@ -87,9 +87,11 @@ namespace Bufe
 
         public void Interact(PlayerHand hand)
         {
-            if (hand.HeldItem is KnifeItem && CanBeCut())
+            if (hand.HeldItem is KnifeItem knife && CanBeCut())
             {
-                Cut();
+                // Only send the knife away if the cut actually happened — a
+                // misconfigured prefab must not leave the player empty-handed.
+                if (Cut()) knife.ReturnAfterCut(hand);
                 return;
             }
 
@@ -187,12 +189,13 @@ namespace Bufe
             RefreshVisuals();
         }
 
-        private void Cut()
+        /// <summary>Splits the loaf into two halves. Returns false when it could not.</summary>
+        private bool Cut()
         {
             if (halfBreadPrefab == null)
             {
                 Debug.LogWarning("[PreparedItem] halfBreadPrefab is not assigned — cannot spawn two halves.");
-                return;
+                return false;
             }
 
             // Free the prep station slot before we destroy ourselves.
@@ -223,6 +226,7 @@ namespace Bufe
 
             Debug.Log("[PreparedItem] Cut into two halves.");
             Destroy(gameObject);
+            return true;
         }
 
         private void Open()

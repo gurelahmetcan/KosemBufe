@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb53304f86eab46069cf9a6d281a7e6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ingredient
-  itemName: Kasar
+  itemName: Cheese
   InHandLocalEuler: {x: -30.264256, y: -59.50874, z: 56.834095}
   InHandLocalPos: {x: -0.06, y: 0.012, z: -0.013}
   ingredientType: 4

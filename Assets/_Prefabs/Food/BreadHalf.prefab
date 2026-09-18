@@ -263,7 +263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 087bc205ab57b414d8a25d64bb2ea32e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TostBread
-  itemName: Ekmek
+  itemName: Bread
   InHandLocalEuler: {x: 0, y: -90, z: 60}
   InHandLocalPos: {x: -0.05, y: 0.1, z: 0.075}
   ingredientType: 2

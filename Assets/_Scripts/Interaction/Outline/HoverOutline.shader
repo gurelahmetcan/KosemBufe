@@ -14,7 +14,7 @@
 //   ones, which is exactly the look we do not want here.
 //
 // Paired with Bufe/HoverOutlineMask, which runs first and stamps the object's
-// silhouette into stencil bit 3. Without that mask a hull traces the contour of
+// silhouette into a stencil bit. Without that mask a hull traces the contour of
 // every SHELL it is handed, so an object built from several overlapping parts
 // (the sucuk pile is six sausages) draws contours inside itself as well. The
 // stencil test below rejects those: the outline can only ever appear on pixels
@@ -36,6 +36,14 @@ Shader "Bufe/HoverOutline"
         // outline that reads through walls and counters.
         [Enum(UnityEngine.Rendering.CompareFunction)]
         _ZTest ("Z Test", Float) = 4
+
+        // Which stencil bit the paired Bufe/HoverOutlineMask material stamps, so
+        // this pass knows where the object itself already covered. Two outline
+        // systems on screen at once need different bits or they carve holes in
+        // each other: the hover outline uses bit 3 (8), the tutorial highlight
+        // bit 2 (4). Keep this equal to the mask material's _StencilRef.
+        _StencilRef  ("Stencil Ref",  Float) = 8
+        _StencilMask ("Stencil Mask", Float) = 8
     }
 
     SubShader
@@ -62,13 +70,13 @@ Shader "Bufe/HoverOutline"
             Blend   SrcAlpha OneMinusSrcAlpha
             ColorMask RGB
 
-            // Draw only where Bufe/HoverOutlineMask did NOT stamp bit 3, i.e.
+            // Draw only where the paired Bufe/HoverOutlineMask did NOT stamp, i.e.
             // strictly outside the object's own silhouette. WriteMask 0 so this
             // pass reads the mask without disturbing it.
             Stencil
             {
-                Ref       8
-                ReadMask  8
+                Ref       [_StencilRef]
+                ReadMask  [_StencilMask]
                 WriteMask 0
                 Comp      NotEqual
             }
@@ -85,6 +93,8 @@ Shader "Bufe/HoverOutline"
                 float4 _OutlineColor;
                 float  _OutlineWidth;
                 float  _ZTest;
+                float  _StencilRef;
+                float  _StencilMask;
             CBUFFER_END
 
             struct Attributes

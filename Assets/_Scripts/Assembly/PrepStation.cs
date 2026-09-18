@@ -36,6 +36,31 @@ namespace Bufe
     // slices on top of each other, and deposited slices free their slot.
     private GameObject[] _sliceSlots;
 
+    // ── Board state (read by the tutorial) ───────────────────────────────────
+    // The things sitting on the board are all spawned at runtime, so nothing can
+    // hold a reference to them in the inspector. The station itself is a scene
+    // object and already tracks them, so it is the one thing that can answer
+    // "has the player got this far yet" without a tutorial-shaped hook in it.
+
+    /// <summary>The bread currently on the board, or null.</summary>
+    public PreparedItem PreparedItem => _preparedItem;
+
+    /// <summary>True while a whole, uncut sucuk is sitting on the board.</summary>
+    public bool HasWholeSucuk => _sucuk != null;
+
+    /// <summary>How many cut sucuk slices are resting on the board.</summary>
+    public int SliceCount
+    {
+        get
+        {
+            EnsureSlots();
+            int count = 0;
+            for (int i = 0; i < _sliceSlots.Length; i++)
+                if (_sliceSlots[i] != null) count++;
+            return count;
+        }
+    }
+
     // ── IAssemblyInteractable (left-click) ───────────────────────────────────
 
     public bool CanInteract(PlayerHand hand)

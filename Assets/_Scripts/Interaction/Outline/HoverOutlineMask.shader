@@ -20,6 +20,20 @@
 // mesh against its own depth values, which is exactly the tie that z-fights.
 Shader "Bufe/HoverOutlineMask"
 {
+    Properties
+    {
+        // Which stencil bit this mask stamps. URP reserves bits [0,3] for user
+        // code (see StencilUsage in the URP package) and clears the buffer every
+        // frame, so nothing in the pipeline collides with them — but two outline
+        // systems drawing at once WOULD collide with each other. The hover
+        // outline stamps bit 3 (8); the tutorial highlight stamps bit 2 (4), so a
+        // glowing target and a hovered object never eat into each other's
+        // silhouette where they overlap on screen. Must match the _StencilRef on
+        // the Bufe/HoverOutline material it is paired with.
+        _StencilRef  ("Stencil Ref",  Float) = 8
+        _StencilMask ("Stencil Mask", Float) = 8
+    }
+
     SubShader
     {
         Tags
@@ -42,14 +56,12 @@ Shader "Bufe/HoverOutlineMask"
             ZTest     Always
             ColorMask 0
 
-            // Bit 3. URP reserves stencil bits [0,3] for user code (see
-            // StencilUsage in the URP package), and the buffer is cleared every
-            // frame, so nothing else in the pipeline can collide with it.
+            // The bit comes from the material — see the Properties block above.
             Stencil
             {
-                Ref       8
-                ReadMask  8
-                WriteMask 8
+                Ref       [_StencilRef]
+                ReadMask  [_StencilMask]
+                WriteMask [_StencilMask]
                 Comp      Always
                 Pass      Replace
             }
@@ -60,9 +72,11 @@ Shader "Bufe/HoverOutlineMask"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            // The mask has no material properties, but declaring the block keeps it
-            // unambiguously SRP Batcher compatible.
+            // Stencil state is shaderlab-level, but the properties still have to be
+            // declared here or the material drops out of the SRP Batcher.
             CBUFFER_START(UnityPerMaterial)
+                float _StencilRef;
+                float _StencilMask;
             CBUFFER_END
 
             float4 vert(float4 positionOS : POSITION) : SV_POSITION

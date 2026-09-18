@@ -7,6 +7,7 @@ namespace Bufe
     {
         public List<OrderSlot> slots;
         public bool IsComplete => slots.All(s => s.isFulfilled);
+        public int  FulfilledCount => slots.Count(s => s.isFulfilled);
         public float TotalPrice => slots.Sum(s => s.target.price);
 
         public static Order FromRecipe(OrderTemplate template)

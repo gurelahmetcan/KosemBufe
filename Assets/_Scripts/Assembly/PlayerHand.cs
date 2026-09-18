@@ -89,6 +89,20 @@ namespace Bufe
 
         // ── Public API ───────────────────────────────────────────────────────────
 
+        /// <summary>
+        /// Fired right after an interactable was clicked, with the object that ran
+        /// the interaction. The tutorial listens to this to know "they opened the
+        /// shutter", "they clicked the toaster" without every station having to
+        /// know a tutorial exists.
+        /// </summary>
+        public event Action<GameObject> OnInteracted;
+
+        /// <summary>
+        /// The object a left-click would act on right now — the one wearing the hover
+        /// outline — or null when the crosshair is on nothing usable.
+        /// </summary>
+        public GameObject OutlinedRoot => _outlinedRoot;
+
         public InteractableItem HeldItem    => _heldItem;
         public bool             IsHandEmpty => _heldItem == null;
 
@@ -202,7 +216,11 @@ namespace Bufe
 
             if (_rInteractable != null && _rInteractable.CanInteract(this))
             {
+                // Captured before the call: an interaction can destroy or replace
+                // the object it ran on (a storage handing out a fresh item).
+                var interacted = ((Component)_rInteractable).gameObject;
                 _rInteractable.Interact(this);
+                OnInteracted?.Invoke(interacted);
                 return;
             }
 

@@ -19,7 +19,15 @@ namespace Bufe
     private PreparedItem     _bread;
     private ToasterState  _state = ToasterState.Empty;
 
-    private enum ToasterState { Empty, BreadInside, Cooking, Done }
+    /// <summary>
+    /// Public so the tutorial can wait on the toaster without the toaster knowing a
+    /// tutorial exists. Empty = nothing in it, BreadInside = loaded but the lid is
+    /// still open, Cooking = lid shut and toasting, Done = ready to collect.
+    /// </summary>
+    public enum ToasterState { Empty, BreadInside, Cooking, Done }
+
+    /// <summary>Where the toaster is in its cycle right now.</summary>
+    public ToasterState CurrentState => _state;
 
     // ── Unity lifecycle ───────────────────────────────────────────────────────
 

@@ -116,6 +116,26 @@ namespace Bufe
 
         #endregion
 
+        #region Events
+
+        /// <summary>
+        /// Fired when the tutorial dayı's scripted conversation ends and the player
+        /// accepts his order — the moment the guided cooking steps should start.
+        /// </summary>
+        public event System.Action OnTutorialOrderAccepted;
+
+        /// <summary>
+        /// Fired every time a slot of the active order is filled, with how many are
+        /// done and how many there are. The tutorial counts deliveries with it — the
+        /// customer is spawned at runtime, so nothing can watch him directly.
+        /// </summary>
+        public event System.Action<int, int> OnOrderProgress;
+
+        /// <summary>Fired once the tutorial visit is fully paid off and the day starts running.</summary>
+        public event System.Action OnTutorialCompleted;
+
+        #endregion
+
         #region Private Variables
 
         private Customer    _activeCustomer;
@@ -133,6 +153,28 @@ namespace Bufe
         /// True when the day-1 tutorial should still run. False once it's done, when no
         /// tutorial is authored, or when the editor-only debug skip is enabled.
         /// </summary>
+        /// <summary>
+        /// True while the day-1 tutorial visit is still going to happen. Reads the same
+        /// state as the editor-only skip toggle, so ticking that box also switches off
+        /// the guided steps in <see cref="TutorialDirector"/> — otherwise they would
+        /// sit there waiting for a dayı who is never coming.
+        /// </summary>
+        public bool TutorialWillRun => TutorialPending;
+
+        /// <summary>
+        /// True once the tutorial dayı has finished walking to the counter and is
+        /// standing there waving, waiting to be talked to.
+        ///
+        /// He spawns at the door and walks in, which takes a few seconds, and the walk
+        /// is as long as the level makes it. The tutorial waits on this instead of
+        /// guessing a delay, so moving the spawn point or changing his walk speed
+        /// cannot leave a line on screen telling the player to talk to nobody.
+        /// </summary>
+        public bool TutorialCustomerWaiting =>
+            _activeCustomer != null
+            && _activeCustomer.IsTutorial
+            && _activeCustomer.CurrentState == Customer.State.WaitingForOrder;
+
         private bool TutorialPending
         {
             get
@@ -320,6 +362,9 @@ namespace Bufe
                 cashRegister.SetOrder(_activeCustomer.Recipe.TotalPrice);
 
             Debug.Log($"Order accepted: TODO");
+
+            if (_activeCustomer.IsTutorial)
+                OnTutorialOrderAccepted?.Invoke();
         }
 
         private void OnPromptReject()
@@ -532,6 +577,8 @@ namespace Bufe
             playerHand.DestroyHeldItem();
             Debug.Log($"[OrderManager] Slot fulfilled: {matched.target.itemName}");
 
+            OnOrderProgress?.Invoke(order.FulfilledCount, order.slots.Count);
+
             if (order.IsComplete)
             {
                 bool wasTutorial = _activeCustomer != null && _activeCustomer.IsTutorial;
@@ -574,6 +621,7 @@ namespace Bufe
             {
                 _tutorialDone = true;
                 dayManager?.BeginTimedPhase();   // unfreeze: clock + spawns start now
+                OnTutorialCompleted?.Invoke();
             }
         }
 

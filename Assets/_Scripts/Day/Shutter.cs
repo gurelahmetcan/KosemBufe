@@ -7,11 +7,21 @@ using UnityEngine;
 /// The shutter in front of the büfe. Clicking it opens the shop and starts the day.
 /// Attach to the shutter GameObject (needs a Collider for raycasting).
 /// </summary>
-public class Shutter : MonoBehaviour, IAssemblyInteractable
+public class Shutter : MonoBehaviour, IAssemblyInteractable, IHoverLabel
 {
     [Header("References")]
     [Tooltip("DayManager that controls the day cycle.")]
     public DayManager dayManager;
+
+    [Header("Hover Label")]
+    [Tooltip("Shown while the shutter can be opened. Without it the hint falls back on the raw " +
+             "GameObject name, which is English and means nothing to the player.")]
+    [SerializeField] private string openLabel = "Open the Shutter";
+
+    [Tooltip("Shown once the day is running and the shutter is no longer clickable. Empty = no label.")]
+    [SerializeField] private string openedLabel = "";
+
+    public string HoverLabel => CanInteract(null) ? openLabel : openedLabel;
 
     [Header("Visuals")]
     [Tooltip("Animator holding the shutter open clip. Played forward to open, backward to close.")]

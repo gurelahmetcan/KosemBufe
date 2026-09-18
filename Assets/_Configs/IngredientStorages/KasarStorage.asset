@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d56016da6264beda2bdf92747c14e53, type: 3}
   m_Name: KasarStorage
   m_EditorClassIdentifier: Assembly-CSharp::IngredientStorageData
-  storageName: Kasar
+  storageName: Cheese
   ingredientPrefab: {fileID: 4181419651491393624, guid: e0f84406eba0b924fa6a091ac99f3697, type: 3}
   icon: {fileID: 0}
   defaultStock: -1

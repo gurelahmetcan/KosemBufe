@@ -91,6 +91,9 @@ namespace Bufe
                 station.OnSucukSliced(this, slices);
             }
 
+            // CanInteract already proved the knife is what did this.
+            (hand.HeldItem as KnifeItem)?.ReturnAfterCut(hand);
+
             Debug.Log($"[SucukItem] Sliced into {sliceCount} pieces.");
             Destroy(gameObject);
         }

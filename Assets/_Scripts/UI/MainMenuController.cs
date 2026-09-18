@@ -44,6 +44,12 @@ namespace Bufe.UI
 
         private void Awake()
         {
+            // Safety net: cursor state is global and survives scene loads, so whatever the
+            // gameplay scene left behind (locked + hidden) would carry into the menu and make
+            // it unclickable. Free it on every entry into the menu, whatever the path in.
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible   = true;
+
             _cameras = new[] { menuVcam, settingsVcam, creditsVcam, startVcam };
 
             // Set the menu live before the first Cinemachine update so the game opens on

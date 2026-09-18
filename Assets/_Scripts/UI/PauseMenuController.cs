@@ -132,7 +132,14 @@ namespace Bufe.UI
         public void ReturnToMainMenu()
         {
             Time.timeScale = 1f;                                // clear the pause freeze before loading
-            if (playerLook != null) playerLook.UIMode = false;
+
+            // The cursor must stay free for the menu scene. Cursor state is global and
+            // survives the scene load, so setting UIMode = false here would re-lock and hide
+            // it (LockCursor) and the main menu would be unclickable.
+            IsPaused = false;
+            if (pauseRoot != null) pauseRoot.SetActive(false);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible   = true;
 
             if (AudioManager.Instance) AudioManager.Instance.PlaySfx(Sfx.Click);
 
