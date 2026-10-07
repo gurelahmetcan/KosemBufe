@@ -6,13 +6,13 @@ namespace Bufe.UI
     /// <summary>
     /// Reusable money readout. Drop one on any screen that needs to show the balance (event
     /// screen, order panel, HUD…). It subscribes to MoneyManager and keeps its own TMP text in
-    /// sync. Make it a prefab so every copy looks identical — each instance updates itself, so
+    /// sync. Make it a prefab so every copy looks identical - each instance updates itself, so
     /// there is no shared UI object to fight over.
     /// </summary>
     public class MoneyTextUI : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("Left empty, it finds the MoneyManager in the scene on enable.")]
+        [Tooltip("Auto-found if empty.")]
         public MoneyManager    moneyManager;
         public TextMeshProUGUI text;
 

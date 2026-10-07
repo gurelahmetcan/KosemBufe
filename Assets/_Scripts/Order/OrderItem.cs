@@ -5,24 +5,24 @@ namespace Bufe
     [CreateAssetMenu(fileName = "NewOrderItem", menuName = "KosemBufe/New Order Item")]
     public class OrderItem : ScriptableObject
     {
-        [Tooltip("Display name shown in Order ")]
+        [Tooltip("Name shown in the order.")]
         public string itemName;
         
-        [Tooltip("How much the player earns for delivering this recipe.")]
+        [Tooltip("Sale price.")]
         [Min(0f)]
         public float price;
         
-        [Tooltip("Order Icon to be shown in UI.")]
+        [Tooltip("Order icon.")]
         public Sprite icon;
         
-        [Tooltip("Item category to decide if prepared or premade.")]
+        [Tooltip("Prepared or premade.")]
         public Constants.ItemCategory category;
         
         // Only used if category == Prepared
-        [Tooltip("Exact ingredients required. Order doesn't matter.")]
+        [Tooltip("Required ingredients, any order.")]
         public Constants.IngredientType[] ingredients;
         
-        [Tooltip("If true, the order must be cooked.")]
+        [Tooltip("Must be cooked.")]
         public bool requiresCooking = false;
     }
 }

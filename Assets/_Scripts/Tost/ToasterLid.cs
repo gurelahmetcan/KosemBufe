@@ -14,7 +14,7 @@ namespace Bufe
         {
             // A lid is always opened by dragging the mouse UP, regardless of the
             // (new) generic dragAxis default. Force it so existing toaster scene
-            // objects — which predate the dragAxis field — keep working.
+            // objects - which predate the dragAxis field - keep working.
             dragAxis = DragAxis.Vertical;
             base.Awake();
         }

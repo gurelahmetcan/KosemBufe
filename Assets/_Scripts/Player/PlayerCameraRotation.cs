@@ -1,83 +1,86 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Fixed-Position Incremental Rotation System
-/// Attach to the Main Camera. The player character never moves (no WASD).
-/// A/D keys rotate the camera left/right by <turnAngle> degrees per press,
-/// with smooth SmoothDamp interpolation and optional clamping.
-/// </summary>
-public class PlayerCameraRotation : MonoBehaviour
+namespace Bufe
 {
-    [Header("Rotation Settings")]
-    [Tooltip("Degrees to rotate per key press.")]
-    public float turnAngle = 90f;
-
-    [Tooltip("How fast (in degrees/second) the camera interpolates to its target. Higher = faster.")]
-    public float turnSpeed = 5f;
-
-    [Header("Clamping")]
-    [Tooltip("When false, rotation is clamped between -180 and +180 degrees from the start orientation. When true, the player can spin freely.")]
-    public bool allow360 = false;
-
-    [Tooltip("Maximum angle (absolute) the camera can turn when clamping is active.")]
-    public float clampAngle = 180f;
-
-    /// <summary>When false, input is ignored (camera stays in place).</summary>
-    public bool InputEnabled { get; set; } = true;
-
-    // Internal state
-    private float _targetYaw;       // The yaw we are trying to reach
-    private float _currentYaw;      // The actual rendered yaw (smoothed)
-    private float _yawVelocity;     // Used by SmoothDamp
-
-    private void Start()
+    /// <summary>
+    /// Fixed-Position Incremental Rotation System
+    /// Attach to the Main Camera. The player character never moves (no WASD).
+    /// A/D keys rotate the camera left/right by <turnAngle> degrees per press,
+    /// with smooth SmoothDamp interpolation and optional clamping.
+    /// </summary>
+    public class PlayerCameraRotation : MonoBehaviour
     {
-        // Initialise both current and target to the camera's current Y rotation
-        _currentYaw = transform.eulerAngles.y;
-        _targetYaw  = _currentYaw;
-    }
+        [Header("Rotation Settings")]
+        [Tooltip("Degrees to rotate per key press.")]
+        public float turnAngle = 90f;
 
-    private void Update()
-    {
-        HandleInput();
-        SmoothRotate();
-    }
+        [Tooltip("Turn speed (deg/s).")]
+        public float turnSpeed = 5f;
 
-    private void HandleInput()
-    {
-        if (!InputEnabled) return;
+        [Header("Clamping")]
+        [Tooltip("Spin freely. Off = clamped.")]
+        public bool allow360 = false;
 
-        Keyboard kb = Keyboard.current;
-        if (kb == null) return;
+        [Tooltip("Max angle when clamped.")]
+        public float clampAngle = 180f;
 
-        if (kb.dKey.wasPressedThisFrame)
+        /// <summary>When false, input is ignored (camera stays in place).</summary>
+        public bool InputEnabled { get; set; } = true;
+
+        // Internal state
+        private float _targetYaw;       // The yaw we are trying to reach
+        private float _currentYaw;      // The actual rendered yaw (smoothed)
+        private float _yawVelocity;     // Used by SmoothDamp
+
+        private void Start()
         {
-            _targetYaw += turnAngle;
+            // Initialise both current and target to the camera's current Y rotation
+            _currentYaw = transform.eulerAngles.y;
+            _targetYaw  = _currentYaw;
         }
 
-        if (kb.aKey.wasPressedThisFrame)
+        private void Update()
         {
-            _targetYaw -= turnAngle;
+            HandleInput();
+            SmoothRotate();
         }
 
-        if (!allow360)
+        private void HandleInput()
         {
-            // Clamp target so the camera cannot exceed the limit from its start orientation.
-            // We treat 0 as the initial forward direction; wrap _targetYaw to a
-            // [-180, 180] range relative to that origin before clamping.
-            _targetYaw = Mathf.Clamp(_targetYaw, -clampAngle, clampAngle);
+            if (!InputEnabled) return;
+
+            Keyboard kb = Keyboard.current;
+            if (kb == null) return;
+
+            if (kb.dKey.wasPressedThisFrame)
+            {
+                _targetYaw += turnAngle;
+            }
+
+            if (kb.aKey.wasPressedThisFrame)
+            {
+                _targetYaw -= turnAngle;
+            }
+
+            if (!allow360)
+            {
+                // Clamp target so the camera cannot exceed the limit from its start orientation.
+                // We treat 0 as the initial forward direction; wrap _targetYaw to a
+                // [-180, 180] range relative to that origin before clamping.
+                _targetYaw = Mathf.Clamp(_targetYaw, -clampAngle, clampAngle);
+            }
         }
-    }
 
-    private void SmoothRotate()
-    {
-        // SmoothDamp the current yaw towards the target yaw
-        _currentYaw = Mathf.SmoothDampAngle(_currentYaw, _targetYaw, ref _yawVelocity, 1f / turnSpeed);
+        private void SmoothRotate()
+        {
+            // SmoothDamp the current yaw towards the target yaw
+            _currentYaw = Mathf.SmoothDampAngle(_currentYaw, _targetYaw, ref _yawVelocity, 1f / turnSpeed);
 
-        // Apply rotation — keep X and Z (pitch/roll) as they were
-        Vector3 euler = transform.eulerAngles;
-        euler.y = _currentYaw;
-        transform.eulerAngles = euler;
+            // Apply rotation - keep X and Z (pitch/roll) as they were
+            Vector3 euler = transform.eulerAngles;
+            euler.y = _currentYaw;
+            transform.eulerAngles = euler;
+        }
     }
 }

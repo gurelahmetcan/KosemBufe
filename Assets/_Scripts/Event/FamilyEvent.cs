@@ -7,55 +7,48 @@ namespace Bufe
     [Serializable]
     public class EventEffect
     {
-        [Tooltip("Which family member is affected. Null = no family effect.")]
+        [Tooltip("Affected family member. Null = none.")]
         public FamilyMemberData targetMember;
 
-        [Tooltip("Family relationship change (0–10 scale). Positive = gain, negative = loss.")]
+        [Tooltip("Family relationship change (0-10 scale).")]
         public int relationshipDelta;
 
-        [Tooltip("Force a health change on targetMember, bypassing hunger/cold buildup " +
-                 "(e.g. MakeSick for a 'mom falls ill' event, Cure when medicine is bought). " +
-                 "None = no health change.")]
+        [Tooltip("Forced health change. None = no change.")]
         public FamilyHealthChange healthChange = FamilyHealthChange.None;
 
         [Header("Faction (demo)")]
-        [Tooltip("Which faction is affected. Null = no faction effect.")]
+        [Tooltip("Affected faction. Null = none.")]
         public FactionData targetFaction;
 
-        [Tooltip("Faction relationship change (0–10 scale). Positive = gain, negative = loss.")]
+        [Tooltip("Faction relationship change (0-10 scale).")]
         public int factionDelta;
 
-        [Tooltip("Money change. Negative = costs player money, positive = gives money.")]
+        [Tooltip("Money change. Negative = cost.")]
         public float moneyDelta;
 
-        [Tooltip("Item handed to the player. Spawned at OrderManager's item grant point (büfe " +
-                 "interactions only). Null = no item. The player picks it up like any item.")]
+        [Tooltip("Item spawned at the grant point (büfe only). Null = none.")]
         public InteractableItem grantedItemPrefab;
     }
 
     [Serializable]
     public class EventChoice
     {
-        [Tooltip("Button text shown to the player.")]
+        [Tooltip("Button text.")]
         public string label;
 
-        [Tooltip("Optional one-line recap of this decision for the demo-end screen " +
-                 "(e.g. 'Sent your son on the school trip'). Empty = not logged.")]
+        [Tooltip("Demo-end recap line. Empty = not logged.")]
         public string summaryLine;
 
-        [Tooltip("All effects that fire when this choice is selected.")]
+        [Tooltip("Effects fired on pick.")]
         public List<EventEffect> effects = new List<EventEffect>();
 
-        [Tooltip("Optional: consume a quest item when this choice is picked. Any item in the " +
-                 "world with a matching QuestItem.questId is destroyed (e.g. 'taxi_box' when " +
-                 "handing the package to the police). Empty = no item consumed.")]
+        [Tooltip("QuestItem id destroyed on pick. Empty = none.")]
         public string consumeQuestId;
 
-        [Tooltip("Optional event to schedule after this choice. Fires on a future day, not " +
-                 "immediately. Can be a night event OR a day büfe interaction — the scheduler routes it.")]
+        [Tooltip("Follow-up event on a later day (night or büfe).")]
         public GameEvent followUpEvent;
 
-        [Tooltip("How many days until the follow-up event fires (minimum 1 = next day).")]
+        [Tooltip("Days until the follow-up (min 1).")]
         [Min(1)] public int followUpDelay = 1;
     }
 
@@ -65,7 +58,7 @@ namespace Bufe
         public override EventSurface Surface => EventSurface.Night;
 
         [Header("Dialogue")]
-        [Tooltip("Who is speaking. Null = narrator (no portrait shown).")]
+        [Tooltip("Speaker. Null = narrator.")]
         public FamilyMemberData speaker;
 
         [TextArea(3, 6)]
@@ -75,17 +68,17 @@ namespace Bufe
         public List<EventChoice> choices = new List<EventChoice>();
 
         [Header("Scheduling")]
-        [Tooltip("0 = random pool. Greater than 0 = fires on exactly this day number.")]
+        [Tooltip("0 = random pool. Else fires on this day.")]
         public int scheduledDay = 0;
 
         [Header("Random Pool Settings")]
-        [Tooltip("Ignored when scheduledDay > 0. Don't roll before this day.")]
+        [Tooltip("Earliest day. Ignored if scheduled.")]
         [Min(1)] public int minDay = 1;
 
-        [Tooltip("Ignored when scheduledDay > 0. Probability this event fires on any eligible day.")]
+        [Tooltip("Daily fire chance. Ignored if scheduled.")]
         [Range(0f, 1f)] public float triggerChance = 0.3f;
 
-        // Runtime only — resets every Play session. Not saved to disk.
+        // Runtime only - resets every Play session. Not saved to disk.
         [NonSerialized] public bool HasTriggered;
     }
 }

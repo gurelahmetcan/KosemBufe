@@ -15,19 +15,19 @@ namespace Bufe
     [Serializable]
     public class ExpenseEntry
     {
-        [Tooltip("Label shown in the day-end screen.")]
+        [Tooltip("Day-end label.")]
         public string displayName = "Expense";
 
         [Min(0f)]
         public float amount;
 
-        [Tooltip("Daily = every night. Weekly = every 7 days.")]
+        [Tooltip("Daily or every 7 days.")]
         public ExpenseFrequency frequency = ExpenseFrequency.Daily;
 
-        [Tooltip("Mandatory expenses are always deducted and cannot be toggled off.")]
+        [Tooltip("Always paid, can't be toggled.")]
         public bool isMandatory = true;
 
-        [Tooltip("Links this row to a family need so FamilyManager can react to it.")]
+        [Tooltip("Family need this expense covers.")]
         public ExpenseNeedType needType = ExpenseNeedType.None;
     }
 

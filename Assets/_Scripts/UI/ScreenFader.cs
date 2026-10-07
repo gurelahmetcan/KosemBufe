@@ -14,11 +14,10 @@ namespace Bufe.UI
     [RequireComponent(typeof(CanvasGroup))]
     public class ScreenFader : MonoBehaviour
     {
-        [Tooltip("Seconds for a full fade in either direction.")]
+        [Tooltip("Fade time.")]
         public float fadeDuration = 0.4f;
 
-        [Tooltip("Start covered in solid black at scene load (no flash of the world). A controller " +
-                 "— e.g. IntroController — decides when to fade in.")]
+        [Tooltip("Start black. A controller fades in.")]
         public bool startBlack = false;
 
         private CanvasGroup _cg;

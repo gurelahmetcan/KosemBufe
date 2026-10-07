@@ -16,15 +16,15 @@ namespace Bufe.UI
         [SerializeField] private CinemachineCamera startVcam;
 
         [Header("Shutter")]
-        [Tooltip("Shutter object that slides straight up when Start is pressed.")]
+        [Tooltip("Shutter that rises on Start.")]
         [SerializeField] private Transform menuShutter;
-        [Tooltip("How far the shutter rises (world units).")]
+        [Tooltip("Rise height.")]
         [SerializeField] private float shutterRise = 3f;
-        [Tooltip("Seconds for the shutter to fully open.")]
+        [Tooltip("Open time.")]
         [SerializeField] private float shutterOpenDuration = 1.5f;
 
         [Header("Camera Priorities")]
-        [Tooltip("Priority given to the active camera; all others drop to the inactive value.")]
+        [Tooltip("Active camera priority.")]
         [SerializeField] private int activePriority   = 20;
         [SerializeField] private int inactivePriority = 0;
 
@@ -110,7 +110,7 @@ namespace Bufe.UI
 
         /// <summary>
         /// Makes <paramref name="target"/> the live camera by giving it the highest priority
-        /// and dropping every other camera to the inactive value. Deterministic — no reliance
+        /// and dropping every other camera to the inactive value. Deterministic - no reliance
         /// on Prioritize()/tie-breaks.
         /// </summary>
         private void ShowCamera(CinemachineCamera target)

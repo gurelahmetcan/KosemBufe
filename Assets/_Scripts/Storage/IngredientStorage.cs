@@ -7,11 +7,11 @@ namespace Bufe
     public class IngredientStorage : MonoBehaviour, IAssemblyInteractable, IHoverLabel, IRestockable
     {
         [Header("Data")]
-        [Tooltip("ScriptableObject describing what ingredient this storage holds.")]
+        [Tooltip("Ingredient this storage holds.")]
         public IngredientStorageData data;
 
         [Header("UI (Optional)")]
-        [Tooltip("World-space TextMeshPro label. If assigned it is set to data.storageName on Start.")]
+        [Tooltip("Label. Set to storageName on Start.")]
         public TextMeshPro label;
 
         private int _stockCount;
@@ -47,9 +47,20 @@ namespace Bufe
             get
             {
                 string storageName = data != null ? data.storageName : name;
-                return IsInfinite ? storageName : $"{storageName} — {_stockCount} left";
+                if (IsInfinite) return storageName;
+
+                // Read every hovered frame; rebuild only when the count changes.
+                if (_labelCount != _stockCount || _label == null)
+                {
+                    _labelCount = _stockCount;
+                    _label      = $"{storageName} - {_stockCount} left";
+                }
+                return _label;
             }
         }
+
+        private int    _labelCount;
+        private string _label;
 
         // ── IAssemblyInteractable ────────────────────────────────────────────────
 

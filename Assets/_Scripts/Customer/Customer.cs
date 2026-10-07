@@ -20,7 +20,7 @@ namespace Bufe
         public enum State { Arriving, WaitingForOrder, ShowingOrder, WaitingForFood, Leaving }
 
         [Header("Animation")]
-        [Tooltip("Animator on the 3D model child. Needs bool params: IsWalking, IsWaving.")]
+        [Tooltip("Model animator. Needs bools IsWalking, IsWaving.")]
         public Animator animator;
 
         [Header("Movement")]
@@ -66,7 +66,7 @@ namespace Bufe
         }
 
         /// <summary>
-        /// Initialises this customer as a scripted faction member. No CustomerInstance/recipe —
+        /// Initialises this customer as a scripted faction member. No CustomerInstance/recipe -
         /// the visit is dialogue/choice only (demo scope).
         /// </summary>
         public void InitialiseFaction(FactionInteraction interaction)
@@ -76,7 +76,7 @@ namespace Bufe
 
         /// <summary>
         /// Initialises this customer as the scripted day-1 tutorial visitor. There is no
-        /// CustomerInstance/mood — dialogue comes from TutorialData and the order is fixed.
+        /// CustomerInstance/mood - dialogue comes from TutorialData and the order is fixed.
         /// </summary>
         public void InitialiseTutorial(Order order)
         {
@@ -111,7 +111,7 @@ namespace Bufe
         }
 
         /// <summary>
-        /// Shows the order prompt — the recipe is stored but the timer has not started yet.
+        /// Shows the order prompt - the recipe is stored but the timer has not started yet.
         /// Called by OrderManager when the player first clicks this customer.
         /// </summary>
         public void ShowOrder(Order recipe)

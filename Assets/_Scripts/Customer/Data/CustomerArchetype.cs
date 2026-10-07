@@ -13,8 +13,7 @@ namespace Bufe
         [Tooltip("Body prefab (full Customer setup).")]
         public Customer prefab;
 
-        [Tooltip("Material variants that fit THIS prefab. One is picked per visit. " +
-                 "Empty = the prefab's own (or CustomerAppearance random) look.")]
+        [Tooltip("Materials for this prefab. Empty = prefab default.")]
         public Material[] materialVariants;
     }
 
@@ -22,22 +21,21 @@ namespace Bufe
     public class CustomerArchetype : ScriptableObject
     {
         [Header("Identity")]
-        [Tooltip("Display name for this archetype (e.g. 'Doctor', 'Student').")]
+        [Tooltip("Display name (e.g. 'Doctor').")]
         public string archetypeName;
 
-        [Tooltip("Possible sprites for this archetype. One is picked at random per visit.")]
+        [Tooltip("Random sprite per visit.")]
         public Sprite[] possibleSprites;
 
         [Header("Appearance")]
-        [Tooltip("Possible bodies (prefab + matching textures) for this archetype. One is picked " +
-                 "per visit. Empty = OrderManager's generic body pool.")]
+        [Tooltip("Random body per visit. Empty = generic pool.")]
         public CustomerBodyOption[] possibleBodies;
 
         [Header("Behaviour")]
-        [Tooltip("Moods this archetype can spawn with. One is selected per visit.")]
+        [Tooltip("Random mood per visit.")]
         public CustomerMood[] possibleMoods;
 
-        [Tooltip("What this archetype might order, with relative weights.")]
+        [Tooltip("Possible orders, weighted.")]
         public WeightedRecipe[] possibleOrders;
 
         /// <summary>
@@ -84,7 +82,7 @@ namespace Bufe
 
         /// <summary>
         /// Selects a random body option (prefab + one of its matching materials).
-        /// Returns null when this archetype has no authored bodies — the caller then
+        /// Returns null when this archetype has no authored bodies - the caller then
         /// falls back to the generic pool.
         /// </summary>
         public CustomerBodyOption PickBody()

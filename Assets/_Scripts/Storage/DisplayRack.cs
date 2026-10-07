@@ -18,19 +18,16 @@ namespace Bufe
     public class DisplayRack : MonoBehaviour, IAssemblyInteractable, IHoverLabel
     {
         [Header("Setup")]
-        [Tooltip("The authored display items sitting on this rack. Their starting poses become the slots.")]
+        [Tooltip("Display items. Their poses become slots.")]
         [SerializeField] private List<InteractableItem> displayItems = new List<InteractableItem>();
 
-        [Tooltip("Item type this rack accepts when restocking by hand. Empty = derived from " +
-                 "the first display item's PremadeItem definition.")]
+        [Tooltip("Accepted item. Empty = from the first item.")]
         [SerializeField] private OrderItem acceptedItem;
 
-        [Tooltip("Player hand — the placement collider is only active while the hand holds something, " +
-                 "so empty-hand clicks pass straight through to the display items. Auto-found if empty.")]
+        [Tooltip("Placement collider is on only while holding. Auto-found.")]
         [SerializeField] private PlayerHand playerHand;
 
-        [Tooltip("The ONE collider used for placement clicks. Only this collider is toggled with " +
-                 "the hand state — shelf/support colliders on the rack are left alone.")]
+        [Tooltip("Placement collider. Only this one is toggled.")]
         [SerializeField] private Collider placementCollider;
 
         // ── Slots ────────────────────────────────────────────────────────────────
@@ -41,7 +38,7 @@ namespace Bufe
             public InteractableItem occupant;
 
             // Occupied while the item still exists AND still sits at the slot (picking it
-            // up reparents it to the hand; delivering destroys it — both free the slot).
+            // up reparents it to the hand; delivering destroys it - both free the slot).
             public bool IsOccupied =>
                 occupant != null && (occupant.transform.position - position).sqrMagnitude < 0.01f;
         }
@@ -54,13 +51,13 @@ namespace Bufe
 
             if (placementCollider == null)
             {
-                Debug.LogWarning("[DisplayRack] No placement collider assigned — it will stay " +
+                Debug.LogWarning("[DisplayRack] No placement collider assigned - it will stay " +
                                  "active and may block empty-hand pickups.", this);
             }
             else
             {
                 // MUST be a trigger: raycasts still hit it (clicks work), but physics ignores
-                // it — otherwise it depenetrates the display items' rigidbodies and launches
+                // it - otherwise it depenetrates the display items' rigidbodies and launches
                 // them off the shelf on the first physics step.
                 placementCollider.isTrigger = true;
                 placementCollider.enabled   = playerHand != null && !playerHand.IsHandEmpty;
@@ -119,24 +116,34 @@ namespace Bufe
             foreach (Collider col in item.GetComponentsInChildren<Collider>())
                 col.enabled = true;
 
-            // It's shop display now, not daily junk — survive the day reset.
+            // It's shop display now, not daily junk - survive the day reset.
             DailySpawn marker = item.GetComponent<DailySpawn>();
             if (marker != null) Destroy(marker);
 
             slot.occupant = item;
-            Debug.Log($"[DisplayRack] {item.itemName} placed on the rack.");
+            Log.Info($"[DisplayRack] {item.itemName} placed on the rack.");
         }
 
         public string HoverLabel
         {
             get
             {
-                string label = acceptedItem != null ? acceptedItem.itemName : name;
                 int free = 0;
                 foreach (Slot s in _slots) if (!s.IsOccupied) free++;
-                return free > 0 ? $"{label} rack — {free} empty" : $"{label} rack";
+
+                // Read every hovered frame; rebuild only when the free count changes.
+                if (free != _labelFree || _label == null)
+                {
+                    string label = acceptedItem != null ? acceptedItem.itemName : name;
+                    _labelFree = free;
+                    _label     = free > 0 ? $"{label} rack - {free} empty" : $"{label} rack";
+                }
+                return _label;
             }
         }
+
+        private int    _labelFree;
+        private string _label;
 
         // ── Helpers ──────────────────────────────────────────────────────────────
 

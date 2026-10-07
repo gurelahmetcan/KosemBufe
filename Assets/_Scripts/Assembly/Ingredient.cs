@@ -1,9 +1,11 @@
-using Bufe;
 using UnityEngine;
 
-public class Ingredient : InteractableItem
+namespace Bufe
 {
-    [Header("Ingredient Data")]
-    [Tooltip("What type of ingredient this represents (used for order validation).")]
-    public Constants.IngredientType ingredientType = Constants.IngredientType.None;
+    public class Ingredient : InteractableItem
+    {
+        [Header("Ingredient Data")]
+        [Tooltip("Ingredient type, used for order validation.")]
+        public Constants.IngredientType ingredientType = Constants.IngredientType.None;
+    }
 }

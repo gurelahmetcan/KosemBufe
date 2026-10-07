@@ -18,15 +18,15 @@ namespace Bufe
         public EventScreenUI       eventScreenUI;
         public PlayerLook          playerLook;
 
-        [Tooltip("Optional fade used to soften the day→night transition.")]
+        [Tooltip("Day-to-night fade. Optional.")]
         public ScreenFader         screenFader;
 
         [Header("Event Pool")]
-        [Tooltip("All authored events. Scheduled events (scheduledDay > 0) are handled automatically.")]
+        [Tooltip("All events. Scheduled ones run automatically.")]
         public List<FamilyEvent> eventPool = new List<FamilyEvent>();
 
         [Header("Settings")]
-        [Tooltip("Maximum number of events shown per day.")]
+        [Tooltip("Max events per day.")]
         [Min(1)] public int maxEventsPerDay = 3;
 
         // ── Events ───────────────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ namespace Bufe
             int targetDay = baseDay + Mathf.Max(1, delayDays);
 
             _scheduledEvents.Add((evt, targetDay));
-            Debug.Log($"[Event] Scheduled '{evt.name}' ({evt.Surface}) for day {targetDay}.");
+            Log.Info($"[Event] Scheduled '{evt.name}' ({evt.Surface}) for day {targetDay}.");
         }
 
         /// <summary>

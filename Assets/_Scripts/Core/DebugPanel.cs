@@ -18,7 +18,7 @@ namespace Bufe
     public class DebugPanel : MonoBehaviour
     {
         [Header("Panel")]
-        [Tooltip("The root panel GameObject (toggled on/off with F1).")]
+        [Tooltip("Panel root (F1 toggles).")]
         public GameObject panel;
 
         [Header("Manager References")]
@@ -120,7 +120,7 @@ namespace Bufe
             if (dayManager != null)
             {
                 dayManager.ForceEndDay();
-                Debug.Log("[Debug] Forced day end.");
+                Log.Info("[Debug] Forced day end.");
             }
         }
 
@@ -129,7 +129,7 @@ namespace Bufe
             if (moneyManager != null)
             {
                 moneyManager.AddIncome(moneyStep);
-                Debug.Log($"[Debug] Added ${moneyStep}.");
+                Log.Info($"[Debug] Added ${moneyStep}.");
             }
         }
 
@@ -138,7 +138,7 @@ namespace Bufe
             if (moneyManager != null)
             {
                 moneyManager.DeductExpense(moneyStep, "debug");
-                Debug.Log($"[Debug] Removed ${moneyStep}.");
+                Log.Info($"[Debug] Removed ${moneyStep}.");
             }
         }
 

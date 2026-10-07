@@ -12,19 +12,19 @@ namespace Bufe
     /// The rows are split across two places on purpose, because they answer two
     /// different questions:
     ///
-    ///   Bottom centre — AIM hints. "[LMB] : Bread", "[RMB] : Take Back". These
+    ///   Bottom centre - AIM hints. "[LMB] : Bread", "[RMB] : Take Back". These
     ///     depend on what the crosshair is on, so they belong where the player is
     ///     already looking, and they come and go constantly.
     ///
-    ///   Bottom right — HAND hints. "[RMB] : Drop Bread", "[HOLD RMB] : Throw".
+    ///   Bottom right - HAND hints. "[RMB] : Drop Bread", "[HOLD RMB] : Throw".
     ///     These depend only on what is being carried and stay put while it is
     ///     carried. Parking them in a corner keeps the centre of the screen from
     ///     jumping between one and three rows every time the player looks around
     ///     with something in hand.
     ///
     /// Nothing here is a manual: a row is only ever drawn when pressing that key
-    /// would do something. The state comes from <see cref="PlayerHand"/> — the same
-    /// resolution that decides what gets an outline — so the outline, the hint and
+    /// would do something. The state comes from <see cref="PlayerHand"/> - the same
+    /// resolution that decides what gets an outline - so the outline, the hint and
     /// the click can never disagree.
     ///
     /// Setup: drop this on any object in the scene (the Player is the obvious home)
@@ -32,17 +32,17 @@ namespace Bufe
     /// a GraphicRaycaster, so it can never swallow a click meant for the game or for
     /// another UI.
     ///
-    /// Note: this replaces PlayerHand's "hand status text" — the rows already name
+    /// Note: this replaces PlayerHand's "hand status text" - the rows already name
     /// the object being looked at and the item being held. Clear that field on
     /// PlayerHand, or the same words appear twice.
     /// </summary>
     public class InteractionHintUI : MonoBehaviour
     {
         [Header("Wiring")]
-        [Tooltip("Hand to read the interaction state from. Auto-found if left empty.")]
+        [Tooltip("Hand state source. Auto-found.")]
         [SerializeField] private PlayerHand hand;
 
-        [Tooltip("Font for the hints. Falls back to the hand status text's font, then to the TMP default.")]
+        [Tooltip("Hint font. Fallback: hand text, then TMP.")]
         [SerializeField] private TMP_FontAsset font;
 
         [Header("Keys")]
@@ -51,31 +51,29 @@ namespace Bufe
         [SerializeField] private string holdKey      = "HOLD RMB";
 
         [Header("Actions")]
-        [Tooltip("Empty-hand right-click on something that can hand an item back (e.g. the prep station).")]
+        [Tooltip("Empty-hand right-click take-back label.")]
         [SerializeField] private string takeBackLabel = "Take Back";
 
         [SerializeField] private string dropLabel  = "Drop";
         [SerializeField] private string throwLabel = "Throw";
 
-        [Tooltip("Append the carried item's name to the drop row, e.g. \"Drop Bread\". " +
-                 "Turn this off for a plain \"Drop\".")]
+        [Tooltip("Add item name to drop, e.g. \"Drop Bread\".")]
         [SerializeField] private bool showHeldItemName = true;
 
-        [Tooltip("Show the hold-to-throw row while carrying something.")]
+        [Tooltip("Show the throw hint while carrying.")]
         [SerializeField] private bool showThrowHint = true;
 
-        [Tooltip("Printed between the key badge and the action. Leave empty for no separator.")]
+        [Tooltip("Between key and action. Empty = none.")]
         [SerializeField] private string separator = ":";
 
         [Header("Placement")]
-        [Tooltip("Park the carry hints (drop/throw) in the bottom-right corner. " +
-                 "Turn this off to stack every hint at the bottom centre instead.")]
+        [Tooltip("Carry hints in the bottom-right corner.")]
         [SerializeField] private bool handHintsInCorner = true;
 
-        [Tooltip("Distance from the bottom edge for the centre hints, in reference pixels.")]
+        [Tooltip("Centre hints bottom offset (ref px).")]
         [SerializeField] private float centreMargin = 48f;
 
-        [Tooltip("Distance from the bottom-right corner for the carry hints, in reference pixels.")]
+        [Tooltip("Corner hints offset (ref px).")]
         [SerializeField] private Vector2 cornerMargin = new Vector2(32f, 28f);
 
         [Header("Appearance")]
@@ -86,10 +84,10 @@ namespace Bufe
         [SerializeField] private Color badgeColor     = new Color(0.93f, 0.93f, 0.95f, 0.92f);
         [SerializeField] private Color badgeTextColor = new Color(0.08f, 0.08f, 0.10f, 1f);
 
-        [Tooltip("Dark rim around the text, so hints stay readable against a bright wall or a lamp.")]
+        [Tooltip("Text outline for readability.")]
         [SerializeField, Range(0f, 0.5f)] private float textOutline = 0.2f;
 
-        [Tooltip("Canvas sorting order. Raise it if another UI covers the hints.")]
+        [Tooltip("Canvas sorting order.")]
         [SerializeField] private int sortingOrder = 50;
 
         // ── Runtime ──────────────────────────────────────────────────────────────
@@ -103,7 +101,7 @@ namespace Bufe
             // Last values pushed, so an unchanged frame touches no TMP state and
             // triggers no layout rebuild.
             public string KeyText;
-            public string LabelText;
+            public string ActionText;
         }
 
         private sealed class HintGroup
@@ -172,11 +170,7 @@ namespace Bufe
 
                     // Naming the item keeps the player's inventory readable now that
                     // the old status line is gone.
-                    string drop = showHeldItemName && hand.HeldItem != null
-                        ? $"{dropLabel} {hand.HeldItem.itemName}"
-                        : dropLabel;
-
-                    Add(carry, secondaryKey, drop);
+                    Add(carry, secondaryKey, DropText());
 
                     if (showThrowHint)
                         Add(carry, holdKey, throwLabel);
@@ -185,6 +179,24 @@ namespace Bufe
 
             Flush(_centre);
             Flush(_corner);
+        }
+
+        // Cached per held item: the interpolated string would otherwise be rebuilt
+        // every frame something is carried.
+        private InteractableItem _dropFor;
+        private string           _dropText;
+
+        private string DropText()
+        {
+            InteractableItem held = showHeldItemName ? hand.HeldItem : null;
+            if (held == null) return dropLabel;
+
+            if (held != _dropFor)
+            {
+                _dropFor  = held;
+                _dropText = $"{dropLabel} {held.itemName}";
+            }
+            return _dropText;
         }
 
         // ── Row management ───────────────────────────────────────────────────────
@@ -199,12 +211,11 @@ namespace Bufe
                 row.Key.text = key;
             }
 
-            string label = string.IsNullOrEmpty(separator) ? action : $"{separator} {action}";
-
-            if (row.LabelText != label)
+            // Compared on the raw action so the separator string is only built on change.
+            if (row.ActionText != action)
             {
-                row.LabelText  = label;
-                row.Label.text = label;
+                row.ActionText = action;
+                row.Label.text = string.IsNullOrEmpty(separator) ? action : $"{separator} {action}";
             }
 
             group.Used++;
@@ -246,7 +257,7 @@ namespace Bufe
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight  = 0.5f;
 
-            // No GraphicRaycaster on purpose — see the class summary.
+            // No GraphicRaycaster on purpose - see the class summary.
 
             _badgeSprite = BuildBadgeSprite();
 

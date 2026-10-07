@@ -5,18 +5,18 @@ namespace Bufe
 {
     /// <summary>
     /// A recipe book sitting in the world. Clicking it opens a full-screen UI version;
-    /// pressing back (Escape or right-click) — or a Back button wired to <see cref="Close"/> —
+    /// pressing back (Escape or right-click) - or a Back button wired to <see cref="Close"/> -
     /// closes it again. Needs a Collider so the player's raycast can hit it.
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public class RecipeBook : MonoBehaviour, IAssemblyInteractable, IHoverLabel
     {
         [Header("UI")]
-        [Tooltip("The full-screen recipe UI shown when the book is clicked (starts inactive).")]
+        [Tooltip("Recipe UI (starts inactive).")]
         [SerializeField] private GameObject bookUI;
 
         [Header("Player")]
-        [Tooltip("Player look — put into UIMode (cursor freed, look suppressed) while the book is open.")]
+        [Tooltip("Set to UIMode while open.")]
         [SerializeField] private PlayerLook playerLook;
 
         [Header("Hover")]

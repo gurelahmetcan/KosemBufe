@@ -10,13 +10,13 @@ namespace Bufe.UI
         public DayManager dayManager;
 
         [Header("UI Elements")]
-        [Tooltip("Text showing the current time (HH:MM).")]
+        [Tooltip("Current time (HH:MM).")]
         public TextMeshProUGUI clockText;
 
-        [Tooltip("Optional text showing the day number.")]
+        [Tooltip("Day number. Optional.")]
         public TextMeshProUGUI dayText;
 
-        [Tooltip("Optional text showing the current status (e.g. CLOSED, OPEN).")]
+        [Tooltip("Status (OPEN/CLOSED). Optional.")]
         public TextMeshProUGUI statusText;
 
         private void OnEnable()

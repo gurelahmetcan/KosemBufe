@@ -10,7 +10,7 @@ namespace Bufe
     /// </summary>
     public class OrderTicket : MonoBehaviour
     {
-        [Tooltip("World-space TextMeshPro that lists the remaining order items.")]
+        [Tooltip("Lists the remaining items.")]
         [SerializeField] private TextMeshPro ticketText;
 
         /// <summary>Refreshes the ticket to show only the order's unfulfilled slots.</summary>

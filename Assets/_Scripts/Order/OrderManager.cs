@@ -11,106 +11,96 @@ namespace Bufe
         #region Serialized Fields
 
         [Header("References")]
-        [Tooltip("Default customer prefab (Collider, Animator, Customer component). Used for " +
-                 "faction members and the tutorial, and as a fallback for normal customers.")]
+        [Tooltip("Default customer. Used for factions, tutorial, fallback.")]
         [SerializeField] private Customer customerPrefab;
 
-        [Tooltip("Body-prefab pool for NORMAL customers — one is picked at random per spawn " +
-                 "(e.g. one male + two female models). Empty = always use customerPrefab.")]
+        [Tooltip("Random body pool. Empty = customerPrefab.")]
         [SerializeField] private Customer[] normalCustomerPrefabs;
 
         [Header("Waypoints")]
-        [Tooltip("World-space position where new customers appear.")]
+        [Tooltip("Customer spawn point.")]
         [SerializeField] private Transform spawnPoint;
 
-        [Tooltip("Position in front of the counter where the customer stands and waves. " +
-                 "The transform's forward direction is the facing direction.")]
+        [Tooltip("Counter spot. Forward = facing.")]
         [SerializeField] private Transform counterPoint;
 
-        [Tooltip("Position the customer walks to after the order is done. " +
-                 "Self-destroys on arrival.")]
+        [Tooltip("Exit point. Customer is destroyed on arrival.")]
         [SerializeField] private Transform exitPoint;
 
         [Header("UI & Systems")]
-        [Tooltip("Player's hand controller — used to read the item in hand for validation.")]
+        [Tooltip("Reads the held item for validation.")]
         [SerializeField] private PlayerHand playerHand;
 
-        [Tooltip("Unified customer UI — dialogue bubbles + accept/reject/close prompt.")]
+        [Tooltip("Dialogue and order prompt UI.")]
         [SerializeField] private CustomerOrderUI customerUI;
 
-        [Tooltip("Player camera — rotation is disabled while the prompt is visible.")]
+        [Tooltip("Rotation off while the prompt is open.")]
         [SerializeField] private PlayerCameraRotation playerCamera;
 
-        [Tooltip("Player look controller — UIMode is set while the prompt is visible " +
-                 "so the cursor stays free and the auto-relock is suppressed.")]
+        [Tooltip("Set to UIMode while the prompt is open.")]
         [SerializeField] private PlayerLook playerLook;
 
-        [Tooltip("Factory that creates customer instances from archetype pool.")]
+        [Tooltip("Builds customers from archetypes.")]
         [SerializeField] private CustomerFactory customerFactory;
 
-        [Tooltip("Day manager — controls when customers can spawn.")]
+        [Tooltip("Controls when customers spawn.")]
         [SerializeField] private DayManager dayManager;
 
-        [Tooltip("Money tracker — receives income from delivered orders.")]
+        [Tooltip("Receives order income.")]
         [SerializeField] private MoneyManager moneyManager;
 
-        [Tooltip("Cash register — the player rings up each order here after delivering it. " +
-                 "Leave empty to fall back to instant auto-payment on delivery.")]
+        [Tooltip("Orders are rung up here. Empty = auto-pay.")]
         [SerializeField] private CashRegister cashRegister;
 
         [Header("Tutorial")]
-        [Tooltip("Day-1 scripted tutorial visit. Leave empty to disable the tutorial.")]
+        [Tooltip("Day-1 tutorial. Empty = disabled.")]
         [SerializeField] private TutorialData tutorialData;
 
-        [Tooltip("Special texture for the tutorial dayı — overrides the random appearance. " +
-                 "Needs a CustomerAppearance on the customer prefab. Optional.")]
+        [Tooltip("Tutorial dayı material. Optional.")]
         [SerializeField] private Material tutorialCustomerMaterial;
 
 #if UNITY_EDITOR
-        [Tooltip("DEBUG (editor only): skip the tutorial dayı entirely — he won't spawn " +
-                 "and day 1 starts like a normal day.")]
+        [Tooltip("Editor only: skip the tutorial dayı.")]
         [SerializeField] private bool debugSkipTutorial;
 #endif
 
         [Header("Order Ticket")]
-        [Tooltip("Paper note prefab spawned on the counter to show the active order. Needs an OrderTicket component.")]
+        [Tooltip("Order note prefab (needs OrderTicket).")]
         [SerializeField] private OrderTicket ticketPrefab;
 
-        [Tooltip("Where the order ticket is placed on the counter.")]
+        [Tooltip("Order note spot.")]
         [SerializeField] private Transform ticketSpawnPoint;
 
         [Header("Settings")]
-        [Tooltip("Fallback order duration if GameManager/GameConfig is not present.")]
+        [Tooltip("Fallback if GameConfig is missing.")]
         [SerializeField] private float orderDuration = 30f;
 
-        [Tooltip("Fallback delay if GameManager/GameConfig is not present.")]
+        [Tooltip("Fallback if GameConfig is missing.")]
         [SerializeField] private float timeBetweenCustomers = 3f;
 
         [Header("Faction Members (scripted spawns)")]
-        [Tooltip("Scripted faction-member visits.")]
+        [Tooltip("Scripted faction visits.")]
         [SerializeField] private List<FactionSpawnEntry> factionSpawns = new List<FactionSpawnEntry>();
 
-        [Tooltip("Seconds the faction relationship bar lingers after a choice before the member leaves.")]
+        [Tooltip("Bar linger time after a choice.")]
         [SerializeField] private float factionReactionDuration = 1.2f;
 
-        [Tooltip("Where granted items spawn on the counter for the player to pick up. " +
-                 "Falls back to the order ticket point if unset.")]
+        [Tooltip("Granted item spot. Fallback: ticket point.")]
         [SerializeField] private Transform itemGrantPoint;
 
         [System.Serializable]
         public class FactionSpawnEntry
         {
-            [Tooltip("In-game day this faction member appears on.")]
+            [Tooltip("Day this member appears.")]
             public int day = 1;
 
-            [Tooltip("Normal customers served before this member appears (0 = first customer). " +
-                     "If the day ends before reaching this count, the member is force-spawned as the last customer.")]
+            [Tooltip("Customers before this one. Forced last if the day ends.")]
             [Min(0)] public int spawnAfterCustomers = 0;
 
-            [Tooltip("The interaction this member presents.")]
+            [Tooltip("Interaction this member presents.")]
             public FactionInteraction interaction;
 
-            // Runtime only — resets each Play session (booth resets via scene reload).
+            // Runtime only - resets each Play session (booth resets via scene reload).
             [System.NonSerialized] public bool spawned;
         }
 
@@ -120,13 +110,13 @@ namespace Bufe
 
         /// <summary>
         /// Fired when the tutorial dayı's scripted conversation ends and the player
-        /// accepts his order — the moment the guided cooking steps should start.
+        /// accepts his order - the moment the guided cooking steps should start.
         /// </summary>
         public event System.Action OnTutorialOrderAccepted;
 
         /// <summary>
         /// Fired every time a slot of the active order is filled, with how many are
-        /// done and how many there are. The tutorial counts deliveries with it — the
+        /// done and how many there are. The tutorial counts deliveries with it - the
         /// customer is spawned at runtime, so nothing can watch him directly.
         /// </summary>
         public event System.Action<int, int> OnOrderProgress;
@@ -146,7 +136,7 @@ namespace Bufe
         private OrderTicket _activeTicket;
         private int         _normalCustomersToday;
 
-        // Tutorial runtime (no save system — resets on scene reload).
+        // Tutorial runtime (no save system - resets on scene reload).
         private bool _tutorialDone;
 
         /// <summary>
@@ -156,7 +146,7 @@ namespace Bufe
         /// <summary>
         /// True while the day-1 tutorial visit is still going to happen. Reads the same
         /// state as the editor-only skip toggle, so ticking that box also switches off
-        /// the guided steps in <see cref="TutorialDirector"/> — otherwise they would
+        /// the guided steps in <see cref="TutorialDirector"/> - otherwise they would
         /// sit there waiting for a dayı who is never coming.
         /// </summary>
         public bool TutorialWillRun => TutorialPending;
@@ -232,7 +222,7 @@ namespace Bufe
             }
             else
             {
-                // Fallback: no day system — spawn immediately (legacy behaviour)
+                // Fallback: no day system - spawn immediately (legacy behaviour)
                 SpawnCustomer();
             }
         }
@@ -278,7 +268,7 @@ namespace Bufe
             // Ignore clicks while the prompt is already showing
             if (customerUI != null && customerUI.IsPromptVisible) return;
 
-            // Raycast from the viewport center — aligned with the crosshair
+            // Raycast from the viewport center - aligned with the crosshair
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
             if (!Physics.Raycast(ray, out RaycastHit hit, 100f)) return;
 
@@ -342,7 +332,7 @@ namespace Bufe
 
             SetCameraLocked(true);
 
-            Debug.Log($"Showing order prompt: {promptText}");
+            Log.Info($"Showing order prompt: {promptText}");
         }
 
         private void OnPromptAccept()
@@ -361,7 +351,7 @@ namespace Bufe
             if (cashRegister != null && _activeCustomer.Recipe != null)
                 cashRegister.SetOrder(_activeCustomer.Recipe.TotalPrice);
 
-            Debug.Log($"Order accepted: TODO");
+            Log.Info($"Order accepted: TODO");
 
             if (_activeCustomer.IsTutorial)
                 OnTutorialOrderAccepted?.Invoke();
@@ -371,9 +361,9 @@ namespace Bufe
         {
             SetCameraLocked(false);
 
-            Debug.Log("Order rejected — customer leaves silently.");
+            Log.Info("Order rejected - customer leaves silently.");
 
-            // No exit line on reject — the customer just walks off without a word.
+            // No exit line on reject - the customer just walks off without a word.
             HideUI();
             SendCustomerAway();
         }
@@ -387,7 +377,7 @@ namespace Bufe
                 _activeCustomer.ResetCustomer();
 
             HideUI();
-            Debug.Log("Order prompt closed — customer still waiting.");
+            Log.Info("Order prompt closed - customer still waiting.");
         }
 
         // ── Faction interaction (scripted member at the counter) ─────────────
@@ -411,7 +401,7 @@ namespace Bufe
             customerUI.ShowChoicePrompt(interaction.dialogue, interaction.choices, interaction.faction);
             SetCameraLocked(true);
 
-            Debug.Log($"[OrderManager] Faction offer: {interaction.memberName} ({interaction.faction?.displayName}).");
+            Log.Info($"[OrderManager] Faction offer: {interaction.memberName} ({interaction.faction?.displayName}).");
         }
 
         private void OnFactionChoicePicked(int index)
@@ -432,7 +422,7 @@ namespace Bufe
             if (!string.IsNullOrEmpty(choice.consumeQuestId))
             {
                 int removed = QuestItem.DestroyById(choice.consumeQuestId);
-                Debug.Log($"[OrderManager] Choice consumed quest item '{choice.consumeQuestId}' (x{removed}).");
+                Log.Info($"[OrderManager] Choice consumed quest item '{choice.consumeQuestId}' (x{removed}).");
             }
 
             // Schedule the consequence (e.g. a night event a few days later).
@@ -448,7 +438,7 @@ namespace Bufe
         /// <summary>
         /// Collect interaction: if the player is holding the required item, hand it over
         /// (consumed like an order delivery) and apply the collect effects. Otherwise show the
-        /// reminder line — the member keeps waiting so the player can fetch the item.
+        /// reminder line - the member keeps waiting so the player can fetch the item.
         /// </summary>
         private void TryCollect(FactionInteraction interaction)
         {
@@ -462,12 +452,12 @@ namespace Bufe
                 playerHand.DestroyHeldItem();
                 ApplyEffects(interaction.onCollectedEffects);
 
-                Debug.Log($"[OrderManager] Collected '{interaction.requiredItem.itemName}' for {interaction.faction?.displayName}.");
+                Log.Info($"[OrderManager] Collected '{interaction.requiredItem.itemName}' for {interaction.faction?.displayName}.");
                 StartCoroutine(FinishFactionInteraction());
             }
             else if (customerUI != null)
             {
-                // Not holding the item yet — remind and keep waiting.
+                // Not holding the item yet - remind and keep waiting.
                 customerUI.ShowLine(interaction.dialogue);
             }
         }
@@ -542,13 +532,13 @@ namespace Bufe
 
         private void TryDeliver()
         {
-            // Order already delivered in full — waiting for the player to ring it up.
+            // Order already delivered in full - waiting for the player to ring it up.
             if (_awaitingPayment) return;
 
             InteractableItem heldItem = playerHand != null ? playerHand.HeldItem : null;
             if (heldItem == null)
             {
-                Debug.Log("[OrderManager] Cannot deliver — not holding anything!");
+                Log.Info("[OrderManager] Cannot deliver - not holding anything!");
                 return;
             }
 
@@ -568,14 +558,14 @@ namespace Bufe
 
             if (matched == null)
             {
-                Debug.Log($"[OrderManager] Wrong item: {heldItem.itemName}");
+                Log.Info($"[OrderManager] Wrong item: {heldItem.itemName}");
                 return;
             }
 
             matched.isFulfilled = true;
             _activeTicket?.SetOrder(order);
             playerHand.DestroyHeldItem();
-            Debug.Log($"[OrderManager] Slot fulfilled: {matched.target.itemName}");
+            Log.Info($"[OrderManager] Slot fulfilled: {matched.target.itemName}");
 
             OnOrderProgress?.Invoke(order.FulfilledCount, order.slots.Count);
 
@@ -583,18 +573,18 @@ namespace Bufe
             {
                 bool wasTutorial = _activeCustomer != null && _activeCustomer.IsTutorial;
 
-                // Food is all delivered — the customer waits while the player rings the
+                // Food is all delivered - the customer waits while the player rings the
                 // order up on the register. Payment (and the customer leaving) happens on
                 // a correct register entry. No register wired → fall back to instant pay.
                 if (cashRegister != null)
                 {
-                    Debug.Log("[OrderManager] Order complete — ring it up on the register.");
+                    Log.Info("[OrderManager] Order complete - ring it up on the register.");
                     _awaitingPayment = true;
                     cashRegister.Arm(() => FinalizeSale(order, wasTutorial));
                 }
                 else
                 {
-                    Debug.Log("[OrderManager] Order complete (no register — auto-paid).");
+                    Log.Info("[OrderManager] Order complete (no register - auto-paid).");
                     FinalizeSale(order, wasTutorial);
                 }
             }
@@ -713,10 +703,10 @@ namespace Bufe
             SpawnCustomer();
         }
 
-        /// <summary>Called when closing time is reached — stop spawning after the current customer.</summary>
+        /// <summary>Called when closing time is reached - stop spawning after the current customer.</summary>
         private void OnClosingTime()
         {
-            Debug.Log("[OrderManager] Closing time — no more customers after the current one.");
+            Log.Info("[OrderManager] Closing time - no more customers after the current one.");
 
             if (_activeCustomer != null || dayManager == null) return;
 
@@ -781,7 +771,7 @@ namespace Bufe
                 return;
             }
 
-            // Resolve WHO is coming first — the archetype may dictate the body/texture.
+            // Resolve WHO is coming first - the archetype may dictate the body/texture.
             CustomerInstance instance = customerFactory != null
                 ? customerFactory.CreateNormalCustomer()
                 : null;
@@ -819,7 +809,7 @@ namespace Bufe
                 ? _activeCustomer.Instance.Mood.moodName
                 : "default";
 
-            Debug.Log($"New customer spawned: {archetypeName} ({moodName})");
+            Log.Info($"New customer spawned: {archetypeName} ({moodName})");
         }
 
         /// <summary>
@@ -934,7 +924,7 @@ namespace Bufe
             if (counterPoint != null)
                 _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation, onArrived);
 
-            Debug.Log($"[OrderManager] Faction member spawned: {interaction.memberName} ({interaction.kind}).");
+            Log.Info($"[OrderManager] Faction member spawned: {interaction.memberName} ({interaction.kind}).");
         }
 
         #endregion
@@ -968,11 +958,11 @@ namespace Bufe
             _tutorialLineIndex           = 0;
 
             // Walk to the counter and wait (waving). The conversation only starts
-            // once the player clicks the dayı — see HandleClickInput.
+            // once the player clicks the dayı - see HandleClickInput.
             if (counterPoint != null)
                 _activeCustomer.StartArriving(counterPoint.position, counterPoint.rotation);
 
-            Debug.Log("[OrderManager] Tutorial dayı spawned.");
+            Log.Info("[OrderManager] Tutorial dayı spawned.");
         }
 
         private Order BuildTutorialOrder()
@@ -1017,7 +1007,7 @@ namespace Bufe
                 customerUI.ShowContinue(line.text, line.buttonLabel);
         }
 
-        /// <summary>Panel button clicked during the tutorial conversation — advance to the next line.</summary>
+        /// <summary>Panel button clicked during the tutorial conversation - advance to the next line.</summary>
         private void OnTutorialContinue()
         {
             if (_activeCustomer == null || !_activeCustomer.IsTutorial || _tutorialConversationDone) return;
@@ -1047,7 +1037,7 @@ namespace Bufe
         public void SetSpawningPaused(bool paused)
         {
             _spawningPaused = paused;
-            Debug.Log($"[OrderManager] Customer spawning {(paused ? "PAUSED" : "RESUMED")}.");
+            Log.Info($"[OrderManager] Customer spawning {(paused ? "PAUSED" : "RESUMED")}.");
         }
 
         #endregion

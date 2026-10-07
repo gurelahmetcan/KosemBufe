@@ -17,17 +17,17 @@ namespace Bufe
         [SerializeField] private CashRegister register;
         [SerializeField] private Kind kind = Kind.Digit;
 
-        [Tooltip("Digit value 0–9. Used only when Kind = Digit.")]
+        [Tooltip("Digit 0-9. Only for Kind = Digit.")]
         [Range(0, 9)]
         [SerializeField] private int digit;
 
-        [Tooltip("Sound played on each key press. None = silent.")]
+        [Tooltip("Key press sound. None = silent.")]
         [SerializeField] private Sfx clickSound = Sfx.Click;
 
         [Header("Press Animation")]
-        [Tooltip("Local-space offset the key moves to when pressed (a small push into the body).")]
+        [Tooltip("Local push-in offset when pressed.")]
         [SerializeField] private Vector3 pressOffset = new Vector3(-0.003f, -0.003f, 0f);
-        [Tooltip("Total seconds for the push-in and return.")]
+        [Tooltip("Push-in and return time.")]
         [SerializeField] private float pressDuration = 0.09f;
 
         private Vector3   _restLocalPos;

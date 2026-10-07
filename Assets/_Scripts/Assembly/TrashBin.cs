@@ -6,9 +6,8 @@ namespace Bufe
     {
         [SerializeField] private string hoverLabel = "Trash Bin";
 
-        [Tooltip("Shown instead of the label above while holding something that cannot be " +
-                 "thrown away (the knife, a quest item).")]
-        [SerializeField] private string refusedLabel = "Trash Bin — you still need this";
+        [Tooltip("Label when holding something that can't be trashed.")]
+        [SerializeField] private string refusedLabel = "Trash Bin - you still need this";
 
         // IHoverLabel is asked for a label without being told what is in the hand, so the
         // hand is remembered from CanInteract. PlayerHand.UpdateHover calls that (through

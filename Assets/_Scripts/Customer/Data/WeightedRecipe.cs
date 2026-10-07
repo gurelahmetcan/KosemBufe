@@ -15,7 +15,7 @@ namespace Bufe
         [Tooltip("The recipe this customer might order.")]
         public OrderTemplate recipe;
 
-        [Tooltip("Relative weight for random selection (e.g. 3 = three times as likely as weight 1).")]
+        [Tooltip("Relative pick weight.")]
         [Min(1)]
         public int weight;
     }

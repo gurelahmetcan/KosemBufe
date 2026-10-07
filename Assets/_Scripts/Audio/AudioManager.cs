@@ -32,7 +32,7 @@ namespace Bufe
             [Header("3D (only used when played positionally, e.g. the toaster)")]
             [Tooltip("Within this distance the sound is at full volume.")]
             public float minDistance = 1.5f;
-            [Tooltip("Beyond this distance the sound fades to silence (linear falloff).")]
+            [Tooltip("Silent beyond this distance (linear falloff).")]
             public float maxDistance = 15f;
         }
 
@@ -113,7 +113,7 @@ namespace Bufe
                 {
                     if (e == null || e.id == Sfx.None) continue;
                     if (_sfx.ContainsKey(e.id))
-                        Debug.LogWarning($"[AudioManager] Duplicate SFX id '{e.id}' — keeping the first.", this);
+                        Debug.LogWarning($"[AudioManager] Duplicate SFX id '{e.id}' - keeping the first.", this);
                     else
                         _sfx.Add(e.id, e);
                 }
@@ -123,7 +123,7 @@ namespace Bufe
                 {
                     if (e == null || e.id == MusicTrack.None) continue;
                     if (_music.ContainsKey(e.id))
-                        Debug.LogWarning($"[AudioManager] Duplicate music id '{e.id}' — keeping the first.", this);
+                        Debug.LogWarning($"[AudioManager] Duplicate music id '{e.id}' - keeping the first.", this);
                     else
                         _music.Add(e.id, e);
                 }

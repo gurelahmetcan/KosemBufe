@@ -22,8 +22,7 @@ namespace Bufe
         [SerializeField] private ScreenFader   screenFader;
 
         [Header("Music")]
-        [Tooltip("Music started once the intro ends and the büfe appears. None = no music. " +
-                 "Set AudioManager's Starting Music to None so it doesn't play during the intro.")]
+        [Tooltip("Music after the intro. None = silent.")]
         [SerializeField] private MusicTrack musicOnComplete = MusicTrack.Main;
 
         private int _index;
@@ -49,7 +48,7 @@ namespace Bufe
             yield return null;                 // let EventScreenUI.Start disable its root first
 
             _index = 0;
-            ShowLine();                        // first line — still hidden behind the black fader
+            ShowLine();                        // first line - still hidden behind the black fader
 
             if (screenFader != null)
                 yield return screenFader.FadeIn();   // now reveal the intro screen

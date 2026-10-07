@@ -17,13 +17,13 @@ namespace Bufe
 {
     public class SucukItem : InteractableItem, IAssemblyInteractable
     {
-        [Tooltip("Prefab spawned for each slice. Must have an Ingredient component.")]
+        [Tooltip("Slice prefab. Needs Ingredient.")]
         public GameObject sucukSlicePrefab;
 
-        [Tooltip("How many slices are produced when the sucuk is cut.")]
+        [Tooltip("Slices per cut.")]
         public int sliceCount = 4;
 
-        [Tooltip("Vertical offset between stacked slice objects after spawning.")]
+        [Tooltip("Vertical gap between slices.")]
         public float sliceStackOffset = 0.1f;
 
         // Set when the sucuk is resting on a cutting board.
@@ -49,7 +49,7 @@ namespace Bufe
         {
             if (hand.HeldItem is not KnifeItem) return false;
 
-            // On a board: only cuttable when every slice fits in a free slot —
+            // On a board: only cuttable when every slice fits in a free slot -
             // otherwise the overflow would be destroyed.
             if (_station != null && _station.FreeSliceSlots < sliceCount)
                 return false;
@@ -94,7 +94,7 @@ namespace Bufe
             // CanInteract already proved the knife is what did this.
             (hand.HeldItem as KnifeItem)?.ReturnAfterCut(hand);
 
-            Debug.Log($"[SucukItem] Sliced into {sliceCount} pieces.");
+            Log.Info($"[SucukItem] Sliced into {sliceCount} pieces.");
             Destroy(gameObject);
         }
     }

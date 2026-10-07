@@ -6,7 +6,7 @@ namespace Bufe
 
     /// <summary>
     /// A faction the player builds a shop-wide relationship with (Taxi, Police, Neighborhood).
-    /// Relationships are faction-wide, not per-member — individual designed members exist for
+    /// Relationships are faction-wide, not per-member - individual designed members exist for
     /// flavour/spawning but are not tracked individually.
     ///
     /// DEMO NOTE: this is a deliberately standalone type, parallel to FamilyMemberData rather
@@ -22,11 +22,11 @@ namespace Bufe
         public FactionId id;
         public string displayName = "Faction";
 
-        [Tooltip("Icon shown next to this faction's relationship bar.")]
+        [Tooltip("Icon next to the bar.")]
         public Sprite icon;
 
         [Header("Starting Value")]
-        [Tooltip("Relationship value (0–10) this faction begins each run with.")]
+        [Tooltip("Starting relationship (0-10).")]
         [Range(0, 10)] public int startingRelationship = 5;
     }
 }

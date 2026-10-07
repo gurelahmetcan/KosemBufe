@@ -6,7 +6,7 @@ namespace Bufe
     public class MoneyManager : MonoBehaviour
     {
         [Header("Settings")]
-        [Tooltip("Fallback starting money if GameManager/GameConfig is not present.")]
+        [Tooltip("Fallback if GameConfig is missing.")]
         public float startingMoney = 500f;
 
         // ── Events ───────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ namespace Bufe
 
             Balance += amount;
             DailyIncome += amount;
-            Debug.Log($"[Money] +{amount:F2} (order income) → Balance: {Balance:F2}");
+            Log.Info($"[Money] +{amount:F2} (order income) → Balance: {Balance:F2}");
             OnBalanceChanged?.Invoke(Balance, amount);
         }
 
@@ -79,7 +79,7 @@ namespace Bufe
             if (amount <= 0f) return;
 
             Balance -= amount;
-            Debug.Log($"[Money] -{amount:F2} ({reason}) → Balance: {Balance:F2}");
+            Log.Info($"[Money] -{amount:F2} ({reason}) → Balance: {Balance:F2}");
             OnBalanceChanged?.Invoke(Balance, -amount);
             CheckBankrupt();
         }
@@ -97,7 +97,7 @@ namespace Bufe
             if (IsBankrupt || Balance > 0f) return;
 
             IsBankrupt = true;
-            Debug.Log("[Money] BANKRUPT — balance reached 0!");
+            Log.Info("[Money] BANKRUPT - balance reached 0!");
             OnBankrupt?.Invoke();
         }
     }

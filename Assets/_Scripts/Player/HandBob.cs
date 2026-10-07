@@ -21,13 +21,13 @@ namespace Bufe
     /// converted into the moved Transform's parent space, so bobAmount means the
     /// same distance on screen whatever the rig's import scale is.
     ///
-    /// What actually gets moved is each target's "pivot" — see <see cref="ArmsRig"/>
+    /// What actually gets moved is each target's "pivot" - see <see cref="ArmsRig"/>
     /// for why the IK target itself can't be written to.
     ///
     /// While <see cref="HandReach"/> drives the right hand (reach + return), the bob
     /// leaves that hand alone and restarts its amplitude from zero afterwards, so
     /// the hand eases back into the bob instead of jumping. The left hand keeps
-    /// bobbing — nothing else writes to it.
+    /// bobbing - nothing else writes to it.
     ///
     /// Why Update, not LateUpdate: the rig solves inside the Animator's evaluation,
     /// which runs after every Update and before any LateUpdate. A value written in
@@ -40,40 +40,39 @@ namespace Bufe
     public class HandBob : MonoBehaviour
     {
         [Header("IK Targets")]
-        [Tooltip("The left Two Bone IK constraint's Target. Empty = found automatically.")]
+        [Tooltip("Left IK target. Auto-found.")]
         [SerializeField] private Transform leftHandTarget;
 
-        [Tooltip("The right Two Bone IK constraint's Target. Empty = found automatically.")]
+        [Tooltip("Right IK target. Auto-found.")]
         [SerializeField] private Transform rightHandTarget;
 
         [Header("Player")]
-        [Tooltip("Player's CharacterController — grounded check and the body whose motion drives the bob. " +
-                 "Auto-found in parents if empty.")]
+        [Tooltip("Drives grounded check and bob. Auto-found.")]
         [SerializeField] private CharacterController characterController;
 
-        [Tooltip("Provides the walk speed that counts as full amplitude (moveSpeed). Auto-found in parents if empty.")]
+        [Tooltip("Its moveSpeed = full bob. Auto-found.")]
         [SerializeField] private PlayerMovement playerMovement;
 
-        [Tooltip("Tells whether the right hand holds an item. Auto-found in parents if empty.")]
+        [Tooltip("Holding state source. Auto-found.")]
         [SerializeField] private PlayerHand playerHand;
 
-        [Tooltip("While it is reaching, the hand it moves is left alone. Auto-found on this object if empty.")]
+        [Tooltip("Its hand is skipped while reaching. Auto-found.")]
         [SerializeField] private HandReach handReach;
 
         [Header("Bob")]
-        [Tooltip("Step frequency in radians per second at full walking speed (~10 ≈ 1.6 steps per second).")]
+        [Tooltip("Step rate (rad/s) at full speed.")]
         [SerializeField] private float bobSpeed = 10f;
 
-        [Tooltip("Vertical bob height in world units (metres, along the view's up axis) at full walking speed.")]
+        [Tooltip("Bob height (m) at full speed.")]
         [SerializeField] private float bobAmount = 0.015f;
 
-        [Tooltip("Side-to-side sway as a fraction of bobAmount.")]
+        [Tooltip("Sway as a fraction of bobAmount.")]
         [SerializeField] private float horizontalRatio = 0.5f;
 
-        [Tooltip("Right-hand amplitude multiplier while holding an item (< 1 feels heavier).")]
+        [Tooltip("Right-hand amplitude while holding (<1 = heavier).")]
         [SerializeField] private float heldMultiplier = 0.6f;
 
-        [Tooltip("How quickly the amplitude eases toward its target. Higher = snappier start/stop.")]
+        [Tooltip("Amplitude ease speed.")]
         [SerializeField] private float smooth = 8f;
 
         // ── Per-hand runtime ─────────────────────────────────────────────────────
@@ -152,7 +151,7 @@ namespace Bufe
             if (_left.pivot == null && _right.pivot == null) return;
 
             float dt = Time.deltaTime;
-            if (dt <= 0f) return;   // paused (timeScale 0) — hold the current pose
+            if (dt <= 0f) return;   // paused (timeScale 0) - hold the current pose
 
             float speed01  = MeasureSpeed01(dt);
             bool  grounded = characterController.isGrounded;
@@ -199,7 +198,7 @@ namespace Bufe
             if (hit == null) return;
 
             _overwriteWarned = true;
-            Debug.LogWarning($"[HandBob] {hit.side} bob pivot '{hit.pivot.name}' was overwritten after Update — " +
+            Debug.LogWarning($"[HandBob] {hit.side} bob pivot '{hit.pivot.name}' was overwritten after Update - " +
                              "an Animator clip keyframes it, so its bob is discarded. Remove its position keys, " +
                              "or keep the IK target under an ancestor that no clip animates.", this);
         }
@@ -220,7 +219,7 @@ namespace Bufe
             => handReach != null && handReach.IsReaching && hand.pivot != null && handReach.Pivot == hand.pivot;
 
         // A reach can start later in the same frame (PlayerHand's click may run after
-        // this Update) and move the pivot — that's a hand-over, not a clip overwriting.
+        // this Update) and move the pivot - that's a hand-over, not a clip overwriting.
         private bool WasOverwritten(Hand hand)
             => hand.wrote && hand.pivot != null && !IsReached(hand)
                && (hand.pivot.localPosition - hand.written).sqrMagnitude > 1e-10f;
@@ -249,7 +248,7 @@ namespace Bufe
             float speed    = delta.magnitude / dt;
 
             // A jump far beyond walking pace is a teleport (day reset, stepping up to
-            // the register), not a stride — don't let it kick the hands.
+            // the register), not a stride - don't let it kick the hands.
             if (speed > maxSpeed * 3f) return 0f;
 
             return Mathf.Clamp01(speed / maxSpeed);
@@ -267,7 +266,7 @@ namespace Bufe
                 $"target '{target.name}' → moving '{(hand.pivot != null ? hand.pivot.name : "-")}'" +
                 $"{(hand.pivot != null && hand.pivot.GetComponent<RigTransform>() != null ? " [RigTransform]" : "")}";
 
-            Debug.Log($"[HandBob][Diag] on '{name}': left: {Describe(leftHandTarget, _left)}, " +
+            Log.Info($"[HandBob][Diag] on '{name}': left: {Describe(leftHandTarget, _left)}, " +
                       $"right: {Describe(rightHandTarget, _right)}, " +
                       $"controller={(characterController != null ? characterController.name : "NONE")}, " +
                       $"movement={(playerMovement != null ? "ok" : "NONE")}, hand={(playerHand != null ? "ok" : "NONE")}", this);
@@ -280,7 +279,7 @@ namespace Bufe
 
             if (speed01 <= 0.01f && _left.amp <= 0.01f && _right.amp <= 0.01f) return;   // idle: stay quiet
 
-            Debug.Log($"[HandBob][Diag] speed01={speed01:0.00}, grounded={grounded}, ampL={_left.amp:0.00}, " +
+            Log.Info($"[HandBob][Diag] speed01={speed01:0.00}, grounded={grounded}, ampL={_left.amp:0.00}, " +
                       $"ampR={_right.amp:0.00}, wave={waveWorld * 1000f:0.0} mm world", this);
         }
     }

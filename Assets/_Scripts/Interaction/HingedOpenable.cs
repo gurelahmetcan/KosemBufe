@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Generic hinged "openable" that rotates around a pivot when the player
-/// click-drags it — a reusable version of the toaster-lid mechanism, meant to
+/// click-drags it - a reusable version of the toaster-lid mechanism, meant to
 /// be dropped onto fridge doors, cabinet doors, chest lids, oven hatches, etc.
 ///
 /// The object starts CLOSED (its authored scene rotation). The player holds
@@ -26,8 +26,8 @@ using UnityEngine.InputSystem;
 ///      wrong way.
 ///
 /// Events:
-///   OnClosed — fired when it returns to its fully-closed pose.
-///   OnOpened — fired when it reaches the fully-open angle.
+///   OnClosed - fired when it returns to its fully-closed pose.
+///   OnOpened - fired when it reaches the fully-open angle.
 /// </summary>
 
 namespace Bufe
@@ -38,23 +38,23 @@ namespace Bufe
         public enum DragAxis { Vertical, Horizontal }
 
         [Header("Rotation")]
-        [Tooltip("Degrees the object rotates from closed to fully open.")]
+        [Tooltip("Open angle (degrees).")]
         public float openAngle = 90f;
 
-        [Tooltip("Local axis the object rotates around. Y for a swinging door, X for a lid.")]
+        [Tooltip("Local hinge axis. Y = door, X = lid.")]
         public Vector3 rotationAxis = Vector3.up;
 
         [Header("Drag Input")]
-        [Tooltip("Which mouse motion drives the opening: Horizontal (swinging door) or Vertical (lid).")]
+        [Tooltip("Mouse axis that opens it.")]
         public DragAxis dragAxis = DragAxis.Horizontal;
 
-        [Tooltip("Flip this if dragging opens the object the wrong way.")]
+        [Tooltip("Flip if it opens the wrong way.")]
         public bool invertDrag = false;
 
-        [Tooltip("Degrees of rotation per pixel of mouse movement.")]
+        [Tooltip("Degrees per mouse pixel.")]
         public float dragSensitivity = 0.5f;
 
-        [Tooltip("Duration of the snap animation when the mouse is released.")]
+        [Tooltip("Snap time on release.")]
         public float snapDuration = 0.2f;
 
         public string HoverLabel { get; }
@@ -103,7 +103,7 @@ namespace Bufe
         }
 
         /// <summary>
-        /// Silently snaps the object shut and unlocks it — no OnClosed event fired.
+        /// Silently snaps the object shut and unlocks it - no OnClosed event fired.
         /// Used by the day reset so appliances (fridge, toaster lid) start each day closed.
         /// </summary>
         public void ForceClose()

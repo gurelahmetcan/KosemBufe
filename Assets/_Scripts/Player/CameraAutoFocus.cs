@@ -15,20 +15,20 @@ namespace Bufe
     public class CameraAutoFocus : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("The Volume holding the Depth Of Field override (e.g. Global Volume).")]
+        [Tooltip("Volume with Depth Of Field.")]
         [SerializeField] private Volume volume;
 
-        [Tooltip("Camera to focus from. Empty = Camera.main.")]
+        [Tooltip("Empty = Camera.main.")]
         [SerializeField] private Camera focusCamera;
 
         [Header("Focus")]
-        [Tooltip("Farthest focus distance when nothing is hit (e.g. looking at the sky).")]
+        [Tooltip("Focus distance when nothing is hit.")]
         [SerializeField] private float maxFocusDistance = 25f;
 
-        [Tooltip("How quickly the focus eases to the new target. Higher = snappier.")]
+        [Tooltip("Focus ease speed.")]
         [SerializeField] private float focusSpeed = 10f;
 
-        [Tooltip("Which layers the focus ray considers.")]
+        [Tooltip("Layers the focus ray hits.")]
         [SerializeField] private LayerMask raycastMask = ~0;
 
         private DepthOfField _dof;
@@ -37,7 +37,7 @@ namespace Bufe
         {
             if (focusCamera == null) focusCamera = Camera.main;
             if (volume != null && volume.profile != null)
-                volume.profile.TryGet(out _dof);   // volume.profile is a runtime copy — safe to tweak
+                volume.profile.TryGet(out _dof);   // volume.profile is a runtime copy - safe to tweak
         }
 
         private void LateUpdate()

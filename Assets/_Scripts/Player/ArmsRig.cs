@@ -15,7 +15,7 @@ namespace Bufe
     /// which no clip animates; the clip-driven children ride on top of it.
     ///
     /// The Rig Builder only copies scene values into the animation stream for a
-    /// constraint's own target — the target's parents come from the Animator. The
+    /// constraint's own target - the target's parents come from the Animator. The
     /// pivot therefore needs a <see cref="RigTransform"/> marker so the IK sees it
     /// move. It is added at runtime when missing; the caller must then rebuild the
     /// rig once (<see cref="RebuildIfNeeded"/>).
@@ -63,7 +63,7 @@ namespace Bufe
             while (top.parent != null && top.parent != root)
                 top = top.parent;
 
-            if (top == target) return target;   // directly under the Animator — synced as the IK target
+            if (top == target) return target;   // directly under the Animator - synced as the IK target
 
             foreach (TwoBoneIKConstraint c in constraints)
             {

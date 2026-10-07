@@ -16,7 +16,7 @@ namespace Bufe
         // ── Configuration ────────────────────────────────────────────────────────
 
         [Header("Configuration")]
-        [Tooltip("Central game balance configuration asset.")]
+        [Tooltip("Game balance config.")]
         public GameConfig config;
 
         // ── Manager references ───────────────────────────────────────────────────
@@ -92,7 +92,7 @@ namespace Bufe
 
             SetState(GameState.Paused);
             Time.timeScale = 0f;
-            Debug.Log("[GameManager] Game paused.");
+            Log.Info("[GameManager] Game paused.");
         }
 
         public void ResumeGame()
@@ -101,7 +101,7 @@ namespace Bufe
 
             SetState(GameState.Playing);
             Time.timeScale = 1f;
-            Debug.Log("[GameManager] Game resumed.");
+            Log.Info("[GameManager] Game resumed.");
         }
 
         public void TriggerGameOver(string reason)
@@ -111,7 +111,7 @@ namespace Bufe
             SetState(GameState.GameOver);
             Time.timeScale = 0f;
 
-            Debug.Log($"[GameManager] GAME OVER — {reason}");
+            Log.Info($"[GameManager] GAME OVER - {reason}");
 
             if (gameOverUI != null)
                 gameOverUI.ShowGameOver(reason);
@@ -129,7 +129,7 @@ namespace Bufe
         {
             if (config == null)
             {
-                Debug.LogWarning("[GameManager] GameConfig not assigned — using defaults.", this);
+                Debug.LogWarning("[GameManager] GameConfig not assigned - using defaults.", this);
                 return;
             }
 
@@ -152,13 +152,13 @@ namespace Bufe
 
         /// <summary>
         /// Notifies listeners that the day has ended.
-        /// Expenses are deducted later — after the player clicks Sleep on the day-end screen.
+        /// Expenses are deducted later - after the player clicks Sleep on the day-end screen.
         /// </summary>
         private void OnDayEnded(int dayNumber)
         {
             OnDaySettled?.Invoke(dayNumber);
 
-            Debug.Log($"[GameManager] Day {dayNumber} settled. Money: {moneyManager?.Balance:F2}");
+            Log.Info($"[GameManager] Day {dayNumber} settled. Money: {moneyManager?.Balance:F2}");
         }
 
         // ── Internal ─────────────────────────────────────────────────────────────

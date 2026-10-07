@@ -22,24 +22,24 @@ namespace Bufe
         [SerializeField] private ScreenFader     screenFader;
 
         [Header("Rent Goal")]
-        [Tooltip("Money source compared against GameConfig.rentTarget.")]
+        [Tooltip("Compared against GameConfig.rentTarget.")]
         [SerializeField] private MoneyManager moneyManager;
 
-        [Tooltip("Shows whether the rent goal was reached. Optional.")]
+        [Tooltip("Rent goal result. Optional.")]
         [SerializeField] private TextMeshProUGUI rentResultText;
 
-        [Tooltip("Shown when the balance covers the rent. {0} = balance, {1} = rent target.")]
+        [Tooltip("Goal met. {0} = balance, {1} = rent.")]
         [TextArea(1, 3)]
-        [SerializeField] private string rentSuccessText = "You saved ₺{0} — enough to cover the ₺{1} rent.";
+        [SerializeField] private string rentSuccessText = "You saved ₺{0} - enough to cover the ₺{1} rent.";
 
-        [Tooltip("Shown when the balance falls short. {0} = balance, {1} = rent target.")]
+        [Tooltip("Goal missed. {0} = balance, {1} = rent.")]
         [TextArea(1, 3)]
-        [SerializeField] private string rentFailText = "You saved ₺{0} — not enough for the ₺{1} rent.";
+        [SerializeField] private string rentFailText = "You saved ₺{0} - not enough for the ₺{1} rent.";
 
         [Header("Formatting")]
         [Tooltip("Prefix for each decision line.")]
         [SerializeField] private string bullet = "• ";
-        [Tooltip("Shown when the player made no logged decisions.")]
+        [Tooltip("Shown when no decisions were logged.")]
         [SerializeField] private string emptyText = "...";
 
         [Header("Exit")]

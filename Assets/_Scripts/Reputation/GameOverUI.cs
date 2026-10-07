@@ -7,13 +7,13 @@ namespace Bufe.UI
     public class GameOverUI : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("The panel to show on game over.")]
+        [Tooltip("Game over panel.")]
         public GameObject gameOverPanel;
 
-        [Tooltip("Optional text showing the game-over reason.")]
+        [Tooltip("Reason text. Optional.")]
         public TextMeshProUGUI reasonText;
 
-        [Tooltip("Optional restart button.")]
+        [Tooltip("Restart button. Optional.")]
         public Button restartButton;
 
         private void Awake()
@@ -36,7 +36,7 @@ namespace Bufe.UI
         /// </summary>
         public void ShowGameOver(string reason)
         {
-            Debug.Log($"[GameOverUI] Showing Game Over: {reason}");
+            Log.Info($"[GameOverUI] Showing Game Over: {reason}");
 
             if (reasonText != null)
                 reasonText.text = reason;

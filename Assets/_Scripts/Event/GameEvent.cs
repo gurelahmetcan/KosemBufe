@@ -17,7 +17,7 @@ namespace Bufe
     ///   FactionInteraction → DayBufe (in-world counter prompt)
     ///
     /// A choice's followUpEvent is typed as GameEvent, so any event can schedule any other
-    /// regardless of surface — the scheduler routes by Surface. This makes day→night,
+    /// regardless of surface - the scheduler routes by Surface. This makes day→night,
     /// night→day, and day→day (e.g. accept package → collect it later) all work uniformly.
     /// </summary>
     public abstract class GameEvent : ScriptableObject

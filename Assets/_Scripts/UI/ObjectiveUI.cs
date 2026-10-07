@@ -19,7 +19,7 @@ namespace Bufe
     ///     can sit in wondering what happened.
     ///
     /// Nothing here is a tutorial-only crutch: the phase lines keep working on day
-    /// five, which is the point — the day-end door is no more discoverable on day
+    /// five, which is the point - the day-end door is no more discoverable on day
     /// five than it is on day one.
     ///
     /// Built in code like <see cref="InteractionHintUI"/>, with no GraphicRaycaster,
@@ -29,41 +29,40 @@ namespace Bufe
     public class ObjectiveUI : MonoBehaviour
     {
         [Header("Wiring")]
-        [Tooltip("Day manager whose phase drives the fallback lines. Auto-found if left empty.")]
+        [Tooltip("Phase source. Auto-found.")]
         [SerializeField] private DayManager dayManager;
 
-        [Tooltip("Font for the line. Falls back to the TMP default.")]
+        [Tooltip("Font. Fallback: TMP default.")]
         [SerializeField] private TMP_FontAsset font;
 
         [Header("Phase Lines")]
-        [Tooltip("Shown while the shutter is still down. Empty = show nothing in this phase.")]
+        [Tooltip("Before opening. Empty = none.")]
         [SerializeField] private string preOpenLine = "Open the shutter to start the day";
 
-        [Tooltip("Shown while the shop is open and customers are coming. Usually empty — " +
-                 "the player has plenty to look at without a line nagging them.")]
+        [Tooltip("While open. Usually empty.")]
         [SerializeField] private string openLine = "";
 
-        [Tooltip("Shown after closing time while the last customer is being served.")]
+        [Tooltip("After closing time.")]
         [SerializeField] private string closingLine = "Serve the last customer";
 
-        [Tooltip("Shown once the day can be ended.")]
+        [Tooltip("When the day can end.")]
         [SerializeField] private string endOfDayLine = "Head out the door and go home";
 
         [Header("Placement")]
-        [Tooltip("Distance from the top edge, in reference pixels.")]
+        [Tooltip("Top offset (ref px).")]
         [SerializeField] private float topMargin = 96f;
 
         [Header("Appearance")]
         [SerializeField] private float fontSize  = 30f;
         [SerializeField] private Color textColor = new Color(1f, 0.93f, 0.78f, 1f);
 
-        [Tooltip("Dark plate behind the text, so the line stays readable against a bright wall.")]
+        [Tooltip("Dark plate behind the text.")]
         [SerializeField] private Color plateColor = new Color(0f, 0f, 0f, 0.45f);
 
-        [Tooltip("Seconds the line takes to fade in or out when it changes.")]
+        [Tooltip("Fade time.")]
         [SerializeField] private float fadeDuration = 0.25f;
 
-        [Tooltip("Canvas sorting order. Raise it if another UI covers the line.")]
+        [Tooltip("Canvas sorting order.")]
         [SerializeField] private int sortingOrder = 45;
 
         // ── Runtime ──────────────────────────────────────────────────────────────
@@ -136,7 +135,7 @@ namespace Bufe
         }
 
         /// <summary>
-        /// A free cursor means a panel owns the screen — the intro conversation, the
+        /// A free cursor means a panel owns the screen - the intro conversation, the
         /// order panel, the pause menu. The objective is about the world, so it gets
         /// out of the way until the player is back in it.
         /// </summary>
@@ -156,7 +155,7 @@ namespace Bufe
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight  = 0.5f;
 
-            // No GraphicRaycaster on purpose — see the class summary.
+            // No GraphicRaycaster on purpose - see the class summary.
 
             var plateObject = new GameObject("Plate", typeof(RectTransform));
             plateObject.transform.SetParent(canvasObject.transform, false);

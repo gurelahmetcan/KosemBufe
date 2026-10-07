@@ -14,7 +14,7 @@ namespace Bufe
         public PremadeStorageData data;
 
         [Header("UI (Optional)")]
-        [Tooltip("World-space label. If assigned it is set to the item name on Start.")]
+        [Tooltip("Label. Set to the item name on Start.")]
         public TextMeshPro label;
 
         private int _stockCount;
@@ -50,9 +50,20 @@ namespace Bufe
             get
             {
                 string itemName = data != null ? data.itemName : name;
-                return IsInfinite ? itemName : $"{itemName} — {_stockCount} left";
+                if (IsInfinite) return itemName;
+
+                // Read every hovered frame; rebuild only when the count changes.
+                if (_labelCount != _stockCount || _label == null)
+                {
+                    _labelCount = _stockCount;
+                    _label      = $"{itemName} - {_stockCount} left";
+                }
+                return _label;
             }
         }
+
+        private int    _labelCount;
+        private string _label;
 
         // ── IAssemblyInteractable ────────────────────────────────────────────────
 

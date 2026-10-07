@@ -10,13 +10,13 @@ namespace Bufe
     /// full-screen pass. Callers just push a target whenever it changes; switching
     /// costs one Hide and one Show.
     ///
-    /// <see cref="PlayerHand"/> is the only caller today — it pushes whatever a
+    /// <see cref="PlayerHand"/> is the only caller today - it pushes whatever a
     /// left-click would act on right now, so the outline can never advertise an
     /// interaction the click will not perform.
     /// </summary>
     public static class HoverOutlineService
     {
-        // Material assets under a Resources folder — see Assets/Resources/.
+        // Material assets under a Resources folder - see Assets/Resources/.
         private const string OutlineResourcePath = "HoverOutline";
         private const string MaskResourcePath    = "HoverOutlineMask";
 
@@ -81,7 +81,7 @@ namespace Bufe
                 return null;
             }
 
-            Debug.LogWarning($"[HoverOutlineService] Resources/{resourcePath}.mat is missing — " +
+            Debug.LogWarning($"[HoverOutlineService] Resources/{resourcePath}.mat is missing - " +
                              $"created a temporary material from '{shaderName}'.");
 
             return new Material(shader) { hideFlags = HideFlags.HideAndDontSave };

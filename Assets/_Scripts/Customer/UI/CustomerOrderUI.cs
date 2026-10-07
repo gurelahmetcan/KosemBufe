@@ -10,41 +10,41 @@ namespace Bufe.UI
     public class CustomerOrderUI : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("The panel that contains all UI elements.")]
+        [Tooltip("Panel holding all UI.")]
         public GameObject panel;
 
-        [Tooltip("Text element for dialogue lines and recipe names.")]
+        [Tooltip("Dialogue and recipe text.")]
         public TextMeshProUGUI dialogueText;
 
-        [Tooltip("Button to accept the order.")]
+        [Tooltip("Accept button.")]
         public Button acceptButton;
 
-        [Tooltip("Button to reject the order (customer leaves).")]
+        [Tooltip("Reject button (customer leaves).")]
         public Button rejectButton;
 
-        [Tooltip("Button to close the prompt without deciding.")]
+        [Tooltip("Close without deciding.")]
         public Button closeButton;
 
         [Header("Faction Choice Mode")]
-        [Tooltip("Parent container where dynamic faction choice buttons are instantiated.")]
+        [Tooltip("Parent for faction choice buttons.")]
         public Transform choicesContainer;
 
-        [Tooltip("Choice button prefab (Button + TMP label). Reuse the night-event ChoiceButtonPrefab.")]
+        [Tooltip("Choice button prefab (Button + TMP).")]
         public GameObject choiceButtonPrefab;
 
-        [Tooltip("Inline relationship bar shown during a faction interaction. Optional.")]
+        [Tooltip("Relationship bar for factions. Optional.")]
         public FactionBarUI factionBar;
 
         [Header("Choice Outcome Colors")]
-        [Tooltip("Applied to a choice's outcome hint (e.g. +₺20, +1 Police) via TMP rich text.")]
+        [Tooltip("Rich-text style for outcome hints (e.g. +₺20).")]
         public Color positiveColor = new Color(0.20f, 0.75f, 0.20f, 1f);
         public Color negativeColor = new Color(0.85f, 0.20f, 0.20f, 1f);
 
         [Header("Timing")]
-        [Tooltip("Seconds each dialogue line stays visible before auto-hiding.")]
+        [Tooltip("Seconds each line stays visible.")]
         public float lineDisplayDuration = 2f;
 
-        [Tooltip("Short pause between consecutive lines.")]
+        [Tooltip("Pause between lines.")]
         public float linePauseDuration = 0.3f;
 
         /// <summary>Fired when the player clicks Accept.</summary>
@@ -103,7 +103,7 @@ namespace Bufe.UI
 
         /// <summary>
         /// Plays the order sequence: order line → optional modifier line.
-        /// Buttons are NOT shown during this — they appear via ShowPrompt().
+        /// Buttons are NOT shown during this - they appear via ShowPrompt().
         /// </summary>
         public void PlayOrderSequence(DialogueBuilder.OrderDialogue dialogue)
         {
@@ -309,7 +309,7 @@ namespace Bufe.UI
 
         private void HandleAccept()
         {
-            // During a conversation the primary button just advances — the panel
+            // During a conversation the primary button just advances - the panel
             // stays open and the caller decides what to show next.
             if (_conversationMode)
             {

@@ -8,11 +8,11 @@ namespace Bufe.UI
         [Header("References")]
         public MoneyManager moneyManager;
 
-        [Tooltip("Text showing the current balance.")]
+        [Tooltip("Balance text.")]
         public TextMeshProUGUI balanceText;
 
         [Header("Format")]
-        [Tooltip("Prefix shown before the amount (e.g. currency symbol).")]
+        [Tooltip("Prefix (e.g. currency).")]
         public string currencyPrefix = "₺";
 
         [Header("Colors")]

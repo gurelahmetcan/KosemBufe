@@ -8,8 +8,8 @@ namespace Bufe
     /// <summary>
     /// Builds the inverted-hull renderers that draw an object's outline.
     ///
-    /// Two systems draw outlines — <see cref="HoverOutline"/> (what a click would
-    /// act on) and <see cref="HighlightOutline"/> (the pulsing tutorial target) —
+    /// Two systems draw outlines - <see cref="HoverOutline"/> (what a click would
+    /// act on) and <see cref="HighlightOutline"/> (the pulsing tutorial target) -
     /// and the tricky part is the same for both: one mask renderer per mesh to
     /// stamp the silhouette into the stencil buffer, one hull renderer to draw the
     /// ring of colour outside it. Only the materials differ, so the construction
@@ -50,7 +50,7 @@ namespace Bufe
             {
                 MeshRenderer source = s_scan[i];
 
-                // Never outline an outline — this also covers nested objects that
+                // Never outline an outline - this also covers nested objects that
                 // were outlined on their own earlier (items on the display rack),
                 // and the other system's hulls when both are on the same object.
                 if (source.GetComponent<OutlineProxy>() != null) continue;
@@ -62,7 +62,7 @@ namespace Bufe
 
                 // Order between the two is decided by the shaders' render queues
                 // (mask at Geometry+50, outline at Geometry+100), which URP sorts
-                // on before anything else — not by the order they are created here.
+                // on before anything else - not by the order they are created here.
                 built.Add(CreateProxy(source, filter.sharedMesh, maskMaterial,    MaskName));
                 built.Add(CreateProxy(source, filter.sharedMesh, outlineMaterial, HullName));
             }
@@ -111,7 +111,7 @@ namespace Bufe
 
             MeshRenderer renderer = go.AddComponent<MeshRenderer>();
 
-            // One slot per submesh — with fewer slots Unity silently drops the
+            // One slot per submesh - with fewer slots Unity silently drops the
             // remaining submeshes and the outline would only trace part of the shape.
             int subMeshCount = Mathf.Max(1, mesh.subMeshCount);
             var materials = new Material[subMeshCount];

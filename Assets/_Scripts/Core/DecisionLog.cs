@@ -6,7 +6,7 @@ namespace Bufe
     /// <summary>
     /// Records the player's notable event decisions across a playthrough as short summary
     /// lines (e.g. "Sent your son on the school trip") so the demo-end screen can recap them.
-    /// Lives in the GameScene — a fresh instance starts empty each new game.
+    /// Lives in the GameScene - a fresh instance starts empty each new game.
     /// </summary>
     public class DecisionLog : MonoBehaviour
     {

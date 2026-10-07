@@ -7,7 +7,7 @@ namespace Bufe.UI
     /// <summary>
     /// Builds a choice-button label: the choice text, then its outcomes on a new
     /// line (e.g. "(+₺20) (+2 REP)"). Money, family-relationship and faction
-    /// deltas are colorized — green for gains, red for losses. Shared by the night
+    /// deltas are colorized - green for gains, red for losses. Shared by the night
     /// event screen (EventScreenUI) and the day faction prompt (CustomerOrderUI)
     /// so both read identically.
     /// </summary>

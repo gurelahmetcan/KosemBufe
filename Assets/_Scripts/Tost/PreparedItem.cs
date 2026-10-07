@@ -16,24 +16,23 @@ namespace Bufe
         #region Serialized Fields
         
         [Header("Placeholder Visuals")]
-        [Tooltip("Active when bread is Whole (uncut).")]
+        [Tooltip("Whole bread visual.")]
         [SerializeField] private GameObject wholeBreadVisual;
 
-        [Tooltip("Active when bread has been cut in half.")]
+        [Tooltip("Half bread visual.")]
         [SerializeField] private GameObject halfBreadVisual;
 
-        [Tooltip("Active when bread is open and ready for filling.")]
+        [Tooltip("Open bread visual.")]
         [SerializeField] private GameObject openBreadVisual;
 
-        [Tooltip("Active when the bread is toasted (pişmiş). Its own model with its own " +
-                 "material — swapped in like the other visuals, no runtime material change.")]
+        [Tooltip("Toasted bread visual.")]
         [SerializeField] private GameObject cookedBreadVisual;
 
         [Header("Cutting")]
-        [Tooltip("Prefab spawned twice when the full bread is cut. Must have a PreparedItem component.")]
+        [Tooltip("Spawned twice on cut. Needs PreparedItem.")]
         [SerializeField] private GameObject halfBreadPrefab;
 
-        [Tooltip("Half the gap between the two spawned halves (world units).")]
+        [Tooltip("Half the gap between the halves.")]
         [SerializeField] private float halfSpawnOffset = 0.15f;
         
         public List<GameObject> physicalIngredients = new();
@@ -89,7 +88,7 @@ namespace Bufe
         {
             if (hand.HeldItem is KnifeItem knife && CanBeCut())
             {
-                // Only send the knife away if the cut actually happened — a
+                // Only send the knife away if the cut actually happened - a
                 // misconfigured prefab must not leave the player empty-handed.
                 if (Cut()) knife.ReturnAfterCut(hand);
                 return;
@@ -174,7 +173,7 @@ namespace Bufe
             State = BreadState.Toasted;
             cookState = Constants.CookState.Cooked;
             RefreshVisuals();
-            Debug.Log("[PreparedItem] Toasted!");
+            Log.Info("[PreparedItem] Toasted!");
         }
 
         #endregion
@@ -194,7 +193,7 @@ namespace Bufe
         {
             if (halfBreadPrefab == null)
             {
-                Debug.LogWarning("[PreparedItem] halfBreadPrefab is not assigned — cannot spawn two halves.");
+                Debug.LogWarning("[PreparedItem] halfBreadPrefab is not assigned - cannot spawn two halves.");
                 return false;
             }
 
@@ -224,7 +223,7 @@ namespace Bufe
                     half.InitAsHalf();
             }
 
-            Debug.Log("[PreparedItem] Cut into two halves.");
+            Log.Info("[PreparedItem] Cut into two halves.");
             Destroy(gameObject);
             return true;
         }
@@ -242,14 +241,14 @@ namespace Bufe
             }
 
             RefreshVisuals();
-            Debug.Log($"[PreparedItem] Opened ({ingredientType}).");
+            Log.Info($"[PreparedItem] Opened ({ingredientType}).");
         }
 
         public void AddIngredient(Constants.IngredientType type)
         {
             _ingredients.Add(type);
             
-            Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
+            Log.Info($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
         }
 
         /// <summary>True if this ingredient type has a defined socket group with at least one free socket.</summary>
@@ -267,7 +266,7 @@ namespace Bufe
         {
             if (!HasFreeSocket(type))
             {
-                Debug.LogWarning($"[PreparedItem] No free {type} socket — cannot place ingredient.");
+                Debug.LogWarning($"[PreparedItem] No free {type} socket - cannot place ingredient.");
                 return false;
             }
 
@@ -289,7 +288,7 @@ namespace Bufe
             IngredientSocketGroup group = socketGroups?.Find(g => g.ingredientType == type);
             if (group == null || group.sockets == null || group.sockets.Count == 0)
             {
-                Debug.LogWarning($"[PreparedItem] No socket group defined for {type} — cannot place ingredient.");
+                Debug.LogWarning($"[PreparedItem] No socket group defined for {type} - cannot place ingredient.");
                 return false;
             }
 
@@ -316,7 +315,7 @@ namespace Bufe
             item.transform.localRotation = Quaternion.identity;
             item.RestoreWorldScale();
 
-            // Disable colliders — ingredient is now part of the bread, not independently pickable
+            // Disable colliders - ingredient is now part of the bread, not independently pickable
             foreach (Collider col in item.GetComponentsInChildren<Collider>())
                 col.enabled = false;
 
@@ -324,7 +323,7 @@ namespace Bufe
             Rigidbody rb = item.GetComponent<Rigidbody>();
             if (rb != null) Destroy(rb);
 
-            Debug.Log($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
+            Log.Info($"[PreparedItem] Added {type}. Filling: [{string.Join(", ", Ingredients)}]");
             return true;
         }
 
@@ -340,7 +339,7 @@ namespace Bufe
             }
 
             RefreshVisuals();
-            Debug.Log("[PreparedItem] Closed.");
+            Log.Info("[PreparedItem] Closed.");
         }
 
         #endregion
@@ -363,7 +362,7 @@ namespace Bufe
             if (halfBreadVisual   != null) halfBreadVisual.SetActive(isHalf);
             if (openBreadVisual   != null) openBreadVisual.SetActive(isOpen);
             if (cookedBreadVisual != null) cookedBreadVisual.SetActive(toasted);
-            // Toasting state: everything off — the bread is hidden inside the toaster.
+            // Toasting state: everything off - the bread is hidden inside the toaster.
         }
 
         #endregion

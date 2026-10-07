@@ -7,23 +7,23 @@ namespace Bufe
     public class PrepStation : MonoBehaviour, IAssemblyInteractable, ISecondaryInteractable
 {
     [Header("Setup")]
-    [Tooltip("Position where the bread is placed. Items stack upward from here.")]
+    [Tooltip("Bread spot. Items stack up from here.")]
     public Transform stackAnchor;
 
-    [Tooltip("Cutting spot where a whole sucuk sits while it is being sliced (e.g. the middle of the board).")]
+    [Tooltip("Where a whole sucuk is sliced.")]
     public Transform sucukAnchor;
 
-    [Tooltip("Rest spot (e.g. left side) the cut slices slide to and wait on until placed into the bread.")]
+    [Tooltip("Where cut slices wait.")]
     public Transform sliceAnchor;
 
     [Header("Slice Layout")]
-    [Tooltip("Spacing between sucuk slices once they line up on the slice anchor.")]
+    [Tooltip("Gap between waiting slices.")]
     public float sliceSpacing = 0.06f;
 
-    [Tooltip("Seconds it takes for freshly cut slices to slide from the centre to the slice anchor.")]
+    [Tooltip("Slide time from cut spot to slice anchor.")]
     public float sliceSlideDuration = 0.25f;
 
-    [Tooltip("Maximum sucuk slices that can rest on the board at once. Slices cut beyond this are discarded.")]
+    [Tooltip("Max slices on the board. Extras are discarded.")]
     public int maxSlices = 8;
 
     // ── Runtime state ────────────────────────────────────────────────────────
@@ -65,11 +65,11 @@ namespace Bufe
 
     public bool CanInteract(PlayerHand hand)
     {
-        // Placing a bread — blocked while a whole sucuk occupies the board.
+        // Placing a bread - blocked while a whole sucuk occupies the board.
         if (!hand.IsHandEmpty && hand.HeldItem is PreparedItem bread && bread.State != BreadState.Toasted)
             return _preparedItem == null && _sucuk == null;
 
-        // Placing a whole sucuk — blocked while a bread occupies the board.
+        // Placing a whole sucuk - blocked while a bread occupies the board.
         if (!hand.IsHandEmpty && hand.HeldItem is SucukItem)
             return _sucuk == null && _preparedItem == null;
 
@@ -150,14 +150,14 @@ namespace Bufe
         _preparedItem = bread;
         bread.PlaceOnStation(this);
 
-        Debug.Log("[PrepStation] Bread placed on station.");
+        Log.Info("[PrepStation] Bread placed on station.");
     }
 
     /// <summary>Called by PreparedItem.OnPickedUp when the player lifts the bread off the station.</summary>
     public void OnPreparedItemPickedUp()
     {
         _preparedItem = null;
-        Debug.Log("[PrepStation] Bread removed from station.");
+        Log.Info("[PrepStation] Bread removed from station.");
     }
 
     // ── Sucuk placement & slicing ────────────────────────────────────────────
@@ -183,7 +183,7 @@ namespace Bufe
         _sucuk = sucuk;
         sucuk.PlaceOnStation(this);
 
-        Debug.Log("[PrepStation] Sucuk placed on station.");
+        Log.Info("[PrepStation] Sucuk placed on station.");
     }
 
     /// <summary>Called by SucukItem.OnPickedUp when the whole sucuk is lifted off the station.</summary>
@@ -218,8 +218,8 @@ namespace Bufe
             int slot = FirstFreeSlot();
             if (slot < 0)
             {
-                // Board is full — discard the extra slice instead of stacking it.
-                Debug.Log("[PrepStation] Slice board full — extra slice discarded.");
+                // Board is full - discard the extra slice instead of stacking it.
+                Log.Info("[PrepStation] Slice board full - extra slice discarded.");
                 Destroy(slice);
                 continue;
             }

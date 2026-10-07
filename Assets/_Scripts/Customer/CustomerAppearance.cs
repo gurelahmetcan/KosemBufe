@@ -13,14 +13,13 @@ namespace Bufe
     /// </summary>
     public class CustomerAppearance : MonoBehaviour
     {
-        [Tooltip("Renderer whose material is swapped (e.g. the body SkinnedMeshRenderer).")]
+        [Tooltip("Renderer to swap the material on.")]
         [SerializeField] private Renderer bodyRenderer;
 
-        [Tooltip("Which material slot on the renderer to swap.")]
+        [Tooltip("Material slot to swap.")]
         [SerializeField] private int materialIndex = 0;
 
-        [Tooltip("Texture/material variants. One is chosen at random on spawn. " +
-                 "Empty = keep the prefab's own material.")]
+        [Tooltip("Random variant on spawn. Empty = prefab material.")]
         [SerializeField] private Material[] variants;
 
         private void Awake() => Randomize();

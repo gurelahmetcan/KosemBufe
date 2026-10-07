@@ -5,13 +5,13 @@ namespace Bufe
     public class Toaster : MonoBehaviour, IAssemblyInteractable
 {
     [Header("References")]
-    [Tooltip("The lid component on this toaster's lid child object.")]
+    [Tooltip("Lid component on the lid child.")]
     public ToasterLid lid;
 
-    [Tooltip("Optional transform indicating where the bread should rest inside the toaster.")]
+    [Tooltip("Optional bread rest point.")]
     public Transform breadSlot;
 
-    [Tooltip("DayManager — the toaster resets its state on OnNewDayReset. Auto-found if empty.")]
+    [Tooltip("Resets on OnNewDayReset. Auto-found.")]
     public DayManager dayManager;
 
     // ── Runtime state ─────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ namespace Bufe
     {
         _bread = null;
         _state = ToasterState.Empty;
-        Debug.Log("[Toaster] Bread collected — toaster reset.");
+        Log.Info("[Toaster] Bread collected - toaster reset.");
     }
 
     // ── State transitions ─────────────────────────────────────────────────────
@@ -114,13 +114,13 @@ namespace Bufe
         _bread.transform.localRotation = Quaternion.identity;
         _bread.RestoreWorldScale();
 
-        // Colliders intentionally left DISABLED — player collects via the
+        // Colliders intentionally left DISABLED - player collects via the
         // toaster body interaction (CollectBread), not by clicking the bread.
 
         _bread.PlaceInToaster(this);
         _state = ToasterState.BreadInside;
 
-        Debug.Log("[Toaster] Bread inserted. Close the lid to start toasting.");
+        Log.Info("[Toaster] Bread inserted. Close the lid to start toasting.");
     }
 
     private void CollectBread(PlayerHand hand)
@@ -138,10 +138,10 @@ namespace Bufe
         _bread.StartToasting();
         _state = ToasterState.Cooking;
 
-        // Lock the lid shut while it cooks — no peeking until it's done.
+        // Lock the lid shut while it cooks - no peeking until it's done.
         lid.SetLocked(true);
 
-        // The toast SFX plays twice from the toaster's position (3D — louder up close);
+        // The toast SFX plays twice from the toaster's position (3D - louder up close);
         // when it ends, the toast is done (OnToastingComplete).
         if (AudioManager.Instance != null)
         {
@@ -153,10 +153,10 @@ namespace Bufe
             OnToastingComplete();   // no audio in scene → finish immediately
         }
 
-        Debug.Log("[Toaster] Toasting started — sound plays twice, then it's ready.");
+        Log.Info("[Toaster] Toasting started - sound plays twice, then it's ready.");
     }
 
-    /// <summary>Called when the toast SFX sequence finishes — the toast is cooked.</summary>
+    /// <summary>Called when the toast SFX sequence finishes - the toast is cooked.</summary>
     private void OnToastingComplete()
     {
         // Always release the lid when the sequence ends, so it can never stay stuck shut.
@@ -167,13 +167,13 @@ namespace Bufe
 
         _state = ToasterState.Done;
         _bread.FinishToasting();
-        Debug.Log("[Toaster] Toast is ready!");
+        Log.Info("[Toaster] Toast is ready!");
     }
 
     private void HandleLidOpened()
     {
         if (_state != ToasterState.Done) return;
-        Debug.Log("[Toaster] Lid open. Pick up your toast!");
+        Log.Info("[Toaster] Lid open. Pick up your toast!");
     }
 }
 }

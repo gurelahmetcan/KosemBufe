@@ -21,18 +21,18 @@ namespace Bufe.UI
         public TextMeshProUGUI dialogueText;
 
         [Header("Speaker Relationship")]
-        [Tooltip("Segmented bar showing the speaker's relationship level.")]
+        [Tooltip("Speaker relationship bar.")]
         public RelationshipBarUI relationshipBar;
-        [Tooltip("Pause (seconds) after a choice changes the speaker's relationship, so the player sees it.")]
+        [Tooltip("Pause after a relationship change.")]
         [Min(0f)] public float postChoiceDelay = 0.6f;
 
         [Header("Choices")]
-        [Tooltip("Parent container for choice buttons.")]
+        [Tooltip("Parent for choice buttons.")]
         public Transform  choicesContainer;
         public GameObject choiceButtonPrefab;
 
         [Header("Effect Hint Colors")]
-        [Tooltip("Applied to a choice's effect hint (e.g. -₺200) via TMP rich text.")]
+        [Tooltip("Rich-text style for effect hints (e.g. -₺200).")]
         public Color positiveColor = new Color(0.20f, 0.75f, 0.20f, 1f);
         public Color negativeColor = new Color(0.85f, 0.20f, 0.20f, 1f);
 
@@ -72,7 +72,7 @@ namespace Bufe.UI
         }
 
         /// <summary>
-        /// Shows a single linear conversation line (speaker + text) with one advance button —
+        /// Shows a single linear conversation line (speaker + text) with one advance button -
         /// no choices, no relationship bar. Used by the opening sequence (IntroController).
         /// Clicking the button fires <paramref name="onAdvance"/>.
         /// </summary>
@@ -185,7 +185,7 @@ namespace Bufe.UI
 
             int oldValue = SpeakerValue();
 
-            // Notify manager — this applies money and relationship changes immediately
+            // Notify manager - this applies money and relationship changes immediately
             OnChoiceSelected?.Invoke(_current, choiceIndex);
 
             int newValue = SpeakerValue();

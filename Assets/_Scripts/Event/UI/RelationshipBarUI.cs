@@ -11,7 +11,7 @@ namespace Bufe.UI
     public class RelationshipBarUI : MonoBehaviour
     {
         [Header("Segments (index 0 = first, 9 = last)")]
-        [Tooltip("Exactly 10 segment images, ordered from first to last.")]
+        [Tooltip("Exactly 10 segments, in order.")]
         public Image[] segments = new Image[10];
 
         [Header("Level Colors (assign your own)")]

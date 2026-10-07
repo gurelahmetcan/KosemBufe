@@ -1,6 +1,6 @@
 /// <summary>
 /// Pure static utility that assembles dialogue strings from a CustomerInstance.
-/// No MonoBehaviour, no side effects — just data in, strings out.
+/// No MonoBehaviour, no side effects - just data in, strings out.
 ///
 /// Normal customer flow:
 ///   1. Order line     → shown when player clicks customer (+ optional modifier)

@@ -39,7 +39,7 @@ namespace Bufe
             {
                 if (spawn == null) { _all.Remove(spawn); continue; }
 
-                // Quest/story items are exempt — they carry over to future days.
+                // Quest/story items are exempt - they carry over to future days.
                 if (spawn.GetComponent<QuestItem>() != null) continue;
 
                 _all.Remove(spawn);

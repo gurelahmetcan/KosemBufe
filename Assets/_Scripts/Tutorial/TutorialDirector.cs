@@ -11,11 +11,11 @@ namespace Bufe
     /// Why the steps live on a scene component and not in <see cref="TutorialData"/>:
     /// every step points at a scene object (the shutter, the fridge, the toaster),
     /// and a ScriptableObject asset cannot hold a scene reference. TutorialData keeps
-    /// what it is good at — the dayı's dialogue — and the pointing lives here.
+    /// what it is good at - the dayı's dialogue - and the pointing lives here.
     ///
     /// Nothing is forced. A step never blocks input; it only says where to go and
     /// waits for the player to get there. Wander off, pick up the wrong thing, throw
-    /// it at the wall — the step is still sitting there when they come back. That
+    /// it at the wall - the step is still sitting there when they come back. That
     /// also means the tutorial can never wedge: the worst case is a line the player
     /// ignores.
     /// </summary>
@@ -26,7 +26,7 @@ namespace Bufe
         ///
         /// The numbers are written out and MUST NOT be renumbered. Unity serializes an
         /// enum field by its integer, so slipping a new value into the middle silently
-        /// rewires every step already authored in the scene — the list keeps looking
+        /// rewires every step already authored in the scene - the list keeps looking
         /// right in the inspector while each step quietly waits on the wrong thing.
         /// A new goal goes on the END with the next free number, wherever it would read
         /// most naturally in this list.
@@ -55,60 +55,50 @@ namespace Bufe
         [Serializable]
         public class Step
         {
-            [Tooltip("The line shown on screen while this step is running. Empty = show nothing.")]
+            [Tooltip("On-screen line. Empty = none.")]
             [TextArea(1, 3)]
             public string objective;
 
-            [Tooltip("Object that pulses while this step is running. Empty = nothing glows.")]
+            [Tooltip("Pulsing object. Empty = none.")]
             public GameObject highlight;
 
-            [Tooltip("What has to happen for this step to be done.")]
+            [Tooltip("Completion condition.")]
             public StepGoal goal = StepGoal.ClickTarget;
 
-            [Tooltip("For the board goals: the PrepStation. For 'Toaster reached state': the " +
-                     "toaster. Leave empty to use the highlight object.")]
+            [Tooltip("Board/toaster for the goal. Empty = highlight.")]
             public GameObject goalTarget;
 
-            [Tooltip("For 'Board: bread reached state': the state the bread on the board has to " +
-                     "reach. Open = the player right-clicked it open, Closed = folded shut again.")]
-            public BreadState breadState = global::BreadState.Open;
+            [Tooltip("Board bread state goal.")]
+            public BreadState breadState = BreadState.Open;
 
-            [Tooltip("For 'Board: bread contains': the filling that has to be in the bread.")]
+            [Tooltip("Required filling.")]
             public Constants.IngredientType ingredient = Constants.IngredientType.Sucuk;
 
-            [Tooltip("For 'Board: bread contains': how many of that filling have to be in " +
-                     "there. The half loaf has two sucuk sockets and one cheese socket — ask " +
-                     "for more than fits and the step waits forever.")]
+            [Tooltip("Filling count. Half loaf: 2 sucuk, 1 cheese.")]
             [Min(1)]
             public int ingredientCount = 1;
 
-            [Tooltip("For 'Toaster reached state': BreadInside = loaded but the lid is still " +
-                     "open, Cooking = lid shut and toasting, Done = ready to collect.")]
+            [Tooltip("Toaster state goal.")]
             public Toaster.ToasterState toasterState = Toaster.ToasterState.Cooking;
 
-            [Tooltip("For 'Day reached phase': the phase the day has to be in. EndOfDay = " +
-                     "closing time passed and the last customer is gone, so the player may leave.")]
+            [Tooltip("Day phase goal.")]
             public DayManager.DayPhase dayPhase = DayManager.DayPhase.EndOfDay;
 
-            [Tooltip("For 'Order items delivered': how many of the order's items have to be " +
-                     "handed over. 1 = the first one, 2 = the one after that.")]
+            [Tooltip("Delivered item count.")]
             public int deliveredCount = 1;
 
-            [Tooltip("For 'Holding the item': the item's name as typed on its InteractableItem " +
-                     "(e.g. 'Bread'). Use this for anything spawned at runtime, which cannot be " +
-                     "referenced above. Empty = any item counts.")]
+            [Tooltip("Held item name (e.g. 'Bread'). Empty = any.")]
             public string goalItemName;
 
-            [Tooltip("For 'Just wait N seconds': how long the line stays up before moving on.")]
+            [Tooltip("Wait duration.")]
             public float seconds = 3f;
 
-            [Tooltip("Pause after this step completes, before the next line appears. Gives the " +
-                     "player a beat to see that what they did worked.")]
+            [Tooltip("Pause before the next step.")]
             public float pauseAfter = 0.6f;
         }
 
         [Header("Wiring")]
-        [Tooltip("Auto-found if left empty.")]
+        [Tooltip("Auto-found.")]
         [SerializeField] private DayManager        dayManager;
         [SerializeField] private OrderManager      orderManager;
         [SerializeField] private PlayerHand        playerHand;
@@ -116,15 +106,14 @@ namespace Bufe
         [SerializeField] private TargetHighlighter highlighter;
 
         [Header("Run")]
-        [Tooltip("Day the guided steps run on. The büfe only needs teaching once.")]
+        [Tooltip("Tutorial day.")]
         [SerializeField] private int runOnDay = 1;
 
-        [Tooltip("Seconds to wait after the intro fades in before the first line appears. " +
-                 "Zero feels like the game is shouting before the player has focused.")]
+        [Tooltip("Delay before the first line.")]
         [SerializeField] private float startDelay = 1.5f;
 
         [Header("Steps")]
-        [Tooltip("Run in order, top to bottom.")]
+        [Tooltip("Run top to bottom.")]
         [SerializeField] private List<Step> steps = new List<Step>();
 
         // ── Runtime ──────────────────────────────────────────────────────────────
@@ -217,7 +206,7 @@ namespace Bufe
 
             if (dayManager != null && dayManager.CurrentDay != runOnDay)
             {
-                // Nothing to teach today — the phase lines on ObjectiveUI carry on
+                // Nothing to teach today - the phase lines on ObjectiveUI carry on
                 // without us.
                 enabled = false;
                 return;
@@ -234,7 +223,7 @@ namespace Bufe
 
             // The intro conversation owns the screen when the scene loads, cursor
             // free. Nothing starts counting until the player is actually standing in
-            // the büfe — otherwise the opening delay burns down behind a panel and
+            // the büfe - otherwise the opening delay burns down behind a panel and
             // the first line is already stale when they get there.
             if (_index < 0 && Cursor.lockState != CursorLockMode.Locked) return;
 
@@ -281,7 +270,7 @@ namespace Bufe
 
             if (_index >= steps.Count)
             {
-                Debug.Log("[TutorialDirector] All steps done.");
+                Log.Info("[TutorialDirector] All steps done.");
                 Stop();
                 return;
             }
@@ -304,7 +293,7 @@ namespace Bufe
             if (objectiveUI != null) objectiveUI.SetObjective(step.objective);
             if (highlighter != null) highlighter.SetTarget(step.highlight);
 
-            Debug.Log($"[TutorialDirector] Step {_index + 1}/{steps.Count}: {step.objective}");
+            Log.Info($"[TutorialDirector] Step {_index + 1}/{steps.Count}: {step.objective}");
         }
 
         /// <summary>
@@ -313,7 +302,7 @@ namespace Bufe
         ///
         /// Deliberately forgiving. A step is authored by dragging an object out of the
         /// hierarchy, and the object that reads well as "the toaster" is rarely the exact
-        /// one carrying the script — it is a visual child, or the parent holding the whole
+        /// one carrying the script - it is a visual child, or the parent holding the whole
         /// rig. Failing on that would mean a step that never completes and no clue why, on
         /// a list of eighteen of them.
         /// </summary>

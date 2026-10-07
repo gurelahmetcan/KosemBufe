@@ -10,14 +10,14 @@ namespace Bufe
     ///   • The daily reset skips quest items, so they survive across days instead of
     ///     being cleared like ordinary leftover pickups (see <see cref="DailySpawn"/>).
     ///   • An event choice can consume the item from anywhere in the world by id
-    ///     (see <see cref="DestroyById"/>) — no need for the player to be holding it.
+    ///     (see <see cref="DestroyById"/>) - no need for the player to be holding it.
     ///
     /// Author this component on the quest item's prefab and give it a unique
     /// <see cref="questId"/> (e.g. "taxi_box").
     /// </summary>
     public class QuestItem : MonoBehaviour
     {
-        [Tooltip("Unique id used to find/consume this item from an event choice (e.g. 'taxi_box').")]
+        [Tooltip("Id used by event choices (e.g. 'taxi_box').")]
         public string questId;
 
         private static readonly HashSet<QuestItem> _all = new HashSet<QuestItem>();

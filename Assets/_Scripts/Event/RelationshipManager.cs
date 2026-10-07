@@ -11,17 +11,17 @@ namespace Bufe
         public static RelationshipManager Instance { get; private set; }
 
         [Header("Family Members")]
-        [Tooltip("All family members whose relationships are tracked.")]
+        [Tooltip("Tracked family members.")]
         public List<FamilyMemberData> members = new List<FamilyMemberData>();
 
         [Header("Starting Values")]
-        [Tooltip("Default relationship value for every member at game start.")]
+        [Tooltip("Starting relationship value.")]
         [Range(0, 10)] public int defaultRelationship = 7;
 
         [Header("Level Thresholds")]
-        [Tooltip("0 to this value = Low (Red).")]
+        [Tooltip("Up to this = Low (red).")]
         [Range(0, 10)] public int lowMaxThreshold    = 3;
-        [Tooltip("lowMaxThreshold+1 to this value = Medium (Yellow). Above = High (Green).")]
+        [Tooltip("Up to this = Medium (yellow). Above = High.")]
         [Range(0, 10)] public int mediumMaxThreshold = 6;
 
         // ── Events ───────────────────────────────────────────────────────────────

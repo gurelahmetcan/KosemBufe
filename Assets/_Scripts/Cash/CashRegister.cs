@@ -13,36 +13,34 @@ namespace Bufe
     ///      movement locked, keypad live. Digits build up on the screen; Enter only succeeds when
     ///      the typed number equals the amount; Delete fixes mistakes.
     ///   4. Correct entry → pays (callback), clears, releases the player. Right-click steps away
-    ///      without paying — the amount stays pending until the player comes back.
+    ///      without paying - the amount stays pending until the player comes back.
     /// </summary>
     public class CashRegister : MonoBehaviour, IAssemblyInteractable, IHoverLabel
     {
         [Header("Display")]
-        [Tooltip("World-space screen. Top line = amount to charge, bottom = what you type.")]
+        [Tooltip("Screen. Top: amount due. Bottom: typed input.")]
         [SerializeField] private TextMeshProUGUI display;
         [SerializeField] private string currencyPrefix = "₺";
 
-        [Tooltip("Money source — shown as the player's balance on the screen while idle (no order).")]
+        [Tooltip("Balance shown on the screen while idle.")]
         [SerializeField] private MoneyManager moneyManager;
 
         [Header("Player Stance")]
-        [Tooltip("Where the player is placed to operate the register.")]
+        [Tooltip("Where the player stands to operate.")]
         [SerializeField] private Transform playerStance;
-        [Tooltip("Player root (the object with the CharacterController).")]
+        [Tooltip("Player root (has the CharacterController).")]
         [SerializeField] private Transform player;
-        [Tooltip("Player movement script — disabled while operating the register.")]
+        [Tooltip("Disabled while operating.")]
         [SerializeField] private PlayerMovement playerMovement;
 
-        [Tooltip("Player look script — turning is limited to a small cone while at the register.")]
+        [Tooltip("Turning is limited while operating.")]
         [SerializeField] private PlayerLook playerLook;
 
         [Header("Cashier View")]
-        [Tooltip("Body collider(s) that let you click the register to step up. Disabled while " +
-                 "operating so clicks reach the keypad. Auto-filled from this GameObject if empty.")]
+        [Tooltip("Click-to-use colliders, off while operating. Auto-filled.")]
         [SerializeField] private Collider[] bodyColliders;
 
-        [Tooltip("How far (degrees) the player can turn left/right while operating the register. " +
-                 "Up/down look stays free so you can aim at the keypad.")]
+        [Tooltip("Max yaw (degrees) while operating. Pitch stays free.")]
         [SerializeField] private float lookYawRange = 15f;
 
         [Header("Hover")]
@@ -231,7 +229,7 @@ namespace Bufe
             string top = $"{currencyPrefix}{_targetText}";
             display.text = _armed
                 ? $"{top}\n{currencyPrefix}{(_input.Length > 0 ? _input : "0")}"
-                : top;   // amount only — not deliverable yet
+                : top;   // amount only - not deliverable yet
         }
     }
 }

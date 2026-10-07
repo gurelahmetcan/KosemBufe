@@ -11,7 +11,7 @@ namespace Bufe
         public TextMeshProUGUI labelText;
         public TextMeshProUGUI amountText;
 
-        [Tooltip("GameObject with a Toggle component. Hidden for mandatory expenses.")]
+        [Tooltip("Toggle. Hidden for mandatory rows.")]
         public GameObject toggleRoot;
 
         [Header("Colors")]

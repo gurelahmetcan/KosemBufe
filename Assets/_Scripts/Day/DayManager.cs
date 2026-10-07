@@ -14,15 +14,14 @@ namespace Bufe
         }
 
         [Header("References")]
-        [Tooltip("Configuration asset with all editable time values.")]
+        [Tooltip("Day timing config.")]
         public DayConfig config;
 
-        [Tooltip("Clock component that tracks in-game time.")]
+        [Tooltip("In-game clock.")]
         public DayClock clock;
 
         [Header("Demo")]
-        [Tooltip("Last playable day. When this day ends (door), the demo-end flow runs instead " +
-                 "of starting the next day. 0 = no limit. Set from GameConfig at runtime — edit it there.")]
+        [Tooltip("Set from GameConfig at runtime. Edit it there.")]
         public int demoLastDay = 5;
 
         // ── Events ───────────────────────────────────────────────────────────────
@@ -33,13 +32,13 @@ namespace Bufe
         /// <summary>Fired when the shutter is opened and the shop is ready for customers.</summary>
         public event Action OnDayStarted;
 
-        /// <summary>Fired when closing time is reached — no more customer spawns.</summary>
+        /// <summary>Fired when closing time is reached - no more customer spawns.</summary>
         public event Action OnClosingTimeReached;
 
         /// <summary>Fired when the player ends the day (clicks door). Passes the day number that just ended.</summary>
         public event Action<int> OnDayEnded;
 
-        /// <summary>Fired instead of OnDayEnded when the final demo day ends — go to the demo-end screen.</summary>
+        /// <summary>Fired instead of OnDayEnded when the final demo day ends - go to the demo-end screen.</summary>
         public event Action OnDemoComplete;
 
         /// <summary>Fired on the spawn-interval tick while the shop is open. OrderManager listens to this.</summary>
@@ -47,7 +46,7 @@ namespace Bufe
 
         /// <summary>
         /// Fired at the start of every new day (including day 1), before the shutter
-        /// is opened. Listeners reset the world to its start state — teleport the
+        /// is opened. Listeners reset the world to its start state - teleport the
         /// player home, clear leftover items, etc. Fires while the day-end UI still
         /// covers the screen, so the reset is invisible to the player.
         /// </summary>
@@ -65,7 +64,7 @@ namespace Bufe
         /// <summary>
         /// Set true by OrderManager when the day-1 tutorial still needs to run.
         /// While set, opening the shutter does NOT start the clock or customer
-        /// spawns — the day stays frozen until BeginTimedPhase() is called.
+        /// spawns - the day stays frozen until BeginTimedPhase() is called.
         /// </summary>
         public bool HasPendingTutorial { get; set; }
 
@@ -158,12 +157,12 @@ namespace Bufe
             if (HasPendingTutorial)
             {
                 // Keep the day frozen until the tutorial order is delivered.
-                Debug.Log($"[DayManager] Day {_currentDay} — shutter opened for tutorial. Time is frozen.");
+                Log.Info($"[DayManager] Day {_currentDay} - shutter opened for tutorial. Time is frozen.");
                 return;
             }
 
             StartTimedPhase();
-            Debug.Log($"[DayManager] Day {_currentDay} — shutter opened! Customers incoming.");
+            Log.Info($"[DayManager] Day {_currentDay} - shutter opened! Customers incoming.");
         }
 
         /// <summary>Starts the clock and the customer spawn loop.</summary>
@@ -185,7 +184,7 @@ namespace Bufe
             if (_timedPhaseActive) return;
 
             StartTimedPhase();
-            Debug.Log("[DayManager] Tutorial complete — the day is now running.");
+            Log.Info("[DayManager] Tutorial complete - the day is now running.");
         }
 
         /// <summary>
@@ -199,13 +198,13 @@ namespace Bufe
             if (_currentPhase == DayPhase.Closing && !_hasActiveCustomer)
             {
                 SetPhase(DayPhase.EndOfDay);
-                Debug.Log("[DayManager] Last customer served. Click the door to end the day.");
+                Log.Info("[DayManager] Last customer served. Click the door to end the day.");
             }
         }
 
         /// <summary>
         /// Called when the player clicks the door to end the day.
-        /// Fires OnDayEnded and waits — DayEndScreen calls BeginNextDay() after the player sleeps.
+        /// Fires OnDayEnded and waits - DayEndScreen calls BeginNextDay() after the player sleeps.
         /// </summary>
         public void EndDay()
         {
@@ -217,12 +216,12 @@ namespace Bufe
             // Final demo day → demo-end flow instead of the normal night / next-day flow.
             if (demoLastDay > 0 && dayThatEnded >= demoLastDay)
             {
-                Debug.Log($"[DayManager] Demo complete after day {dayThatEnded}.");
+                Log.Info($"[DayManager] Demo complete after day {dayThatEnded}.");
                 OnDemoComplete?.Invoke();
                 return;
             }
 
-            Debug.Log($"[DayManager] Day {dayThatEnded} ended. Waiting for day-end screen.");
+            Log.Info($"[DayManager] Day {dayThatEnded} ended. Waiting for day-end screen.");
             OnDayEnded?.Invoke(dayThatEnded);
         }
 
@@ -232,7 +231,7 @@ namespace Bufe
         /// </summary>
         public void BeginNextDay()
         {
-            Debug.Log($"[DayManager] Starting day {_currentDay}.");
+            Log.Info($"[DayManager] Starting day {_currentDay}.");
             BeginNewDay();
         }
 
@@ -241,7 +240,7 @@ namespace Bufe
         /// <summary>
         /// Forces the day to end immediately from any phase.
         /// Stops the clock, fires closing/end-of-day events, then opens the day-end screen
-        /// (same path as clicking the door — DayEndScreen drives BeginNextDay on Sleep).
+        /// (same path as clicking the door - DayEndScreen drives BeginNextDay on Sleep).
         /// </summary>
     #if UNITY_EDITOR
         [ContextMenu("Debug: Finish Day Now")]
@@ -273,23 +272,23 @@ namespace Bufe
             _timedPhaseActive  = false;
             SetPhase(DayPhase.PreOpen);
 
-            Debug.Log($"[DayManager] Day {_currentDay} — it's {config.openingHour:D2}:{config.openingMinute:D2}. Open the shutter to begin.");
+            Log.Info($"[DayManager] Day {_currentDay} - it's {config.openingHour:D2}:{config.openingMinute:D2}. Open the shutter to begin.");
         }
 
         private void HandleClosingTime()
         {
-            Debug.Log($"[DayManager] It's {config.closingHour:D2}:{config.closingMinute:D2} — closing time!");
+            Log.Info($"[DayManager] It's {config.closingHour:D2}:{config.closingMinute:D2} - closing time!");
             OnClosingTimeReached?.Invoke();
 
             if (_hasActiveCustomer)
             {
                 SetPhase(DayPhase.Closing);
-                Debug.Log("[DayManager] Finish the current customer, then click the door.");
+                Log.Info("[DayManager] Finish the current customer, then click the door.");
             }
             else
             {
                 SetPhase(DayPhase.EndOfDay);
-                Debug.Log("[DayManager] No active customer. Click the door to end the day.");
+                Log.Info("[DayManager] No active customer. Click the door to end the day.");
             }
         }
 

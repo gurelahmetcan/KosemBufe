@@ -10,38 +10,35 @@ namespace Bufe
     public class PlayerHand : MonoBehaviour
     {
         [Header("Hold Point")]
-        [Tooltip("Empty child of the Camera where held items are positioned and displayed.")]
+        [Tooltip("Camera child where held items sit.")]
         public Transform holdPoint;
 
         [Header("Input")]
-        [Tooltip("Maximum raycast distance for clicking on items and stations.")]
+        [Tooltip("Max click reach.")]
         public float interactRange = 10f;
 
-        [Tooltip("Forward force applied to the item when thrown (right-click held).")]
+        [Tooltip("Throw force.")]
         public float throwForce = 5f;
 
-        [Tooltip("How long the right mouse button must be held before it counts as a throw instead of a drop.")]
+        [Tooltip("Right-click hold time that counts as a throw.")]
         public float throwHoldThreshold = 0.25f;
 
         [Header("Drop")]
-        [Tooltip("Safety net: how long a released item may ignore the player before " +
-                 "collisions are restored regardless of where it ended up.")]
+        [Tooltip("Max time a dropped item ignores player collision.")]
         public float releaseIgnoreTimeout = 2f;
 
         [Header("UI")]
-        [Tooltip("Optional TextMeshProUGUI showing what the player is currently holding.")]
+        [Tooltip("Optional text showing the held item.")]
         public TextMeshProUGUI handStatusText;
 
         [Header("Arms")]
-        [Tooltip("Animator on the viewmodel Arms. Its int 'Grip' parameter is driven from the " +
-                 "hand state: 0 while holding an item, -1 while empty. Optional.")]
+        [Tooltip("Arms animator. Drives int 'Grip': 0 holding, -1 empty.")]
         [SerializeField] private Animator armsAnimator;
 
-        [Tooltip("Plays the reach-and-grab when an item in the world is clicked; the pick-up runs " +
-                 "when the hand arrives. Auto-found under the Player if empty. None = instant pick-up.")]
+        [Tooltip("Reach-and-grab on pickup. Auto-found. None = instant.")]
         [SerializeField] private HandReach handReach;
 
-        /// <summary>Layer the Viewmodelcamera renders — the arms and whatever they hold.</summary>
+        /// <summary>Layer the Viewmodelcamera renders - the arms and whatever they hold.</summary>
         private const string ViewmodelLayer = "Viewmodel";
 
         private static readonly int GripParam = Animator.StringToHash("Grip");
@@ -74,10 +71,11 @@ namespace Bufe
         private InteractableItem       _rItem;
         private ISecondaryInteractable _rSecondary;
         private IHoverLabel            _rHoverLabel;
+        private string                 _rName;         // cached: GameObject.name allocates on every read
 
         private GameObject _outlinedRoot;          // currently outlined object, null when none
 
-        // The player's own colliders — the CharacterController capsule among them.
+        // The player's own colliders - the CharacterController capsule among them.
         // A dropped item ignores these until it has fallen clear of them.
         private Collider[] _selfColliders;
 
@@ -98,8 +96,8 @@ namespace Bufe
         public event Action<GameObject> OnInteracted;
 
         /// <summary>
-        /// The object a left-click would act on right now — the one wearing the hover
-        /// outline — or null when the crosshair is on nothing usable.
+        /// The object a left-click would act on right now - the one wearing the hover
+        /// outline - or null when the crosshair is on nothing usable.
         /// </summary>
         public GameObject OutlinedRoot => _outlinedRoot;
 
@@ -140,7 +138,7 @@ namespace Bufe
                 if (rig != null)
                 {
                     handReach = rig.gameObject.AddComponent<HandReach>();
-                    Debug.Log($"[PlayerHand] No HandReach found — added one to '{rig.name}'.", rig);
+                    Log.Info($"[PlayerHand] No HandReach found - added one to '{rig.name}'.", rig);
                 }
             }
         }
@@ -154,7 +152,7 @@ namespace Bufe
             if (InputBlocked)
             {
                 // A station is driving the player (e.g. an appliance is processing).
-                // Drop the outline too — it would otherwise sit there inviting a
+                // Drop the outline too - it would otherwise sit there inviting a
                 // click that cannot happen.
                 ClearHover();
                 return;
@@ -207,7 +205,7 @@ namespace Bufe
 
             if (!mouse.leftButton.wasPressedThisFrame) return;
 
-            // A new click abandons a reach still in flight — its pick-up is dropped
+            // A new click abandons a reach still in flight - its pick-up is dropped
             // and this click is handled normally (it may start a new reach).
             if (handReach != null && handReach.IsReaching)
                 handReach.Cancel();
@@ -236,7 +234,7 @@ namespace Bufe
         private void PickUpWithReach(InteractableItem item)
         {
             // By the time the hand arrives the item may be gone, or another pick-up
-            // (e.g. from a storage) may have filled the hand — PickUp ignores the latter.
+            // (e.g. from a storage) may have filled the hand - PickUp ignores the latter.
             if (handReach != null && handReach.TryReach(item, () => { if (item != null) PickUp(item); }))
                 return;
 
@@ -245,7 +243,7 @@ namespace Bufe
 
         /// <summary>
         /// For interactables that put something into the hand (storages): the hand first
-        /// reaches to where the player clicked, then <paramref name="onArrive"/> runs —
+        /// reaches to where the player clicked, then <paramref name="onArrive"/> runs -
         /// that is where the item should be spawned and picked up. Runs it immediately
         /// when there is no HandReach or it can't run. A new click before arrival
         /// cancels it, so onArrive must re-check its own preconditions.
@@ -294,6 +292,7 @@ namespace Bufe
             if (hit != _resolvedFor)
             {
                 _resolvedFor   = hit;
+                _rName         = hit != null ? hit.name : null;
                 _rInteractable = hit != null ? hit.GetComponentInParent<IAssemblyInteractable>()  : null;
                 _rItem         = hit != null ? hit.GetComponentInParent<InteractableItem>()       : null;
                 _rSecondary    = hit != null ? hit.GetComponentInParent<ISecondaryInteractable>() : null;
@@ -333,7 +332,7 @@ namespace Bufe
 
         /// <summary>
         /// The object a left-click would act on given the current hand state, or null
-        /// when nothing under the crosshair is usable right now — a fridge door while
+        /// when nothing under the crosshair is usable right now - a fridge door while
         /// the hand is full, an empty storage, a station that is already occupied.
         ///
         /// This mirrors the precedence in <see cref="HandleInput"/> on purpose: the
@@ -367,7 +366,7 @@ namespace Bufe
 
         private string GetHoverLabel()
         {
-            // Custom labels first (e.g. storages showing "Name — N left"). A component
+            // Custom labels first (e.g. storages showing "Name - N left"). A component
             // that implements the interface but leaves the label empty falls through to
             // the generic names below rather than leaving the player with nothing.
             if (_rHoverLabel != null)
@@ -378,7 +377,7 @@ namespace Bufe
 
             if (_rItem != null) return _rItem.itemName;
 
-            if (_rInteractable != null) return _resolvedFor.name;
+            if (_rInteractable != null) return _rName;
 
             return null;
         }
@@ -502,7 +501,7 @@ namespace Bufe
         // CharacterController capsule. An item handed back to physics there is handed
         // over already overlapping the player, and the first physics step resolves
         // that overlap the only way it can: by shoving the item out. That shove is
-        // the "flung forwards and left hanging in mid-air" drop — the throw force has
+        // the "flung forwards and left hanging in mid-air" drop - the throw force has
         // nothing to do with it, a plain drop does it too.
         //
         // The item is left exactly where the hand had it and falls under gravity as
@@ -608,7 +607,7 @@ namespace Bufe
         // ── Arms grip ─────────────────────────────────────────────────────────────
         // Driven every frame from _heldItem instead of from each pick-up / drop /
         // release / destroy path. That also covers a held item destroyed from outside
-        // (e.g. QuestItem.DestroyById) — Unity's null check catches it here — and an
+        // (e.g. QuestItem.DestroyById) - Unity's null check catches it here - and an
         // Animator that was disabled and re-enabled, which resets its parameters.
 
         private void UpdateArmsGrip()
@@ -616,7 +615,7 @@ namespace Bufe
             if (armsAnimator == null)
             {
                 WarnGripOnce(GripIssue.NoAnimator,
-                    "armsAnimator is not assigned — the arms will never change pose. " +
+                    "armsAnimator is not assigned - the arms will never change pose. " +
                     "Drag the Animator on Player/Vcam_Main/ViewmodelCamera/Arms into PlayerHand's Arms Animator field.");
                 return;
             }
@@ -658,7 +657,7 @@ namespace Bufe
 
             int grip = _heldItem != null ? GripHolding : GripEmpty;
             armsAnimator.SetInteger(GripParam, grip);
-            _lastGripIssue = null;   // setup is healthy again — re-warn if it breaks later
+            _lastGripIssue = null;   // setup is healthy again - re-warn if it breaks later
 
             LogGripDiagnostics(grip);   // TEMP-GRIP-DIAG
         }
@@ -696,7 +695,7 @@ namespace Bufe
                 // so those bones must be DIRECT children of the Animator's GameObject.
                 // If this is null the clips bind to nothing and the pose never changes.
                 Transform bound = armsAnimator.transform.Find("mixamorig:RightShoulder");
-                Debug.Log($"[PlayerHand][GripDiag] Animator GO path='{GetPath(armsAnimator.transform)}', " +
+                Log.Info($"[PlayerHand][GripDiag] Animator GO path='{GetPath(armsAnimator.transform)}', " +
                           $"controller='{armsAnimator.runtimeAnimatorController.name}', " +
                           $"updateMode={armsAnimator.updateMode}, cullingMode={armsAnimator.cullingMode}, " +
                           $"clip path 'mixamorig:RightShoulder' resolves={(bound != null)}", this);
@@ -708,7 +707,7 @@ namespace Bufe
             AnimatorStateInfo state = armsAnimator.GetCurrentAnimatorStateInfo(0);
             string stateName = state.IsName("Grip") ? "Grip" : state.IsName("Idle") ? "Idle" : $"hash {state.shortNameHash}";
 
-            Debug.Log($"[PlayerHand][GripDiag] SetInteger(\"Grip\", {grip}) — " +
+            Log.Info($"[PlayerHand][GripDiag] SetInteger(\"Grip\", {grip}) - " +
                       $"animator null={armsAnimator == null}, held='{(_heldItem != null ? _heldItem.itemName : "none")}', " +
                       $"state before this frame's evaluation={stateName}, inTransition={armsAnimator.IsInTransition(0)}, " +
                       $"timeScale={Time.timeScale}", this);

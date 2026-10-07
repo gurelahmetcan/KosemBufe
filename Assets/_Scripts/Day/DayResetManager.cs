@@ -13,23 +13,23 @@ namespace Bufe
     public class DayResetManager : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("DayManager whose OnNewDayReset drives the reset.")]
+        [Tooltip("Its OnNewDayReset drives the reset.")]
         public DayManager dayManager;
 
-        [Tooltip("The Player root (the object with the CharacterController).")]
+        [Tooltip("Player root (has the CharacterController).")]
         public Transform player;
 
-        [Tooltip("Empty transform marking where the player should stand each morning.")]
+        [Tooltip("Morning spawn point.")]
         public Transform startPoint;
 
-        [Tooltip("Player's look script — its pitch is reset to level. Optional.")]
+        [Tooltip("Pitch reset to level. Optional.")]
         public PlayerLook playerLook;
 
-        [Tooltip("Player's hand — anything held is cleared on reset (junk destroyed, keepers released). Optional.")]
+        [Tooltip("Held item cleared on reset. Optional.")]
         public PlayerHand playerHand;
 
         [Header("Options")]
-        [Tooltip("Destroy leftover runtime-spawned items (cut bread, dropped pickups, etc.).")]
+        [Tooltip("Destroy leftover runtime items.")]
         public bool clearLeftoverItems = true;
 
         private void OnEnable()
@@ -73,7 +73,7 @@ namespace Bufe
         {
             if (player == null || startPoint == null) return;
 
-            // Disable the CharacterController while repositioning — otherwise its
+            // Disable the CharacterController while repositioning - otherwise its
             // internal collision solver overrides the transform write.
             CharacterController cc = player.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;

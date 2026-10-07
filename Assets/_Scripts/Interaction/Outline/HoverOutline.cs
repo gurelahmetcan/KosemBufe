@@ -5,7 +5,7 @@ namespace Bufe
     /// <summary>
     /// Gives one object a hover outline. Added automatically by
     /// <see cref="HoverOutlineService"/> the first time the player looks at the
-    /// object — nothing needs to be wired up on prefabs.
+    /// object - nothing needs to be wired up on prefabs.
     ///
     /// How it draws: see <see cref="OutlineHullBuilder"/>, which owns the
     /// mask-then-hull technique this and the tutorial highlight share.
@@ -47,7 +47,7 @@ namespace Bufe
         /// <summary>
         /// Discards the cached hulls and rebuilds them on the next show. Call this if
         /// the object's meshes are swapped at runtime (a different visual state, an
-        /// attachment added) — otherwise the outline keeps tracing the old shape.
+        /// attachment added) - otherwise the outline keeps tracing the old shape.
         /// </summary>
         public void Rebuild()
         {

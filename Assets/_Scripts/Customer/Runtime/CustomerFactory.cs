@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Builds CustomerInstances from a pool of archetypes.
-/// This is the single entry point for customer creation — when Recurring
+/// This is the single entry point for customer creation - when Recurring
 /// and Special customers are added later, this class gains new methods
 /// (e.g. CreateRecurringCustomer, CreateSpecialCustomer) without
 /// disrupting the normal customer flow.
@@ -13,7 +13,7 @@ namespace Bufe
     public class CustomerFactory : MonoBehaviour
     {
         [Header("Normal Customer Pool")]
-        [Tooltip("All archetypes available for normal/everyday customers.")]
+        [Tooltip("Archetypes for normal customers.")]
         public CustomerArchetype[] archetypePool;
 
         /// <summary>

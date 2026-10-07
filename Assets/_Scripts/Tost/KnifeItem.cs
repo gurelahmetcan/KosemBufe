@@ -10,8 +10,7 @@ namespace Bufe
 
     public class KnifeItem : InteractableItem
     {
-        [Tooltip("Seconds the knife takes to glide back to its spot after a cut. " +
-                 "0 = it stays in the hand and the player puts it down themselves.")]
+        [Tooltip("Return time after a cut. 0 = stays in hand.")]
         [SerializeField] private float returnFlightDuration = 0.45f;
 
         /// <summary>
@@ -20,7 +19,7 @@ namespace Bufe
         ///
         /// Why this is automatic. Ingredient storages only respond to an empty hand
         /// (see <see cref="IngredientStorage.CanInteract"/>), so a player still holding
-        /// the knife clicks the bread rack and simply nothing happens — no outline, no
+        /// the knife clicks the bread rack and simply nothing happens - no outline, no
         /// hint, no reason given. The knife has exactly one job and it has just been
         /// done, so putting it away is what the player was going to have to do anyway.
         /// Doing it for them removes a dead end rather than taking away a decision.
@@ -38,7 +37,7 @@ namespace Bufe
             {
                 // Nothing on this knife knows where it belongs. Leaving it in the hand
                 // is better than releasing it into limbo.
-                Debug.LogWarning("[KnifeItem] No ReturnHomeOnReset on the knife — it has " +
+                Debug.LogWarning("[KnifeItem] No ReturnHomeOnReset on the knife - it has " +
                                  "nowhere to fly back to, so it stays in the hand.", this);
                 return;
             }

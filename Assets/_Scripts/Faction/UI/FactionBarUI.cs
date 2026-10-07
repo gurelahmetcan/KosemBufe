@@ -19,7 +19,7 @@ namespace Bufe.UI
     public class FactionBarUI : MonoBehaviour
     {
         [Header("Faction")]
-        [Tooltip("Which faction this bar represents. Resolved against FactionManager at runtime.")]
+        [Tooltip("Faction shown by this bar.")]
         public FactionData faction;
 
         [Header("References")]
@@ -27,10 +27,10 @@ namespace Bufe.UI
         public Image icon;
         public TextMeshProUGUI nameText;
 
-        [Tooltip("Segmented bar cells (e.g. 10). Filled left-to-right by value. Leave empty to use fillBar.")]
+        [Tooltip("Bar cells, filled left to right. Empty = use fillBar.")]
         public List<Image> segments = new List<Image>();
 
-        [Tooltip("Fallback continuous bar (type: Filled, Horizontal). Used only when `segments` is empty.")]
+        [Tooltip("Fallback filled bar when segments is empty.")]
         public Image fillBar;
 
         [Header("Colors")]
@@ -93,7 +93,7 @@ namespace Bufe.UI
 
             if (segments != null && segments.Count > 0)
             {
-                // Open `value` segments and tint them by level; close the rest —
+                // Open `value` segments and tint them by level; close the rest -
                 // same behaviour as RelationshipBarUI on the event screen.
                 for (int i = 0; i < segments.Count; i++)
                 {

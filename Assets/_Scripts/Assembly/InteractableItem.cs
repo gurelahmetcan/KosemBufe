@@ -5,21 +5,20 @@ namespace Bufe
 {
     public class InteractableItem : MonoBehaviour
     {
-        [Tooltip("Display name shown in the hand UI.")]
+        [Tooltip("Name shown in the hand UI.")]
         public string itemName = "Item";
         
         // Euler angles rather than a Quaternion on purpose. The inspector draws a
         // Quaternion field as Euler angles, but it stores what you type as a
-        // quaternion and converts back for display — and a quaternion has no memory
+        // quaternion and converts back for display - and a quaternion has no memory
         // of which of the many Euler triples produced it. The drawer shows the
         // canonical one instead, so typing 150 into X can come back as 30 with Y and
         // Z flipped to 180-ish to compensate. Same rotation, unusable field. Storing
         // the angles means what is typed is what stays.
-        [Tooltip("Rotation the item is held at, in degrees, relative to the hold point.")]
+        [Tooltip("Held rotation (degrees), relative to the hold point.")]
         public Vector3 InHandLocalEuler = Vector3.zero;
 
-        [Tooltip("Offset from the hold point while held, in METRES — not in the hold " +
-                 "point's local units. Rescaling the arm rig does not move it.")]
+        [Tooltip("Held offset in metres. Not affected by rig scale.")]
         public Vector3 InHandLocalPos = Vector3.zero;
 
         public Quaternion OriginalLocalRotation { get; private set; }
@@ -28,8 +27,8 @@ namespace Bufe
         /// The size the item was authored at, in world units, captured before
         /// anything re-parents it.
         ///
-        /// Items get passed around a lot — hand, rack, prep station, toaster,
-        /// sandwich socket — and every one of those anchors can carry a scale of its
+        /// Items get passed around a lot - hand, rack, prep station, toaster,
+        /// sandwich socket - and every one of those anchors can carry a scale of its
         /// own. A local scale is only meaningful under the parent it was measured
         /// against, so restoring one under a different anchor resizes the item by
         /// whatever that anchor happens to be scaled to. A world scale means the same
@@ -38,7 +37,7 @@ namespace Bufe
         public Vector3 OriginalWorldScale { get; private set; }
 
         /// <summary>
-        /// True for items the game has no second copy of — the knife, quest items. They
+        /// True for items the game has no second copy of - the knife, quest items. They
         /// are the ones the daily reset sends home instead of clearing, and the ones the
         /// trash bin refuses: destroying one leaves the player unable to prepare an order
         /// and no way to get it back.

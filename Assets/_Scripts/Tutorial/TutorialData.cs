@@ -20,31 +20,31 @@ namespace Bufe
         [Serializable]
         public class TutorialLine
         {
-            [Tooltip("What the dayı says on this step.")]
+            [Tooltip("Dayı's line.")]
             [TextArea(1, 4)]
             public string text;
 
-            [Tooltip("Caption on the panel button that advances to the next line.")]
+            [Tooltip("Next button text.")]
             public string buttonLabel = "Devam";
         }
 
         [Header("Intro Conversation")]
-        [Tooltip("Conversation shown on the order panel, one line per button click.")]
+        [Tooltip("Lines, one per click.")]
         public List<TutorialLine> introLines = new List<TutorialLine>();
 
         [Header("Order")]
-        [Tooltip("Line shown on the order prompt (with the Accept button).")]
+        [Tooltip("Order prompt line.")]
         [TextArea(1, 4)]
         public string orderPromptLine = "...";
 
-        [Tooltip("Caption on the Accept button for the order step.")]
+        [Tooltip("Accept button text.")]
         public string orderButtonLabel = "Siparişi Al";
 
-        [Tooltip("The fixed order the dayı asks for (e.g. Yarım Karışık Tost + Ayran).")]
+        [Tooltip("Fixed tutorial order.")]
         public List<OrderItem> orderItems = new List<OrderItem>();
 
         [Header("Exit")]
-        [Tooltip("Line shown after the order is delivered, just before the dayı leaves.")]
+        [Tooltip("Line after delivery.")]
         [TextArea(1, 4)]
         public string thanksLine = "Eline sağlık!";
     }

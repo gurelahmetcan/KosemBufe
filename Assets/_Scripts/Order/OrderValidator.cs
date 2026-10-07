@@ -30,7 +30,7 @@ namespace Bufe
         {
             List<Constants.IngredientType> expected = BuildExpectedIngredients(recipe);
 
-            Debug.Log($"[OrderValidator] Recipe='{recipe.itemName}'" +
+            Log.Info($"[OrderValidator] Recipe='{recipe.itemName}'" +
                       $", expected=[{string.Join(", ", expected)}]" +
                       $", prepared=[{string.Join(", ", preparedIngredients)}]" +
                       $", cookState={cookState}");

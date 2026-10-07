@@ -13,7 +13,7 @@ namespace Bufe
     /// </summary>
     public class ReturnHomeOnReset : MonoBehaviour
     {
-        [Tooltip("Where the item returns to. Empty = its position/rotation at scene start.")]
+        [Tooltip("Return point. Empty = scene start pose.")]
         [SerializeField] private Transform homePoint;
 
         private static readonly HashSet<ReturnHomeOnReset> _all = new HashSet<ReturnHomeOnReset>();
@@ -41,7 +41,7 @@ namespace Bufe
         /// The animated version of <see cref="ReturnHome"/>: the item arcs back to its
         /// home pose over <paramref name="duration"/> instead of teleporting.
         ///
-        /// Used when an item finishes its job mid-play — the knife after a cut. The
+        /// Used when an item finishes its job mid-play - the knife after a cut. The
         /// snap version stays for the day reset, which happens behind a black screen
         /// where an arc would be seen by nobody.
         ///
@@ -114,7 +114,7 @@ namespace Bufe
 
             transform.SetPositionAndRotation(pos, rot);
 
-            // Colliders may have been disabled while the item was held — re-enable them.
+            // Colliders may have been disabled while the item was held - re-enable them.
             foreach (Collider col in GetComponentsInChildren<Collider>())
                 col.enabled = true;
         }

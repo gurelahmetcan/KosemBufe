@@ -13,7 +13,7 @@ namespace Bufe
     ///   2. It keeps the renderer reference handy, so showing and hiding is a single
     ///      bool flip instead of a hierarchy activation walk.
     ///
-    /// Never added by hand — <see cref="HoverOutline"/> creates these at runtime.
+    /// Never added by hand - <see cref="HoverOutline"/> creates these at runtime.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class OutlineProxy : MonoBehaviour

@@ -6,7 +6,7 @@ namespace Bufe
 {
     /// <summary>
     /// Tracks the player's shop-wide relationship (0–10) with each faction.
-    /// Mirrors RelationshipManager (family) deliberately — for the July 29 demo the two
+    /// Mirrors RelationshipManager (family) deliberately - for the July 29 demo the two
     /// stay parallel; post-demo they merge into one generic manager
     /// (see Docs/FactionSystemDesign.md §3).
     ///
@@ -17,13 +17,13 @@ namespace Bufe
         public static FactionManager Instance { get; private set; }
 
         [Header("Factions")]
-        [Tooltip("All factions whose relationships are tracked. Taxi is the active demo faction.")]
+        [Tooltip("Tracked factions.")]
         public List<FactionData> factions = new List<FactionData>();
 
         [Header("Level Thresholds")]
-        [Tooltip("0 to this value = Low (Red).")]
+        [Tooltip("Up to this = Low (red).")]
         [Range(0, 10)] public int lowMaxThreshold = 3;
-        [Tooltip("lowMaxThreshold+1 to this value = Medium (Yellow). Above = High (Green).")]
+        [Tooltip("Up to this = Medium (yellow). Above = High.")]
         [Range(0, 10)] public int mediumMaxThreshold = 6;
 
         // ── Events ───────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ namespace Bufe
             if (newVal == oldVal) return;
 
             _values[faction] = newVal;
-            Debug.Log($"[Faction] {faction.displayName} {oldVal} → {newVal} ({(delta > 0 ? "+" : "")}{delta})");
+            Log.Info($"[Faction] {faction.displayName} {oldVal} → {newVal} ({(delta > 0 ? "+" : "")}{delta})");
             OnRelationshipChanged?.Invoke(faction, oldVal, newVal);
         }
 

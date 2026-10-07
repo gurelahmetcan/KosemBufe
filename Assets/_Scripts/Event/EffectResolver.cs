@@ -48,7 +48,7 @@ namespace Bufe
                     if (itemGrantPoint != null)
                         DailySpawn.Tag(Object.Instantiate(effect.grantedItemPrefab, itemGrantPoint.position, itemGrantPoint.rotation).gameObject);
                     else
-                        Debug.LogWarning($"[EffectResolver] '{effect.grantedItemPrefab.itemName}' has no grant point — item skipped.");
+                        Debug.LogWarning($"[EffectResolver] '{effect.grantedItemPrefab.itemName}' has no grant point - item skipped.");
                 }
             }
         }

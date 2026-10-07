@@ -9,7 +9,7 @@ namespace Bufe
     /// Procedural reach-and-grab for the right hand. When the player clicks an item,
     /// the right IK target swings from its rest pose toward the item, the pick-up
     /// runs at the END of the reach (so the item never floats to an empty hand), and
-    /// the hand then returns to rest carrying the item — it is parented under the
+    /// the hand then returns to rest carrying the item - it is parented under the
     /// hand's HandDisplayPoint, so it follows on its own.
     ///
     /// The hand is moved through the same pivot HandBob uses (see <see cref="ArmsRig"/>):
@@ -18,7 +18,7 @@ namespace Bufe
     ///
     /// Distances are in world units: the item's world position is turned into a
     /// world offset, clamped to <see cref="maxReach"/> metres, and only then converted
-    /// into the pivot's parent space — so the 0.6 / 0.07 / 1.67 scale factors in the
+    /// into the pivot's parent space - so the 0.6 / 0.07 / 1.67 scale factors in the
     /// arms hierarchy don't distort it.
     ///
     /// Storages use the point overload: the hand reaches to where the storage was
@@ -35,19 +35,18 @@ namespace Bufe
     public class HandReach : MonoBehaviour
     {
         [Header("IK Target")]
-        [Tooltip("The right Two Bone IK constraint's Target. Empty = found automatically.")]
+        [Tooltip("Right IK target. Auto-found.")]
         [SerializeField] private Transform rightHandTarget;
 
         [Header("Timing")]
-        [Tooltip("Seconds to reach from rest to the item (ease-in-out).")]
+        [Tooltip("Reach-out time.")]
         [SerializeField, Min(0f)] private float reachDuration = 0.18f;
 
-        [Tooltip("Seconds to bring the hand (and the item) back to rest (ease-in-out).")]
+        [Tooltip("Return time.")]
         [SerializeField, Min(0f)] private float returnDuration = 0.22f;
 
         [Header("Distance")]
-        [Tooltip("Furthest the hand travels from its rest pose, in metres. Items further away " +
-                 "are reached toward but not touched — the pick-up still happens.")]
+        [Tooltip("Max reach (m). Pickup still happens beyond it.")]
         [SerializeField, Min(0f)] private float maxReach = 0.7f;
 
         // ── Runtime ──────────────────────────────────────────────────────────────
@@ -60,7 +59,7 @@ namespace Bufe
         private Action    _pendingGrab;
 
         /// <summary>
-        /// True while the hand is being driven by a reach — the outward swing and the
+        /// True while the hand is being driven by a reach - the outward swing and the
         /// return to rest. HandBob stays off the hand for the whole time.
         /// </summary>
         public bool IsReaching => _routine != null;
@@ -107,7 +106,7 @@ namespace Bufe
 
         /// <summary>
         /// Starts reaching for <paramref name="item"/>; <paramref name="onGrab"/> runs when
-        /// the hand arrives. Returns false — without calling onGrab — when the reach
+        /// the hand arrives. Returns false - without calling onGrab - when the reach
         /// can't run, so the caller should pick the item up right away instead.
         /// </summary>
         public bool TryReach(InteractableItem item, Action onGrab)
@@ -115,7 +114,7 @@ namespace Bufe
             if (item == null) return false;
 
             // Re-aimed every frame: the item may still be rolling or falling. Null once
-            // it's gone (delivered, destroyed, reset) — nothing left to grab.
+            // it's gone (delivered, destroyed, reset) - nothing left to grab.
             return StartReach(() => item != null ? GrabPoint(item) : (Vector3?)null, onGrab);
         }
 
@@ -161,7 +160,7 @@ namespace Bufe
             {
                 Vector3? point = aim();
 
-                // The thing being reached for is gone — nothing to grab.
+                // The thing being reached for is gone - nothing to grab.
                 if (point == null)
                 {
                     _pendingGrab = null;

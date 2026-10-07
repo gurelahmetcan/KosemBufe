@@ -7,12 +7,12 @@ namespace Bufe.UI
     public class FamilyRowUI : MonoBehaviour
     {
         [Header("UI References")]
-        [Tooltip("Optional — hides itself if no portrait sprite is assigned.")]
+        [Tooltip("Hidden if no portrait is set.")]
         public Image portrait;
         public TextMeshProUGUI nameText;
         public TextMeshProUGUI statusText;
 
-        [Tooltip("Parent transform where medicine ExpenseRowUI rows are instantiated.")]
+        [Tooltip("Parent for medicine rows.")]
         public Transform needsContainer;
 
         [Header("Status Colors")]

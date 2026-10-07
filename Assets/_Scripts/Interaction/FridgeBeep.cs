@@ -3,23 +3,22 @@ using UnityEngine;
 namespace Bufe
 {
     /// <summary>
-    /// Beeps (looping, 3D from this object) if a HingedOpenable — e.g. the fridge door — is
+    /// Beeps (looping, 3D from this object) if a HingedOpenable - e.g. the fridge door - is
     /// left fully open longer than <see cref="openThreshold"/> seconds. Stops the moment it
     /// closes. Put this on the fridge and point <see cref="door"/> at its door component.
     /// </summary>
     public class FridgeBeep : MonoBehaviour
     {
-        [Tooltip("The door/lid to watch.")]
+        [Tooltip("Door to watch.")]
         [SerializeField] private HingedOpenable door;
 
-        [Tooltip("Seconds the door may stay open before the beep starts.")]
+        [Tooltip("Open seconds before beeping.")]
         [SerializeField] private float openThreshold = 5f;
 
-        [Tooltip("Looping beep sound (mapped in the AudioManager SFX library).")]
+        [Tooltip("Looping beep sound.")]
         [SerializeField] private Sfx beepSound = Sfx.Beep;
 
-        [Tooltip("Player look — the beep is silenced while a UI is open (UIMode: night events, " +
-                 "day-end, recipe book…). Auto-found if empty.")]
+        [Tooltip("Silent while UI is open. Auto-found.")]
         [SerializeField] private PlayerLook playerLook;
 
         private float       _openTime;
