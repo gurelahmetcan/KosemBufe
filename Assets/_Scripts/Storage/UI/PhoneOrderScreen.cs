@@ -1,33 +1,42 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using TMPro;
 
 namespace Bufe.UI
 {
     /// <summary>
-    /// Day-end phone screen for reordering stock. Lists every finite storage with a +/- order
-    /// amount and running total. The order is NOT committed here — Confirm reports the pending
-    /// order to DayEndScreen, which applies stock + cost at Sleep (so it stays editable until then).
+    /// Laptop "Restock" page (getirsene.com.tr). Lists every finite storage with a +/- amount,
+    /// a cart and a running total. The cart lives in SupplyService, so it survives closing the
+    /// panel. Confirm pays immediately (after a confirmation modal) and the goods arrive the
+    /// next morning.
     /// </summary>
-    public class PhoneOrderScreen : MonoBehaviour
+    public class PhoneOrderScreen : LaptopSection
     {
-        [Header("Storages")]
-        public IngredientStorage[] ingredientStorages;
-        public PremadeStorage[]    premadeStorages;
+        [Header("References")]
+        public SupplyService supplyService;
 
         [Header("UI")]
-        public GameObject      screenRoot;
         public Transform       rowContainer;
         public GameObject      rowPrefab;       // must have a PhoneOrderRowUI
         public TextMeshProUGUI totalText;
         public Button          confirmButton;
-        public Button          cancelButton;
+
+        [Tooltip("Empties the cart.")]
+        [FormerlySerializedAs("cancelButton")]
+        public Button          clearCartButton;
 
         [Header("Cart")]
         public Transform       cartContainer;   // where cart lines are listed
         public GameObject      cartRowPrefab;   // must have a CartRowUI
+
+        [Header("In Transit")]
+        [Tooltip("'Arriving tomorrow' block. Hidden if empty.")]
+        public GameObject      inTransitRoot;
+        public TextMeshProUGUI inTransitText;
 
         [Header("Category Tabs")]
         public CategoryTab[]   tabs;
@@ -43,34 +52,20 @@ namespace Bufe.UI
             public TextMeshProUGUI label;
         }
 
-        /// <summary>Player confirmed an order. Passes the pending lines and total cost.</summary>
-        public event Action<List<RestockLine>, float> OnOrderConfirmed;
-
-        /// <summary>Player cancelled — no changes.</summary>
-        public event Action OnCancelled;
-
         private readonly List<PhoneOrderRowUI> _rows     = new List<PhoneOrderRowUI>();
         private readonly List<CartRowUI>       _cartRows = new List<CartRowUI>();
 
-        private bool _wired;
+        private OrderCategory _category;
+        private bool          _hasCategory;
 
-        private void Start()
+        // ── LaptopSection ────────────────────────────────────────────────────────
+
+        protected override void OnBound()
         {
-            EnsureWired();
-            if (screenRoot != null) screenRoot.SetActive(false);
-        }
+            if (supplyService == null) supplyService = FindAnyObjectByType<SupplyService>();
 
-        /// <summary>
-        /// Wires button listeners once. Called from Start and again from Open, so the buttons work
-        /// even when this screen lives on a canvas that starts inactive (Start would never run).
-        /// </summary>
-        private void EnsureWired()
-        {
-            if (_wired) return;
-            _wired = true;
-
-            if (confirmButton != null) confirmButton.onClick.AddListener(HandleConfirm);
-            if (cancelButton  != null) cancelButton.onClick.AddListener(HandleCancel);
+            if (confirmButton   != null) confirmButton.onClick.AddListener(HandleConfirm);
+            if (clearCartButton != null) clearCartButton.onClick.AddListener(HandleClearCart);
 
             if (tabs != null)
             {
@@ -81,76 +76,83 @@ namespace Bufe.UI
                     tab.button.onClick.AddListener(() => SelectCategory(cat));
                 }
             }
+
+            if (supplyService != null) supplyService.OnOrdersChanged += HandleOrdersChanged;
         }
 
-        /// <summary>Opens the screen, pre-filling order amounts from the current pending order.</summary>
-        public void Open(IReadOnlyList<RestockLine> pending)
+        private void OnDestroy()
         {
-            EnsureWired();
-            BuildRows(pending);
-            HandleRowChanged();
-            SelectCategory(tabs != null && tabs.Length > 0 ? tabs[0].category : OrderCategory.StapleFood);
-            if (screenRoot != null) screenRoot.SetActive(true);
+            if (supplyService != null) supplyService.OnOrdersChanged -= HandleOrdersChanged;
         }
 
-        public void Close()
+        protected override void OnShown()
         {
-            if (screenRoot != null) screenRoot.SetActive(false);
+            Rebuild();
+
+            // Keep the last tab across visits; first visit opens the first tab.
+            if (!_hasCategory)
+                _category = tabs != null && tabs.Length > 0 ? tabs[0].category : OrderCategory.StapleFood;
+            SelectCategory(_category);
         }
 
-        // ── Rows ───────────────────────────────────────────────────────────────────
+        /// <summary>Adds one unit of <paramref name="target"/> to the cart (for "Reorder" links from other pages).</summary>
+        public void AddToCart(IRestockable target, int amount = 1)
+        {
+            if (supplyService == null || target == null) return;
+            supplyService.SetCartAmount(target, supplyService.GetCartAmount(target) + amount);
 
-        private void BuildRows(IReadOnlyList<RestockLine> pending)
+            _category    = target.Category;
+            _hasCategory = true;
+            if (IsShown) OnShown();
+        }
+
+        // ── Rows ─────────────────────────────────────────────────────────────────
+
+        private void Rebuild()
+        {
+            BuildRows();
+            RefreshTotalAndCart();
+            RefreshInTransit();
+        }
+
+        private void BuildRows()
         {
             foreach (var row in _rows)
                 if (row != null) Destroy(row.gameObject);
             _rows.Clear();
 
-            if (rowContainer == null || rowPrefab == null) return;
+            if (supplyService == null || rowContainer == null || rowPrefab == null) return;
 
-            foreach (IRestockable storage in EnumerateRestockables())
+            foreach (IRestockable storage in supplyService.Restockables)
             {
-                if (storage == null || storage.IsInfinite) continue;
-
                 var go  = Instantiate(rowPrefab, rowContainer);
                 var row = go.GetComponent<PhoneOrderRowUI>();
                 if (row == null) { Destroy(go); continue; }
 
-                row.Setup(storage, LookupPending(pending, storage), HandleRowChanged);
+                row.Setup(storage, supplyService.GetCartAmount(storage), HandleRowChanged);
                 _rows.Add(row);
             }
         }
 
-        private IEnumerable<IRestockable> EnumerateRestockables()
-        {
-            if (ingredientStorages != null)
-                foreach (var s in ingredientStorages) yield return s;
-            if (premadeStorages != null)
-                foreach (var s in premadeStorages) yield return s;
-        }
-
-        private static int LookupPending(IReadOnlyList<RestockLine> pending, IRestockable target)
-        {
-            if (pending == null) return 0;
-            foreach (var line in pending)
-                if (ReferenceEquals(line.target, target)) return line.amount;
-            return 0;
-        }
-
         private void HandleRowChanged()
         {
-            UpdateTotal();
+            if (supplyService != null)
+                foreach (var row in _rows)
+                    supplyService.SetCartAmount(row.Target, row.Amount);
+
+            RefreshTotalAndCart();
+        }
+
+        private void RefreshTotalAndCart()
+        {
+            float total = supplyService != null ? supplyService.CartTotal : 0f;
+            if (totalText     != null) totalText.text = $"₺{total:F0}";
+            if (confirmButton != null) confirmButton.interactable = supplyService != null && !supplyService.CartIsEmpty;
+
             RefreshCart();
         }
 
-        private void UpdateTotal()
-        {
-            float total = 0f;
-            foreach (var row in _rows) total += row.Subtotal;
-            if (totalText != null) totalText.text = $"₺{total:F0}";
-        }
-
-        // ── Cart ───────────────────────────────────────────────────────────────────
+        // ── Cart ─────────────────────────────────────────────────────────────────
 
         private void RefreshCart()
         {
@@ -173,11 +175,49 @@ namespace Bufe.UI
             }
         }
 
-        // ── Category tabs ────────────────────────────────────────────────────────────
+        // ── In transit ───────────────────────────────────────────────────────────
+
+        private void HandleOrdersChanged()
+        {
+            if (IsShown) RefreshInTransit();
+        }
+
+        private void RefreshInTransit()
+        {
+            bool any = supplyService != null && supplyService.InTransit.Count > 0;
+            if (inTransitRoot != null) inTransitRoot.SetActive(any);
+            if (!any || inTransitText == null) return;
+
+            // Merge all pending orders into one "Item xN" list.
+            var merged = new Dictionary<IRestockable, int>();
+            var order  = new List<IRestockable>();
+            foreach (var o in supplyService.InTransit)
+            {
+                foreach (var line in o.lines)
+                {
+                    if (line.target == null) continue;
+                    if (!merged.ContainsKey(line.target)) { merged[line.target] = 0; order.Add(line.target); }
+                    merged[line.target] += line.amount;
+                }
+            }
+
+            var sb = new StringBuilder("On the way - arrives tomorrow morning:\n");
+            for (int i = 0; i < order.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.Append($"{order[i].DisplayName} x{merged[order[i]]}");
+            }
+            inTransitText.text = sb.ToString();
+        }
+
+        // ── Category tabs ────────────────────────────────────────────────────────
 
         /// <summary>Shows only rows in the given category and highlights the matching tab.</summary>
         private void SelectCategory(OrderCategory category)
         {
+            _category    = category;
+            _hasCategory = true;
+
             foreach (var row in _rows)
             {
                 if (row == null || row.Target == null) continue;
@@ -192,34 +232,61 @@ namespace Bufe.UI
             }
         }
 
-        // ── Buttons ────────────────────────────────────────────────────────────────
+        // ── Buttons ──────────────────────────────────────────────────────────────
 
         private void HandleConfirm()
         {
-            var lines = new List<RestockLine>();
-            float total = 0f;
+            if (supplyService == null || supplyService.CartIsEmpty) return;
 
-            foreach (var row in _rows)
+            if (AudioManager.Instance)
+                AudioManager.Instance.PlaySfx(Sfx.Click);
+
+            float total = supplyService.CartTotal;
+
+            if (!supplyService.CanAfford(total))
             {
-                if (row.Amount <= 0) continue;
-                lines.Add(new RestockLine(row.Target, row.Amount));
-                total += row.Subtotal;
+                float balance = Panel != null && Panel.Money != null ? Panel.Money.Balance : 0f;
+                Panel?.ShowModal("Insufficient balance",
+                    $"This order costs ₺{total:F0} but you only have ₺{balance:F0}.\nRemove some items and try again.",
+                    "OK", null);
+                return;
             }
 
-            if(AudioManager.Instance)
-                AudioManager.Instance.PlaySfx(Sfx.Click);
-
-            Close();
-            OnOrderConfirmed?.Invoke(lines, total);
+            Panel?.ShowModal("Confirm order",
+                $"Total: ₺{total:F0}\nPaid now, delivered tomorrow morning.",
+                "Place order", PlaceOrder,
+                "Back", null);
         }
 
-        private void HandleCancel()
+        private void PlaceOrder()
         {
-            if(AudioManager.Instance)
+            var result = supplyService.PlaceOrder();
+
+            switch (result)
+            {
+                case SupplyService.OrderResult.Placed:
+                    if (AudioManager.Instance) AudioManager.Instance.PlaySfx(Sfx.CashRegister);
+                    Panel?.ShowToast("Order placed - arrives tomorrow morning.");
+                    Rebuild();
+                    SelectCategory(_category);
+                    break;
+
+                case SupplyService.OrderResult.InsufficientFunds:
+                    Panel?.ShowModal("Insufficient balance", "You can't afford this order right now.", "OK", null);
+                    break;
+            }
+        }
+
+        private void HandleClearCart()
+        {
+            if (supplyService == null) return;
+
+            if (AudioManager.Instance)
                 AudioManager.Instance.PlaySfx(Sfx.Click);
 
-            Close();
-            OnCancelled?.Invoke();
+            supplyService.ClearCart();
+            Rebuild();
+            SelectCategory(_category);
         }
     }
 }

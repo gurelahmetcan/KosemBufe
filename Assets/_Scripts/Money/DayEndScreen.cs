@@ -35,8 +35,7 @@ namespace Bufe
         public Transform    familyContainer;
         public GameObject   familyRowPrefab;
 
-        [Tooltip("Show the medicine-purchase row for sick members. OFF for the 5-day demo — " +
-                 "the only sick member is healed through an event instead. Sick status still shows.")]
+        [Tooltip("Show medicine rows for sick members.")]
         public bool allowMedicinePurchase = false;
 
         [Header("Footer")]
@@ -44,11 +43,11 @@ namespace Bufe
         public Button sleepButton;
 
         [Header("Restock")]
-        public PhoneOrderScreen phoneOrderScreen;
-        public Button           orderStockButton;
+        [Tooltip("Read-only row for today's restock spend.")]
+        public SupplyService supplyService;
 
         [Header("Transition")]
-        [Tooltip("Optional fade used to hide the world reset when starting the next day.")]
+        [Tooltip("Fade that hides the reset. Optional.")]
         public ScreenFader screenFader;
 
         [Header("Colors")]
@@ -67,48 +66,40 @@ namespace Bufe
         private readonly List<(FamilyMemberState state, ExpenseRowUI medicineRow)> _medicineRows =
             new List<(FamilyMemberState, ExpenseRowUI)>();
 
-        private float                      _restockCost;
-        private readonly List<RestockLine> _pendingOrder = new List<RestockLine>();
-        private ExpenseRowUI               _restockRow;
+        /// <summary>Already paid on the laptop today - shown and counted in the total, never deducted again.</summary>
+        private float _restockCost;
 
         // ── Unity lifecycle ──────────────────────────────────────────────────────
 
         private void Start()
         {
-            if (screenRoot       != null) screenRoot.SetActive(false);
-            if (sleepButton      != null) sleepButton.onClick.AddListener(HandleSleep);
-            if (orderStockButton != null) orderStockButton.onClick.AddListener(OpenPhoneOrder);
+            if (screenRoot  != null) screenRoot.SetActive(false);
+            if (sleepButton != null) sleepButton.onClick.AddListener(HandleSleep);
+
+            if (supplyService == null) supplyService = FindAnyObjectByType<SupplyService>();
         }
 
         private void OnEnable()
         {
             if (eventScreenManager != null) eventScreenManager.OnEventPhaseComplete += HandleEventPhaseComplete;
-
-            if (phoneOrderScreen != null)
-            {
-                phoneOrderScreen.OnOrderConfirmed += HandleOrderConfirmed;
-                phoneOrderScreen.OnCancelled      += HandleOrderCancelled;
-            }
         }
 
         private void OnDisable()
         {
             if (eventScreenManager != null) eventScreenManager.OnEventPhaseComplete -= HandleEventPhaseComplete;
-
-            if (phoneOrderScreen != null)
-            {
-                phoneOrderScreen.OnOrderConfirmed -= HandleOrderConfirmed;
-                phoneOrderScreen.OnCancelled      -= HandleOrderCancelled;
-            }
         }
 
         // ── Day-end entry point ───────────────────────────────────────────────────
 
         private void HandleEventPhaseComplete(int dayNumber)
         {
-            _dayNumber = dayNumber;
-            _income    = moneyManager != null ? moneyManager.DailyIncome : 0f;
-            _savings   = moneyManager != null ? moneyManager.Balance - _income : 0f;
+            _dayNumber   = dayNumber;
+            _income      = moneyManager != null ? moneyManager.DailyIncome : 0f;
+            _restockCost = supplyService != null ? supplyService.SpentToday : 0f;
+
+            // Restocking was already taken from the balance during the day; add it back so
+            // "savings" is still the start-of-day balance and the row explains the drop.
+            _savings = moneyManager != null ? moneyManager.Balance - _income + _restockCost : 0f;
 
             Show();
         }
@@ -124,11 +115,6 @@ namespace Bufe
             if (savingsText  != null) savingsText.text  = $"{_savings:F0}";
             if (earningsText != null) earningsText.text = $"+{_income:F0}";
 
-            // Restock resets each day-end open; the row (if any) is cleared with the container below.
-            _restockCost = 0f;
-            _pendingOrder.Clear();
-            _restockRow  = null;
-
             PopulateExpenseRows();
             PopulateFamilyRows();
             UpdateTotal();
@@ -139,7 +125,12 @@ namespace Bufe
             ClearContainer(expenseContainer);
             _expenseRows.Clear();
 
-            if (expenseConfig == null || expenseRowPrefab == null || expenseContainer == null) return;
+            if (expenseRowPrefab == null || expenseContainer == null) return;
+
+            if (_restockCost > 0f)
+                SpawnExpenseRow(expenseContainer, "RESTOCKING", _restockCost, isMandatory: true);
+
+            if (expenseConfig == null) return;
 
             foreach (var expense in expenseConfig.GetDueExpenses(_dayNumber))
             {
@@ -177,53 +168,6 @@ namespace Bufe
                         _medicineRows.Add((state, medRow));
                     }
                 }
-            }
-        }
-
-        // ── Phone order (restock) ──────────────────────────────────────────────────
-
-        private void OpenPhoneOrder()
-        {
-            if (phoneOrderScreen == null) return;
-
-            if (screenRoot != null) screenRoot.SetActive(false);   // hide day-end while ordering
-            
-            if(AudioManager.Instance)
-                AudioManager.Instance.PlaySfx(Sfx.Click);
-
-            phoneOrderScreen.Open(_pendingOrder);
-        }
-
-        private void HandleOrderConfirmed(List<RestockLine> lines, float total)
-        {
-            _pendingOrder.Clear();
-            _pendingOrder.AddRange(lines);
-            _restockCost = total;
-
-            RefreshRestockRow();
-
-            if (screenRoot != null) screenRoot.SetActive(true);    // back to day-end
-            UpdateTotal();
-        }
-
-        private void HandleOrderCancelled()
-        {
-            if (screenRoot != null) screenRoot.SetActive(true);    // back to day-end, no changes
-        }
-
-        private void RefreshRestockRow()
-        {
-            if (_restockCost > 0f)
-            {
-                if (_restockRow == null)
-                    _restockRow = SpawnExpenseRow(expenseContainer, "RESTOCKING", _restockCost, isMandatory: true);
-                else
-                    _restockRow.SetAmount(_restockCost);
-            }
-            else if (_restockRow != null)
-            {
-                Destroy(_restockRow.gameObject);
-                _restockRow = null;
             }
         }
 
@@ -279,15 +223,6 @@ namespace Bufe
                 moneyManager.ResetDailyIncome();
             }
 
-            // Apply the restock order: add stock now and pay for it.
-            if (_restockCost > 0f)
-            {
-                foreach (var line in _pendingOrder)
-                    line.target?.AddStock(line.amount);
-
-                moneyManager?.DeductExpense(_restockCost, "Restocking");
-            }
-
             // Build the set of members who received medicine
             var medicated = new HashSet<FamilyMemberState>();
             foreach (var (state, row) in _medicineRows)
@@ -312,7 +247,7 @@ namespace Bufe
             if (screenFader != null) yield return screenFader.FadeOut();
 
             // If anything in the new-day reset chain throws, we still MUST close the
-            // screen and release the player — otherwise UIMode stays true and the
+            // screen and release the player - otherwise UIMode stays true and the
             // player is stuck unable to move with a free cursor.
             try
             {
